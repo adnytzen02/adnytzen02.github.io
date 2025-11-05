@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本購物備忘清單 - 超簡單版</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <h1>🇯🇵 日本購物備忘清單</h1>
+        <p>誰都會用！隨便加、隨便勾、隨便刪，自動記住！</p>
+    </header>
+
+    <main id="app">
+        <!-- 新增表單 -->
+        <div class="add-form">
+            <input type="text" id="new-item" placeholder="想買什麼？（例如：抹茶巧克力）" autofocus>
+            <select id="category-select">
+                <option value="auto">自動判斷</option>
+                <option value="drugstore">藥妝美妝</option>
+                <option value="snacks">零食伴手禮</option>
+                <option value="goods">生活電器</option>
+            </select>
+            <button id="add-btn">＋ 加入</button>
+        </div>
+
+        <!-- 類別區塊 -->
+        <section class="category" data-category="drugstore">
+            <h2>💄 藥妝 & 美妝</h2>
+            <ul class="checklist"></ul>
+        </section>
+
+        <section class="category" data-category="snacks">
+            <h2>🍫 零食 & 伴手禮</h2>
+            <ul class="checklist"></ul>
+        </section>
+
+        <section class="category" data-category="goods">
+            <h2>🔌 生活雜貨 & 電器</h2>
+            <ul class="checklist"></ul>
+        </section>
+    </main>
+
+    <footer>
+        <button id="clear-all">🗑️ 清除全部</button>
+        <p>超簡單版 | 誰都會用 | 2025</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
