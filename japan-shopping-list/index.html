@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本購物備忘清單 - Shopping List Template</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>🇯🇵 日本購物備忘清單</h1>
+        <p>輕鬆規劃你的日本戰利品！勾選已購物品，自動儲存進度。</p>
+    </header>
+
+    <main>
+        <section class="category">
+            <h2>藥妝 & 美妝 (Drugstore & Cosmetics)</h2>
+            <ul class="checklist">
+                <li><input type="checkbox" id="biore" data-key="biore"><label for="biore">Biore 防曬乳</label></li>
+                <li><input type="checkbox" id="face-mask" data-key="face-mask"><label for="face-mask">LuLuLun 面膜</label></li>
+                <li><input type="checkbox" id="lip" data-key="lip"><label for="lip">DHC 唇膏</label></li>
+                <li><input type="checkbox" id="eye-cream" data-key="eye-cream"><label for="eye-cream">資生堂眼霜</label></li>
+            </ul>
+        </section>
+
+        <section class="category">
+            <h2>零食 & 伴手禮 (Snacks & Souvenirs)</h2>
+            <ul class="checklist">
+                <li><input type="checkbox" id="kitkat" data-key="kitkat"><label for="kitkat">限定口味 KitKat</label></li>
+                <li><input type="checkbox" id="pocky" data-key="pocky"><label for="pocky">Pocky 巧克力棒</label></li>
+                <li><input type="checkbox" id="matcha" data-key="matcha"><label for="matcha">抹茶 KitKat</label></li>
+                <li><input type="checkbox" id="rice-cracker" data-key="rice-cracker"><label for="rice-cracker">米果伴手禮</label></li>
+            </ul>
+        </section>
+
+        <section class="category">
+            <h2>生活雜貨 & 電器 (Daily Goods & Electronics)</h2>
+            <ul class="checklist">
+                <li><input type="checkbox" id="umbrella" data-key="umbrella"><label for="umbrella">自動雨傘</label></li>
+                <li><input type="checkbox" id="mask" data-key="mask"><label for="mask">Uniqlo 口罩</label></li>
+                <li><input type="checkbox" id="battery" data-key="battery"><label for="battery">Eneloop 充電電池</label></li>
+                <li><input type="checkbox" id="earbuds" data-key="earbuds"><label for="earbuds">Sony 耳機</label></li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <button id="clear-all">清除所有勾選</button>
+        <p>模板由頂尖網頁工程師設計 | 2025</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
