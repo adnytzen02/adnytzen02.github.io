@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>日本購物備忘清單</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <style>
+    html, body { min-height:100%; background: #f8fafd; }
+    .fixed-add-btn {
+      position: fixed;
+      left: 50%; bottom: 16px;
+      transform: translateX(-50%);
+      z-index: 1024;
+      width: 90vw; max-width: 500px;
+      box-shadow: 0 4px 20px #577dad22;
+    }
+    .item-img-preview {
+      width: 54px; height: 54px; object-fit: cover; border-radius: 8px; background: #f4f7fa;
+      display:inline-block; margin-bottom:4px; cursor: pointer;
+    }
+    @media (max-width: 768px) {
+      .item-img-preview { width:44px;height:44px;}
+      table td, table th { font-size: 14px;}
+    }
+    th, td { vertical-align: middle !important; }
+    .table > :not(:last-child) > :last-child > * { border-bottom-color: #a3c6f9 !important;}
+    .sortable-dragging { opacity:0.7; }
+    .drag-row-cursor { background: #ffffcc;}
+    .table-responsive { overflow-x: auto; }
+    #listTable tbody tr.bought { background: #e3f8e7 !important; color:#888; }
+    .btn-img { margin-left:4px; font-size: 1.15em; }
+    .btn-img input[type=file] { display: none; }
+    .table th, .table td { background-color:#fff !important;}
+    ::-webkit-scrollbar-thumb { background: #e0e9f6;}
+    ::-webkit-scrollbar-track { background: #f9fbfe;}
+    @media print {
+      .fixed-add-btn, #exportBtn, #importBtn, #allBoughtBtn, #importFile, .del-btn, .btn-img { display:none !important}
+      .item-img-preview { max-width:60px; max-height:60px;}
+      body { background:#fff; }
+      .print-header { display:block !important;}
+    }
+    .print-header { display:none;}
+  </style>
+</head>
+<body>
+  <div class="container pb-5 pt-3">
+    <div class="print-header mb-0">
+      <h2 class="text-center fw-bold mb-0">日本購物備忘清單</h2>
+    </div>
+    <h2 class="mb-2 text-center fw-bold d-print-none">日本購物備忘清單</h2>
+    <div class="text-center mb-3 small text-secondary d-print-none">
+      新增、拖曳、即時編輯(含圖片/已購)、自由匯出匯入，不怕遺漏。
+    </div>
+    <div class="d-flex gap-2 justify-content-center mb-3 d-print-none">
+      <button id="exportBtn"    class="btn btn-success btn-sm">匯出 HTML</button>
+      <button id="importBtn"    class="btn btn-secondary btn-sm">匯入舊檔</button>
+      <button id="allBoughtBtn" class="btn btn-outline-primary btn-sm">全部標已購買</button>
+      <input  id="importFile"   type="file" accept=".html" style="display:none">
+    </div>
+    <div class="table-responsive">
+      <table id="listTable" class="table table-bordered align-middle" style="background:#fff;">
+        <thead class="table-primary">
+          <tr>
+            <th style="width:55px">圖</th>
+            <th>商品名稱</th>
+            <th>店鋪</th>
+            <th style="width:75px">金額</th>
+            <th style="width:70px">數量</th>
+            <th style="width:85px">類別</th>
+            <th>備註</th>
+            <th style="width:90px">小計</th>
+            <th style="width:60px;">已購?</th>
+            <th style="width:75px"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- JS插入 -->
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="7" class="text-end fw-bold">未購總金額</td>
+            <td  id="totalCell" class="fw-bold fs-5">0</td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+  <button type="button" class="btn btn-primary fixed-add-btn" id="addBtn">＋ 新增一筆</button>
+
+  <div class="modal fade" id="imgPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content p-2" style="background:transparent;border:0;">
+        <img id="modalImg" src="" style="max-width:100%;border-radius:10px;box-shadow:0 4px 24px #0003;">
+      </div>
+    </div>
+  </div>
+<script>
+// ----- 資料結構 -----
+let items = [];
+let dragFromIdx = null;
+const STORAGE_KEY = '__japanShopList__';
+
+function emptyListOnLoad() { items = []; updateTable(); }
+window.addEventListener('DOMContentLoaded', emptyListOnLoad, { once: true });
+
+function newItem() {
+  return {
+    name: '', shop: '', price: '', qty: 1, category: '', note: '',
+    imgData: '', bought: false
+  };
+}
+function addItem(obj) {
+  items.push(obj || newItem());
+  updateTable();
+}
+function removeItem(idx) {
+  if (confirm('確定要刪除？')) { items.splice(idx, 1); updateTable(); }
+}
+function updateField(idx, field, value) {
+  if (field==='imgData' && value && value.type && value.type.startsWith("image/")) {
+    const reader = new FileReader();
+    reader.onload = e => { items[idx].imgData = e.target.result; updateTable(); }
+    reader.readAsDataURL(value);
+  } else if (field!=='imgData') {
+    if (field==='price'||field==='qty') { value = value.replace(/[^\d.]/g,''); }
+    items[idx][field] = value;
+    updateTable();
+  }
+}
+function toggleBought(idx) {
+  items[idx].bought = !items[idx].bought;
+  updateTable();
+}
+function allBought() {
+  items.forEach(i => i.bought = true);
+  updateTable();
+}
+
+/* ----------- 表格渲染 ----------- */
+function updateTable() {
+  const TB = document.querySelector('#listTable tbody');
+  TB.innerHTML = "";
+  let total = 0;
+  items.forEach((item,i)=>{
+    let sub = (parseFloat(item.price)||0)*(parseInt(item.qty)||1);
+    if(!item.bought) total+=sub;
+    TB.appendChild(trItem(item,i,sub));
+  });
+  document.getElementById('totalCell').innerText = total.toLocaleString();
+}
+function trItem(item, idx, subtotal) {
+  const tr = document.createElement("tr");
+  if(item.bought) tr.classList.add("bought");
+  // 拖曳排序
+  tr.draggable = true;
+  tr.ondragstart = e => { dragFromIdx = idx; tr.classList.add('sortable-dragging'); };
+  tr.ondragend = ()=> { dragFromIdx = null; tr.classList.remove('sortable-dragging'); };
+  tr.ondragover = e => { if(idx!==dragFromIdx){e.preventDefault();tr.classList.add('drag-row-cursor');} };
+  tr.ondragleave = () => tr.classList.remove('drag-row-cursor');
+  tr.ondrop = e => {
+    tr.classList.remove('drag-row-cursor');
+    if (dragFromIdx===null || dragFromIdx===idx) return;
+    const moving = items.splice(dragFromIdx, 1)[0];
+    items.splice(idx, 0, moving);
+    updateTable();
+  };
+  // 圖片列
+  let td1 = document.createElement("td");
+  td1.className="text-center";
+  if(item.imgData){
+    let img = document.createElement("img");
+    img.src = item.imgData;
+    img.className = "item-img-preview";
+    img.title = "點擊預覽";
+    img.onclick = ()=>showImgModal(item.imgData);
+    td1.appendChild(img);
+  }
+  let btnImg = document.createElement("label");
+  btnImg.className = "btn btn-light border btn-img";
+  btnImg.innerHTML = '📷';
+  let inpFile = document.createElement("input");
+  inpFile.type = "file"; inpFile.accept="image/*";
+  inpFile.onchange = e=>{
+    if(e.target.files[0]) updateField(idx,'imgData',e.target.files[0]);
+  };
+  btnImg.appendChild(inpFile); td1.appendChild(btnImg);
+
+  let td2 = tdInput(idx,"name",item.name,"商品名稱","text");
+  let td3 = tdInput(idx,"shop",item.shop,"店鋪","text");
+  let td4 = tdInput(idx,"price",item.price,"金額","number","min=0");
+  let td5 = tdInput(idx,"qty",item.qty,"數量","number","step=1 min=1");
+  let td6 = tdInput(idx,"category",item.category,"類別","text");
+  let td7 = tdInput(idx,"note",item.note,"備註","text");
+  let td8 = document.createElement("td");
+  td8.className="text-end fs-6";
+  td8.innerText = (!isNaN(subtotal) ? subtotal : "0");
+
+  let td9 = document.createElement("td");
+  td9.className="text-center";
+  let box = document.createElement("input");
+  box.type = "checkbox"; box.checked = !!item.bought;
+  box.onclick = ()=>toggleBought(idx);
+  td9.appendChild(box);
+
+  let td10 = document.createElement("td");
+  td10.className="text-center";
+  let del = document.createElement("button");
+  del.className="btn btn-danger btn-sm del-btn";
+  del.innerText="刪除";
+  del.onclick = ()=>removeItem(idx);
+  td10.appendChild(del);
+
+  [td1,td2,td3,td4,td5,td6,td7,td8,td9,td10].forEach(td=>tr.appendChild(td));
+  return tr;
+}
+function tdInput(idx,field,val,placeholder,type,ext) {
+  let td = document.createElement("td");
+  let input = document.createElement("input");
+  input.type = type||"text";
+  input.className = "form-control";
+  input.placeholder = placeholder;
+  input.value = val==null?"":val;
+  input.style.minWidth = (type=="number"?"58px":"100px");
+  if(field==="note"||field==="category") input.style.minWidth="90px";
+  if(['price','qty'].includes(field)) {input.style.textAlign="end";}
+  if(ext) ext.split(' ').forEach(c=>{
+    let [k,v]=c.split('=');
+    v!==undefined&&input.setAttribute(k, v.replace(/['"]/g,''));
+  });
+  input.onchange = e=>updateField(idx,field,e.target.value);
+  input.oninput  = input.onchange;
+  td.appendChild(input);
+  return td;
+}
+
+/* 圖片預覽 */
+function showImgModal(src) {
+  if(!src) return;
+  document.getElementById("modalImg").src = src;
+  let modal = new bootstrap.Modal(document.getElementById("imgPreviewModal"));
+  modal.show();
+}
+
+// ----- 控制 -----
+document.getElementById("addBtn").onclick = ()=>addItem();
+document.getElementById("allBoughtBtn").onclick = ()=>allBought();
+
+// 匯出（HTML）
+document.getElementById("exportBtn").onclick = function() {
+  let nowstr = (new Date()).toISOString().slice(0,10).replace(/-/g,'');
+  let filename = `日本購物清單_${nowstr}.html`;
+  let html = exportHTML();
+  let blob = new Blob([html], {type:'text/html'});
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+};
+// 匯入
+document.getElementById("importBtn").onclick = ()=> document.getElementById("importFile").click();
+document.getElementById("importFile").onchange = function(e) {
+  let file = e.target.files[0];
+  if (!file) return;
+  let reader = new FileReader();
+  reader.onload = function(ev){
+    let parser = new DOMParser();
+    let doc = parser.parseFromString(ev.target.result, "text/html");
+    let imported = doc.getElementById("shopListDataJson")?.textContent;
+    try {
+      items = JSON.parse(imported || "[]");
+      updateTable();
+      alert("匯入成功，可繼續編輯！");
+    } catch {
+      alert("匯入失敗／舊檔或格式不正確。");
+    }
+  };
+  reader.readAsText(file);
+};
+
+/* -------- 匯出HTML --------- */
+function exportHTML(){
+  let total = 0;
+  let rows = items.map(item=>{
+    let sub = (parseFloat(item.price)||0)*(parseInt(item.qty)||1);
+    if(!item.bought) total+=sub;
+    let imgtd = item.imgData?`<img src="${item.imgData}" class="item-img-preview">`:"";
+    return `<tr${item.bought?' class="bought"':''}>
+      <td style="text-align:center;">${imgtd}</td>
+      <td>${escapeHTML(item.name)}</td>
+      <td>${escapeHTML(item.shop)}</td>
+      <td style="text-align:right;">${item.price||''}</td>
+      <td style="text-align:right;">${item.qty||''}</td>
+      <td>${escapeHTML(item.category)}</td>
+      <td>${escapeHTML(item.note)}</td>
+      <td style="text-align:right;">${sub||0}</td>
+      <td style="text-align:center;">${item.bought?'✅':''}</td>
+    </tr>`;
+  }).join('\n');
+  let boughtCount = items.filter(x=>x.bought).length;
+  let allCount = items.length;
+  return `<!DOCTYPE html>
+<html lang="zh-Hant"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>日本購物清單</title>
+<style>
+body { background: #fff; font-family: system-ui, "Noto Sans TC", "Microsoft JhengHei",'Apple LiGothic', Arial, sans-serif;}
+h2 { text-align:center; margin-top:1em;}
+table { border-collapse:collapse; width:100%; margin:0 auto;}
+th,td { border:1px solid #b8cfed; padding: 7px 6px; font-size:1em; vertical-align:middle;}
+thead th { background:#6fbbed; color:#fff;}
+.bought { background: #e3f8e7 !important; color:#888 !important;}
+img.item-img-preview { max-width:54px; max-height:54px; border-radius:8px; background:#f4f7fa;}
+tfoot th, tfoot td { font-size:1.12em; background: #e6eef5;}
+@media print {
+  body { background:#fff; }
+  h2 { font-size:1.25em; margin-bottom:0.7em }
+  table { font-size:13px;}
+}
+.table-responsive {overflow-x:auto;}
+</style>
+</head>
+<body>
+<h2>日本購物清單（共${allCount}項，已購${boughtCount}）</h2>
+<div class="table-responsive">
+<table>
+<thead>
+<tr><th>圖</th><th>商品名稱</th><th>店鋪</th><th>金額</th><th>數量</th><th>類別</th><th>備註</th><th>小計</th><th>已購</th></tr>
+</thead>
+<tbody>
+${rows}
+</tbody>
+<tfoot>
+<tr>
+  <td colspan="7" style="text-align:right;font-weight:bold;">未購總金額</td>
+  <td style="font-weight:bold;">${total.toLocaleString()}</td>
+  <td></td>
+</tr>
+</tfoot>
+</table>
+</div>
+<script>
+var shopListDataJson = \`${JSON.stringify(items)}\`;
+</script>
+<pre id="shopListDataJson" style="display:none;">${JSON.stringify(items)}</pre>
+</body>
+</html>`;
+}
+function escapeHTML(str) {
+  return String(str||'').replace(/[<>&"']/g,s=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'})[s]);
+}
+
+window.onpageshow = function(event){ if (event.persisted) window.location.reload();};
+window.onbeforeunload = function(){ sessionStorage.removeItem(STORAGE_KEY); };
+window.addEventListener("resize",()=>{
+  document.body.style.minHeight = window.innerHeight+"px";
+});
+updateTable();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
