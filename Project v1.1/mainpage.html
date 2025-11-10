@@ -1,270 +1,182 @@
 /*
-Shopping List React Single-file Component
-Features implemented:
-1. Add new list button; app starts with an empty working list (auto-clear on open).
-2. Offline input page: add/edit/delete items locally (no server). All data lives in state; exported file contains data for later import.
-3. Fields: name, store, amount, category, notes, image (preview). Amounts auto-summed.
-4. "Export HTML" button: generates a responsive, print-friendly HTML file containing a styled list and an embedded JSON data blob for later import.
-5. Professional & intuitive UI with Tailwind, image preview, drag-and-drop reorder (HTML5 drag/drop).
-6. "Import Old File" accepts a previously exported HTML and restores the list for continued editing.
-
-Usage:
-- This is a single React component. Drop into a React + Tailwind project.
-- It uses only built-in browser APIs so it works offline (no external libs required).
+Shopping List Standalone HTML Version with localStorage autosave.
+Offline, editable single-page app.
+Features:
+1. Add/edit/delete shopping list items with images.
+2. Auto-save to localStorage and auto-load on reopen.
+3. Export as a print-friendly, responsive HTML with embedded data.
+4. Import from a previously exported HTML file.
+5. Works fully offline (no build tools, just open the HTML file in browser).
 */
 
-import React, { useEffect, useState, useRef } from "react";
-
-export default function ShoppingListApp() {
-  const blankItem = () => ({
-    id: Date.now() + Math.random().toString(36).slice(2),
-    name: "",
-    store: "",
-    amount: "",
-    category: "",
-    notes: "",
-    imageDataUrl: null,
-  });
-
-  // Start with an empty working list (auto-clear on open)
-  const [items, setItems] = useState([]);
-  const [title, setTitle] = useState("我的清單");
-  const [draggingId, setDraggingId] = useState(null);
-  const fileInputRef = useRef(null);
-
-  useEffect(() => {
-    // auto-clear on open: do nothing (items default empty)
-  }, []);
-
-  // Add new item
-  function addItem() {
-    setItems(prev => [...prev, blankItem()]);
-  }
-
-  function updateItem(id, patch) {
-    setItems(prev => prev.map(it => it.id === id ? { ...it, ...patch } : it));
-  }
-
-  function deleteItem(id) {
-    setItems(prev => prev.filter(it => it.id !== id));
-  }
-
-  function handleImageUpload(id, file) {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => updateItem(id, { imageDataUrl: e.target.result });
-    reader.readAsDataURL(file);
-  }
-
-  function totalAmount() {
-    return items.reduce((s, it) => {
-      const n = parseFloat(String(it.amount).replace(/,/g, ""));
-      return s + (isNaN(n) ? 0 : n);
-    }, 0);
-  }
-
-  // Export HTML
-  function exportHTML() {
-    const exportData = { title, items };
-    const jsonBlob = JSON.stringify(exportData);
-    const html = `<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>${escapeHtml(title)} - 匯出清單</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>購物清單</title>
 <style>
-  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;padding:20px}
-  .container{max-width:900px;margin:0 auto}
-  .header{display:flex;justify-content:space-between;align-items:center}
-  .items{margin-top:16px}
-  .item{display:flex;gap:12px;padding:12px;border-bottom:1px solid #ddd;align-items:center}
-  .item .meta{flex:1}
-  .thumb{width:88px;height:88px;object-fit:cover;border-radius:8px}
-  @media print{.no-print{display:none}}
+body { font-family: system-ui, sans-serif; margin: 20px; background: #f8fafc; }
+.container { max-width: 900px; margin: auto; background: #fff; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+button { cursor: pointer; }
+input, textarea { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+.item { border: 1px solid #ddd; border-radius: 8px; padding: 10px; margin-top: 10px; background: #fff; display: flex; gap: 10px; align-items: flex-start; }
+.thumb { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; background: #f3f3f3; display:flex; align-items:center; justify-content:center; color:#aaa; }
+.header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+.actions button { margin-right: 6px; }
+@media print { .no-print { display: none; } }
 </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
-    <h1>${escapeHtml(title)}</h1>
-    <div class="no-print">列印友善 - 匯出於 ${new Date().toLocaleString()}</div>
+    <h2>購物/費用清單</h2>
+    <div class="actions no-print">
+      <button id="addBtn">新增項目</button>
+      <button id="clearBtn">清空</button>
+      <button id="importBtn">匯入舊檔</button>
+      <button id="exportBtn">匯出 HTML</button>
+      <input id="fileInput" type="file" accept=".html" style="display:none" />
+    </div>
   </div>
-  <div class="summary">總金額：${formatNumber(totalAmount())}</div>
-  <div class="items">
-    ${items.map(it => `
-      <div class="item">
-        <div class="meta">
-          <div><strong>${escapeHtml(it.name || '（無名稱）')}</strong></div>
-          <div>${escapeHtml(it.store || '')} ${it.category ? '· ' + escapeHtml(it.category) : ''}</div>
-          <div>${escapeHtml(it.notes || '')}</div>
-        </div>
-        <div>${formatNumber(parseFloat(String(it.amount).replace(/,/g, '')) || 0)}</div>
-        ${it.imageDataUrl ? `<img src="${it.imageDataUrl}" class="thumb" />` : ''}
-      </div>
-    `).join("")}
+
+  <div class="no-print" style="margin-top:10px;display:flex;gap:10px;align-items:center">
+    <label>清單標題：</label>
+    <input id="titleInput" placeholder="我的清單" />
+    <span>總金額：<strong id="total"></strong></span>
   </div>
+
+  <div id="list"></div>
+
+  <p class="no-print" style="margin-top:20px;color:#666;font-size:13px">提示：資料自動儲存於瀏覽器，重新開啟仍可繼續編輯。可使用「匯出 HTML」保存離線檔案或列印。</p>
 </div>
 
-<!-- Embedded data for re-import -->
-<script id="export-data" type="application/json">${escapeHtml(jsonBlob)}</script>
-</body>
-</html>`;
+<script>
+const listEl = document.getElementById('list');
+const addBtn = document.getElementById('addBtn');
+const clearBtn = document.getElementById('clearBtn');
+const exportBtn = document.getElementById('exportBtn');
+const importBtn = document.getElementById('importBtn');
+const fileInput = document.getElementById('fileInput');
+const titleInput = document.getElementById('titleInput');
+const totalEl = document.getElementById('total');
 
-    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${sanitizeFileName(title || 'shopping-list')}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+let items = [];
+const LS_KEY = 'shopping-list-data-v1';
 
-  // Import previously exported HTML file
-  function importFile(file) {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      const text = e.target.result;
-      // try to find the <script id="export-data"> JSON blob
-      const m = text.match(/<script[^>]*id=["']export-data["'][^>]*>([\s\S]*?)<\/script>/i);
-      if (m && m[1]) {
-        try {
-          const data = JSON.parse(m[1]);
-          // basic validation
-          if (Array.isArray(data.items)) {
-            // ensure each item has id
-            const normalized = data.items.map(it => ({ ...blankItem(), ...it }));
-            setTitle(data.title || '匯入清單');
-            setItems(normalized);
-            alert('已匯入清單，可繼續編輯。');
-            return;
-          }
-        } catch (err) {
-          console.error(err);
-        }
-      }
-      alert('找不到可匯入的資料，請確認您匯入的是本應用匯出的 HTML 檔案。');
-    };
-    reader.readAsText(file);
+// Load from localStorage
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem(LS_KEY);
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      titleInput.value = data.title || '我的清單';
+      items = data.items || [];
+    } catch {}
   }
+  render();
+});
 
-  // Drag & drop reordering (HTML5)
-  function onDragStart(e, id) {
-    setDraggingId(id);
-    e.dataTransfer.effectAllowed = 'move';
-  }
-  function onDragOver(e) { e.preventDefault(); }
-  function onDrop(e, targetId) {
-    e.preventDefault();
-    if (!draggingId) return;
-    if (draggingId === targetId) return;
-    const idxFrom = items.findIndex(i => i.id === draggingId);
-    const idxTo = items.findIndex(i => i.id === targetId);
-    if (idxFrom < 0 || idxTo < 0) return;
-    const next = [...items];
-    const [moved] = next.splice(idxFrom, 1);
-    next.splice(idxTo, 0, moved);
-    setItems(next);
-    setDraggingId(null);
-  }
+// Auto-save on change
+titleInput.addEventListener('input', save);
 
-  return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <header className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-semibold">購物/費用清單</h2>
-        <div className="flex gap-2">
-          <button className="px-3 py-1 rounded bg-indigo-600 text-white" onClick={addItem}>新增清單項目</button>
-          <button className="px-3 py-1 rounded border" onClick={() => { if (confirm('確定要清空目前工作區？（此動作不會刪除已匯出的檔案）')) setItems([]); }}>清空</button>
-          <input ref={fileInputRef} type="file" accept=".html" className="hidden" onChange={e => importFile(e.target.files?.[0])} />
-          <button className="px-3 py-1 rounded border" onClick={() => fileInputRef.current?.click()}>匯入舊檔</button>
-          <button className="px-3 py-1 rounded bg-green-600 text-white" onClick={exportHTML}>匯出 HTML</button>
+function save() {
+  localStorage.setItem(LS_KEY, JSON.stringify({ title: titleInput.value, items }));
+  updateTotal();
+}
+
+function addItem() {
+  items.push({ id: Date.now(), name:'', store:'', amount:'', category:'', notes:'', image:null });
+  render(); save();
+}
+function deleteItem(id) {
+  items = items.filter(it=>it.id!==id);
+  render(); save();
+}
+function updateItem(id, field, value){
+  const it = items.find(x=>x.id===id);
+  if(it){ it[field]=value; save(); }
+}
+function handleImage(id, file){
+  const reader = new FileReader();
+  reader.onload = e=>{ updateItem(id,'image',e.target.result); render(); };
+  reader.readAsDataURL(file);
+}
+
+function clearAll(){
+  if(confirm('確定清空所有資料？')){
+    items=[]; localStorage.removeItem(LS_KEY); render();
+  }
+}
+
+function updateTotal(){
+  const sum = items.reduce((a,b)=>a+(parseFloat(b.amount)||0),0);
+  totalEl.textContent = sum.toLocaleString();
+}
+
+function render(){
+  listEl.innerHTML='';
+  items.forEach(it=>{
+    const div=document.createElement('div');
+    div.className='item';
+    div.innerHTML=`
+      <div class='thumb'>${it.image?`<img src='${it.image}' class='thumb'>`:'無圖片'}</div>
+      <div style='flex:1;display:grid;grid-template-columns:1fr 1fr;gap:4px;'>
+        <label>商品名稱<input value="${it.name}" data-field="name"></label>
+        <label>店鋪<input value="${it.store}" data-field="store"></label>
+        <label>金額<input value="${it.amount}" data-field="amount"></label>
+        <label>類別<input value="${it.category}" data-field="category"></label>
+        <label class='col-span-2'>備註<input value="${it.notes}" data-field="notes"></label>
+        <div class='col-span-2 no-print' style='display:flex;gap:6px;align-items:center;'>
+          <input type='file' accept='image/*' data-field='imageFile' style='flex:1;'>
+          <button data-action='removeImg'>移除圖片</button>
+          <button data-action='del'>刪除</button>
         </div>
-      </header>
+      </div>`;
 
-      <div className="mb-4 flex gap-3 items-center">
-        <label className="text-sm">檔名 / 標題：</label>
-        <input value={title} onChange={e => setTitle(e.target.value)} className="border p-1 rounded flex-1" />
-        <div className="text-sm">總金額：<strong>{formatNumber(totalAmount())}</strong></div>
-      </div>
-
-      <div className="space-y-3">
-        {items.length === 0 && (
-          <div className="p-6 border-dashed border rounded text-center text-gray-500">目前工作區為空。按「新增清單項目」開始。</div>
-        )}
-
-        {items.map((it, idx) => (
-          <div key={it.id}
-            draggable
-            onDragStart={e => onDragStart(e, it.id)}
-            onDragOver={onDragOver}
-            onDrop={e => onDrop(e, it.id)}
-            className="p-3 border rounded flex gap-3 items-start bg-white shadow-sm">
-
-            <div className="w-28 h-20 bg-gray-50 rounded overflow-hidden flex-shrink-0 flex items-center justify-center">
-              {it.imageDataUrl ? (
-                <img src={it.imageDataUrl} alt="thumb" className="object-cover w-full h-full" />
-              ) : (
-                <div className="text-xs text-gray-400">無圖片</div>
-              )}
-            </div>
-
-            <div className="flex-1 grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs text-gray-600">商品名稱</label>
-                <input value={it.name} onChange={e => updateItem(it.id, { name: e.target.value })} className="w-full border rounded p-1" />
-              </div>
-              <div>
-                <label className="text-xs text-gray-600">店鋪</label>
-                <input value={it.store} onChange={e => updateItem(it.id, { store: e.target.value })} className="w-full border rounded p-1" />
-              </div>
-
-              <div>
-                <label className="text-xs text-gray-600">金額</label>
-                <input value={it.amount} onChange={e => updateItem(it.id, { amount: e.target.value })} placeholder="0" className="w-full border rounded p-1" />
-              </div>
-              <div>
-                <label className="text-xs text-gray-600">類別</label>
-                <input value={it.category} onChange={e => updateItem(it.id, { category: e.target.value })} className="w-full border rounded p-1" />
-              </div>
-
-              <div className="col-span-2">
-                <label className="text-xs text-gray-600">備註</label>
-                <input value={it.notes} onChange={e => updateItem(it.id, { notes: e.target.value })} className="w-full border rounded p-1" />
-              </div>
-
-              <div className="col-span-2 flex items-center gap-2 mt-1">
-                <label className="text-xs text-gray-600">圖片</label>
-                <input type="file" accept="image/*" onChange={e => handleImageUpload(it.id, e.target.files?.[0])} />
-                <button className="ml-auto text-sm text-red-600" onClick={() => updateItem(it.id, { imageDataUrl: null })}>移除圖片</button>
-                <button className="ml-2 text-sm text-gray-600" onClick={() => deleteItem(it.id)}>刪除</button>
-              </div>
-
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <footer className="mt-6 text-sm text-gray-500">提示：匯出後可保留檔案並用「匯入舊檔」繼續編輯。列印時將使用匯出的樣式（響應式且列印友善）。拖曳項目以重新排序。</footer>
-    </div>
-  );
+    div.querySelectorAll('input[data-field]').forEach(inp=>{
+      inp.addEventListener('input',e=>{
+        if(e.target.dataset.field==='imageFile' && e.target.files[0]) handleImage(it.id,e.target.files[0]);
+        else if(e.target.dataset.field!=='imageFile') updateItem(it.id,e.target.dataset.field,e.target.value);
+      });
+    });
+    div.querySelector('[data-action="removeImg"]').onclick=()=>{updateItem(it.id,'image',null); render();};
+    div.querySelector('[data-action="del"]').onclick=()=>deleteItem(it.id);
+    listEl.appendChild(div);
+  });
+  updateTotal();
 }
 
-// --- Helpers ---
-function escapeHtml(s) {
-  if (s == null) return '';
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+function exportHTML(){
+  const data = { title:titleInput.value, items };
+  const json = JSON.stringify(data);
+  const html = `<!doctype html><html><head><meta charset='utf-8'><title>${titleInput.value}</title></head><body>${document.querySelector('.container').outerHTML}<script id='export-data' type='application/json'>${json}</script></body></html>`;
+  const blob=new Blob([html],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=(titleInput.value||'shopping-list')+'.html';a.click();URL.revokeObjectURL(url);
 }
-function sanitizeFileName(s) {
-  return (s || 'export').replace(/[^a-z0-9\-_.\u4e00-\u9fff]/gi, '_').slice(0, 120);
+
+function importFile(f){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const text=e.target.result;
+    const m=text.match(/<script[^>]*id=["']export-data["'][^>]*>([\s\S]*?)<\/script>/i);
+    if(m){
+      try{
+        const data=JSON.parse(m[1]);
+        items=data.items||[]; titleInput.value=data.title||'匯入清單'; save(); render(); alert('已匯入資料。');
+      }catch{alert('匯入失敗');}
+    }
+  };
+  reader.readAsText(f);
 }
-function formatNumber(n) {
-  if (n == null) return '0';
-  const num = Number(n) || 0;
-  return num.toLocaleString();
-}
+
+addBtn.onclick=addItem;
+clearBtn.onclick=clearAll;
+exportBtn.onclick=exportHTML;
+importBtn.onclick=()=>fileInput.click();
+fileInput.onchange=e=>{ if(e.target.files[0]) importFile(e.target.files[0]); };
+</script>
+</body>
+</html>
