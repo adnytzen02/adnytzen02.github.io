@@ -1,0 +1,301 @@
+/* 基礎樣式 */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #6A1B9A 0%, #9C27B0 50%, #E1BEE7 100%);
+    color: #ffffff;
+    min-height: 100vh;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+/* 標題 */
+header {
+    text-align: center;
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 30px;
+    backdrop-filter: blur(10px);
+    margin-bottom: 25px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+header p {
+    font-size: 15px;
+    opacity: 0.9;
+    margin-bottom: 0;
+}
+
+/* 表單容器 */
+.add-form {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 25px;
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* 輸入群組 */
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-size: 14px;
+    margin-bottom: 6px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.icon {
+    font-size: 16px;
+}
+
+.req {
+    color: #FF9800;
+    font-weight: bold;
+}
+
+/* 輸入框 - 極致明顯 */
+input, select {
+    padding: 14px 16px;
+    border: 2px solid transparent;
+    border-radius: 18px;
+    background: #ffffff;
+    color: #333333;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+input::placeholder, select:invalid {
+    color: #999999;
+    font-weight: normal;
+}
+
+/* 焦點效果 - 強烈光暈 + 放大 + 邊框 */
+input:focus, select:focus {
+    outline: none;
+    border-color: #9C27B0;
+    box-shadow: 
+        0 0 0 4px rgba(156, 39, 176, 0.3),
+        0 8px 25px rgba(156, 39, 176, 0.4);
+    transform: scale(1.03) translateY(-2px);
+    background: #f8f9fa;
+}
+
+/* 新增按鈕 */
+#addBtn {
+    grid-column: 1 / -1;
+    padding: 16px;
+    background: linear-gradient(135deg, #512DA8, #7B1FA2);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(81, 45, 168, 0.4);
+    transition: all 0.3s ease;
+}
+
+#addBtn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(81, 45, 168, 0.5);
+}
+
+/* 功能按鈕 */
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.action-buttons button {
+    flex: 1;
+    min-width: 120px;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 25px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+#importBtn {
+    background: #1976D2;
+    color: white;
+}
+
+#importBtn:hover {
+    background: #1565C0;
+    transform: translateY(-2px);
+}
+
+.success {
+    background: #4CAF50;
+    color: white;
+}
+
+.success:hover {
+    background: #388E3C;
+    transform: translateY(-2px);
+}
+
+.danger {
+    background: #F44336;
+    color: white;
+}
+
+.danger:hover {
+    background: #D32F2F;
+    transform: translateY(-2px);
+}
+
+/* 總金額 */
+#totalAmount {
+    font-size: 22px;
+    font-weight: bold;
+    text-align: right;
+    margin: 20px 0;
+    color: #E8EAF6;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 表格容器 */
+.table-container {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 25px;
+    padding: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    overflow-x: auto; /* 新增水平滾動支持 */
+    max-width: 100%;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 18px;
+    overflow: hidden;
+    min-width: 800px; /* 確保小螢幕時可滾動 */
+}
+
+th {
+    background: #F5F5F5;
+    color: #333333;
+    padding: 14px 10px;
+    font-weight: 600;
+    text-align: left;
+    font-size: 16px;
+}
+
+td {
+    padding: 10px;
+    border-bottom: 1px solid #EEEEEE;
+    font-size: 16px;
+	min-width: 80px; /* 確保新數量欄位有足夠寬度 */
+}
+
+td input {
+    padding: 8px 10px;
+    font-size: 16px;
+    border-radius: 12px;
+    border: 1px solid #DDDDDD;
+    font-weight: 500;
+}
+
+td img {
+    max-width: 80px;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+td input[type="checkbox"] {
+    transform: scale(1.2);
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+/* 勾選劃掉效果 */
+.checked {
+    text-decoration: line-through;
+    color: #888888;
+}
+
+/* 響應式 */
+@media (max-width: 768px) {
+    .add-form {
+        grid-template-columns: 1fr;
+        padding: 20px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .action-buttons button {
+        width: 100%;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    th, td {
+        font-size: 14px;
+        padding: 8px 6px; /* 減少填充以適應小螢幕 */
+    }
+
+    td input {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 15px;
+    }
+
+    input, select {
+        font-size: 16px;
+        padding: 16px;
+    }
+
+    #addBtn {
+        font-size: 17px;
+        padding: 18px;
+    }
+}
+
+/* 列印優化 */
+@media print {
+    body { background: white; color: black; }
+    .action-buttons, #addForm { display: none; }
+    table { background: white; }
+    th { background: #f0f0f0; }
+    .checked { text-decoration: line-through; color: #888; }
+}
