@@ -181,6 +181,13 @@ const ioModule = (() => {
                     border-radius: 8px;
                     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
                 }
+                .zoomable {
+                    cursor: pointer;
+                    transition: opacity 0.3s;
+                }
+                .zoomable:hover {
+                    opacity: 0.7;
+                }
                 .checked td:not(:last-child) {
                     text-decoration: line-through double;
                     color: #555;
@@ -240,6 +247,61 @@ const ioModule = (() => {
                 }
                 td:last-child {
                     text-align: center;
+                }
+                /* 模態樣式 */
+                .modal {
+                    display: none;
+                    position: fixed;
+                    z-index: 1000;
+                    padding-top: 100px;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                    height: 100%;
+                    overflow: auto;
+                    background-color: rgba(0,0,0,0.9);
+                }
+                .modal-content {
+                    margin: auto;
+                    display: block;
+                    width: 80%;
+                    max-width: 700px;
+                    animation-name: zoom;
+                    animation-duration: 0.6s;
+                }
+                @keyframes zoom {
+                    from {transform: scale(0)}
+                    to {transform: scale(1)}
+                }
+                .close {
+                    position: absolute;
+                    top: 15px;
+                    right: 35px;
+                    color: #f1f1f1;
+                    font-size: 40px;
+                    font-weight: bold;
+                    transition: 0.3s;
+                }
+                .close:hover,
+                .close:focus {
+                    color: #bbb;
+                    text-decoration: none;
+                    cursor: pointer;
+                }
+                #caption {
+                    margin: auto;
+                    display: block;
+                    width: 80%;
+                    max-width: 700px;
+                    text-align: center;
+                    color: #ccc;
+                    padding: 10px 0;
+                    height: 150px;
+                }
+                @media only screen and (max-width: 700px) {
+                    .modal-content {
+                        width: 100%;
+                    }
                 }
                 @media (max-width: 768px) {
                     body {
@@ -328,6 +390,7 @@ const ioModule = (() => {
                         background: none;
                         box-shadow: none;
                     }
+                    .modal { display: none !important; } /* 隱藏模態於列印模式 */
                 }
             </style>
             <script>
@@ -342,16 +405,43 @@ const ioModule = (() => {
                             if (checkbox.checked) row.classList.add('checked');
                         }
                     });
+
+                    // 模態圖片放大邏輯
+                    const modal = document.getElementById('myModal');
+                    const modalImg = document.getElementById('img01');
+                    const captionText = document.getElementById('caption');
+                    document.querySelectorAll('.zoomable').forEach(img => {
+                        img.addEventListener('click', () => {
+                            modal.style.display = 'block';
+                            modalImg.src = img.src;
+                            captionText.innerHTML = img.alt;
+                        });
+                    });
+                    const span = document.getElementsByClassName('close')[0];
+                    span.addEventListener('click', () => {
+                        modal.style.display = 'none';
+                    });
+                    modal.addEventListener('click', event => {
+                        if (event.target === modal) {
+                            modal.style.display = 'none';
+                        }
+                    });
                 });
             </script>
         </head><body>
             <h1>日本購物備忘清單</h1>
             <div class="table-container">
                 <table id="itemList"><thead><tr><th>圖片</th><th>商品</th><th>店鋪</th><th>數量</th><th>金額</th><th>類別</th><th>備註</th><th>完成</th></tr></thead><tbody>
-                    ${items.map(i => `<tr class="${i.checked ? 'checked' : ''}"><td>${i.image ? `<img src="${i.image}">` : ''}</td><td>${i.name}</td><td>${i.store}</td><td>${i.quantity || 1}</td><td>${i.amount}</td><td>${i.category}</td><td>${i.note}</td><td><label class="checkbox-label"><input type="checkbox" ${i.checked ? 'checked' : ''}></label></td></tr>`).join('')}
+                    ${items.map(i => `<tr class="${i.checked ? 'checked' : ''}"><td>${i.image ? `<img src="${i.image}" class="zoomable" alt="${i.name || '商品圖片'}">` : ''}</td><td>${i.name}</td><td>${i.store}</td><td>${i.quantity || 1}</td><td>${i.amount}</td><td>${i.category}</td><td>${i.note}</td><td><label class="checkbox-label"><input type="checkbox" ${i.checked ? 'checked' : ''}></label></td></tr>`).join('')}
                 </tbody></table>
             </div>
             <div id="total">總金額: ¥${dataModule.total().toFixed(0)}</div>
+            <!-- 模態對話框 -->
+            <div id="myModal" class="modal">
+                <span class="close">&times;</span>
+                <img class="modal-content" id="img01">
+                <div id="caption"></div>
+            </div>
         </body></html>`;
         const blob = new Blob([html], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
