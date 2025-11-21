@@ -1,0 +1,105 @@
+/* style.css */
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    margin: 0; 
+    padding: 20px;
+    background-color: #f4f4f9; 
+    color: #333;
+}
+
+.container { 
+    max-width: 800px; 
+    margin: auto; 
+    background: white; 
+    padding: 30px; 
+    border-radius: 12px; 
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); 
+}
+
+h1 { text-align: center; color: #444; margin-bottom: 20px; }
+
+.section-label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #555;
+}
+
+textarea { 
+    width: 100%; 
+    height: 200px; /* 稍微調小一點，因為現在有兩個框 */
+    padding: 15px; 
+    border: 2px solid #ddd; 
+    border-radius: 6px; 
+    box-sizing: border-box; 
+    resize: vertical;
+    font-size: 14px;
+    line-height: 1.6;
+    font-family: monospace; /* 使用等寬字體方便對齊 */
+}
+
+textarea:focus { border-color: #007bff; outline: none; }
+
+/* 輸出框的樣式 */
+#cleanOutput {
+    background-color: #f8f9fa; /* 淺灰背景表示這是結果 */
+    border-color: #28a745;     /* 綠色框線 */
+}
+
+/* 按鈕群組 */
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+button { 
+    flex: 1; 
+    padding: 12px 20px; 
+    color: white; 
+    border: none; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-size: 16px; 
+    transition: all 0.3s;
+}
+
+button:hover { opacity: 0.9; transform: translateY(-1px); }
+
+.btn-check { background-color: #6c757d; }  /* 灰色：單純檢查 */
+.btn-process { background-color: #dc3545; } /* 紅色：執行處理 */
+
+/* 複製按鈕 */
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+.btn-copy {
+    flex: none; /* 不要自動變寬 */
+    width: auto;
+    background-color: #007bff; /* 藍色 */
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+/* 工具類別 */
+.hidden { display: none; }
+
+#results { margin-top: 20px; list-style: none; }
+
+.duplicate-item { 
+    margin-bottom: 15px; 
+    padding: 15px; 
+    border-left: 6px solid #ffc107; 
+    background-color: #fff8e1; 
+    border-radius: 4px;
+}
+
+#summary {
+    margin-top: 15px;
+    padding: 10px;
+}

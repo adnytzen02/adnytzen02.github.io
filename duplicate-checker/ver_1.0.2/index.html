@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重複文字檢查工具</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>♻️ 重複文字檢查與刪除</h1>
+        <p>此工具採用<strong>嚴格逐行比對</strong>模式。</p>
+        
+        <label for="textInput" class="section-label">👇 原始文字輸入：</label>
+        <textarea id="textInput" placeholder="請貼上文字，每一行將被視為一個檢查單位..."></textarea>
+        
+        <div class="button-group">
+            <button onclick="checkDuplicates()" class="btn-check">🔍 檢查重複</button>
+            <button onclick="generateUniqueText()" class="btn-process">⚡ 產生去重結果</button>
+        </div>
+        
+        <hr>
+        
+        <div id="summary"></div>
+        <div id="results"></div>
+
+        <div id="cleanResultContainer" class="hidden">
+            <div class="result-header">
+                <label for="cleanOutput" class="section-label" style="color: green;">✅ 去重後的結果：</label>
+                <button onclick="copyToClipboard()" id="btnCopy" class="btn-copy">📋 複製結果</button>
+            </div>
+            <textarea id="cleanOutput" readonly placeholder="這裡會顯示移除重複後的文字..."></textarea>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
