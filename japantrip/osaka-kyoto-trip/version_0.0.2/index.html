@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大阪京都之旅 | Osaka & Kyoto Trip</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        morandi: {
+                            bg: '#EBEBE3',      // 暖米灰背景
+                            card: '#F5F5F0',    // 卡片白
+                            primary: '#7A8B99', // 莫蘭迪藍灰
+                            accent: '#A89F91',  // 莫蘭迪暖褐
+                            text: '#4A4A4A',    // 深灰字體
+                            light: '#C4C8C5',   // 淺灰綠
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #EBEBE3 0%, #D8DCD6 100%);
+            min-height: 100vh;
+        }
+        /* 隱藏滾動條但保持功能 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* 玻璃擬態效果 */
+        .glass {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body class="text-morandi-text font-sans antialiased selection:bg-morandi-primary selection:text-white">
+
+    <div id="app" class="flex flex-col md:flex-row h-screen overflow-hidden max-w-7xl mx-auto shadow-2xl rounded-none md:rounded-3xl overflow-hidden relative">
+        
+        <aside class="w-full md:w-80 glass flex flex-col z-20 flex-shrink-0">
+            <div class="p-8 border-b border-gray-200/50">
+                <h1 class="text-3xl font-bold tracking-tight text-morandi-primary mb-2">關西行旅</h1>
+                <p class="text-sm text-gray-500 flex items-center gap-2">
+                    <i class="fa-solid fa-plane-arrival"></i>
+                    Osaka & Kyoto, Japan
+                </p>
+            </div>
+
+            <nav class="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar">
+                <button 
+                    v-for="(day, index) in tripData" 
+                    :key="index"
+                    @click="currentDayIndex = index"
+                    class="w-full text-left px-5 py-4 rounded-xl transition-all duration-300 group relative overflow-hidden"
+                    :class="currentDayIndex === index ? 'bg-morandi-primary text-white shadow-lg shadow-morandi-primary/30' : 'hover:bg-white/60 text-gray-600'"
+                >
+                    <div class="flex justify-between items-center relative z-10">
+                        <div>
+                            <span class="text-xs font-light opacity-80 block mb-1">Day {{ index + 1 }}</span>
+                            <span class="font-bold text-lg">{{ day.title }}</span>
+                        </div>
+                        <i :class="day.icon" class="text-xl opacity-80"></i>
+                    </div>
+                </button>
+            </nav>
+
+            <div class="p-6 text-center text-xs text-gray-400 border-t border-gray-200/50">
+                Travel Itinerary App
+            </div>
+        </aside>
+
+        <main class="flex-1 bg-white/40 relative overflow-y-auto scroll-smooth">
+            
+            <div class="h-48 md:h-64 w-full bg-cover bg-center relative group overflow-hidden" :style="{ backgroundImage: 'url(' + currentDay.coverImage + ')' }">
+                <div class="absolute inset-0 bg-gradient-to-t from-morandi-text/80 to-transparent"></div>
+                <div class="absolute bottom-6 left-8 text-white z-10">
+                    <h2 class="text-4xl font-bold mb-1">{{ currentDay.date }}</h2>
+                    <p class="text-lg opacity-90 font-light">{{ currentDay.subTitle }}</p>
+                </div>
+                <a :href="`https://www.google.com/maps/search/${currentDay.title}`" target="_blank" class="absolute top-6 right-6 bg-white/20 hover:bg-white/40 backdrop-blur-md border border-white/30 text-white px-4 py-2 rounded-full text-sm transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    查看區域地圖
+                </a>
+            </div>
+
+            <div class="p-6 md:p-10 max-w-4xl mx-auto">
+                <div class="relative">
+                    <div class="absolute left-4 md:left-24 top-4 bottom-4 w-0.5 bg-gradient-to-b from-morandi-primary/20 via-morandi-primary/50 to-transparent"></div>
+
+                    <div 
+                        v-for="(item, idx) in currentDay.schedule" 
+                        :key="idx" 
+                        class="relative flex flex-col md:flex-row gap-4 md:gap-10 mb-8 group"
+                    >
+                        <div class="md:w-24 flex-shrink-0 flex md:flex-col items-center md:items-end gap-2 md:gap-0 mt-1">
+                            <span class="text-lg font-bold text-morandi-primary">{{ item.time }}</span>
+                            <div class="w-3 h-3 rounded-full border-2 border-white shadow-sm absolute left-[13px] md:left-[93px] mt-2 bg-morandi-accent z-10"></div>
+                        </div>
+
+                        <div class="flex-1 ml-8 md:ml-0 bg-white rounded-2xl p-5 shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-morandi-primary/30">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="text-xl font-bold text-gray-800">{{ item.location }}</h3>
+                                <span class="bg-morandi-bg text-gray-500 text-xs px-2 py-1 rounded-md">{{ item.tag }}</span>
+                            </div>
+                            
+                            <p class="text-gray-500 text-sm mb-4 leading-relaxed">
+                                {{ item.description }}
+                            </p>
+
+                            <div class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-gray-50">
+                                <a :href="item.mapLink" target="_blank" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 text-xs font-medium hover:bg-blue-100 transition-colors">
+                                    <i class="fa-solid fa-location-arrow"></i> 導航
+                                </a>
+                                <span v-if="item.note" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-50 text-orange-600 text-xs font-medium">
+                                    <i class="fa-solid fa-circle-exclamation"></i> {{ item.note }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="relative flex flex-col md:flex-row gap-10 mb-8 ml-8 md:ml-0">
+                         <div class="md:w-24 text-right pr-4"></div>
+                         <div class="flex items-center gap-3 text-gray-400 text-sm italic">
+                            <i class="fa-solid fa-moon"></i>
+                            行程結束，好好休息
+                         </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+
+        createApp({
+            data() {
+                return {
+                    currentDayIndex: 0,
+                    // 這裡修改你的行程數據
+                    tripData: [
+                        {
+                            title: "大阪市區探索",
+                            date: "Day 1 - Osaka",
+                            subTitle: "心齋橋、道頓堀與大阪城",
+                            icon: "fa-solid fa-city",
+                            // 使用 Unsplash 的隨機圖片作為示意，你可以換成自己的圖片連結
+                            coverImage: "https://images.unsplash.com/photo-1590559899731-a382839e5549?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                            schedule: [
+                                {
+                                    time: "10:00",
+                                    location: "大阪城天守閣",
+                                    description: "日本三大名城之一，周圍的大阪城公園非常適合散步。建議提前購買門票。",
+                                    tag: "景點",
+                                    mapLink: "https://goo.gl/maps/osakacastle",
+                                    note: "需爬樓梯或排隊搭電梯"
+                                },
+                                {
+                                    time: "13:00",
+                                    location: "黑門市場",
+                                    description: "被稱為「大阪的廚房」，這裡有新鮮的海鮮、關東煮與和牛串燒。",
+                                    tag: "午餐",
+                                    mapLink: "https://goo.gl/maps/kuromonmarket",
+                                    note: ""
+                                },
+                                {
+                                    time: "15:30",
+                                    location: "梅田藍天大廈",
+                                    description: "登上空中庭園展望台，360度俯瞰大阪市景，建築本身設計非常獨特。",
+                                    tag: "景點",
+                                    mapLink: "https://goo.gl/maps/umedaskybuilding",
+                                    note: "日落時間最美"
+                                },
+                                {
+                                    time: "19:00",
+                                    location: "道頓堀 & 心齋橋",
+                                    description: "在固力果跑跑人看板前拍照，晚餐享用章魚燒或大阪燒，接著享受購物樂趣。",
+                                    tag: "晚餐/購物",
+                                    mapLink: "https://goo.gl/maps/dotonbori",
+                                    note: "人潮眾多小心隨身物品"
+                                }
+                            ]
+                        },
+                        {
+                            title: "京都古韻巡禮",
+                            date: "Day 2 - Kyoto",
+                            subTitle: "千本鳥居與清水舞台",
+                            icon: "fa-solid fa-torii-gate",
+                            coverImage: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                            schedule: [
+                                {
+                                    time: "08:30",
+                                    location: "伏見稻荷大社",
+                                    description: "以壯觀的「千本鳥居」聞名，建議早起避開人潮，陽光透過鳥居非常夢幻。",
+                                    tag: "文化",
+                                    mapLink: "https://goo.gl/maps/fushimiinari",
+                                    note: "全程走完需2小時"
+                                },
+                                {
+                                    time: "11:00",
+                                    location: "清水寺",
+                                    description: "京都最著名的古老寺院，清水舞台懸空建造，未用一根釘子。",
+                                    tag: "文化",
+                                    mapLink: "https://goo.gl/maps/kiyomizudera",
+                                    note: "仁王門整修中(請確認)"
+                                },
+                                {
+                                    time: "13:00",
+                                    location: "二年坂 & 三年坂",
+                                    description: "充滿京都風情的石板小路，兩旁有許多日式雜貨店與茶屋。",
+                                    tag: "散步/午餐",
+                                    mapLink: "https://goo.gl/maps/ninenzaka",
+                                    note: "有著名的榻榻米星巴克"
+                                },
+                                {
+                                    time: "16:00",
+                                    location: "祇園 (花見小路)",
+                                    description: "運氣好的話可以看到藝妓。這裡保留了古老的町家建築。",
+                                    tag: "景點",
+                                    mapLink: "https://goo.gl/maps/gion",
+                                    note: "請勿對藝妓拍照或觸摸"
+                                }
+                            ]
+                        },
+                         {
+                            title: "環球影城狂歡",
+                            date: "Day 3 - USJ",
+                            subTitle: "馬力歐世界與哈利波特",
+                            icon: "fa-solid fa-wand-magic-sparkles",
+                            coverImage: "https://images.unsplash.com/photo-1524823864010-9f93c66eb975?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+                            schedule: [
+                                {
+                                    time: "08:00",
+                                    location: "環球影城 入園",
+                                    description: "直衝超級任天堂世界！記得提前下載 App 抽取整理券。",
+                                    tag: "娛樂",
+                                    mapLink: "https://goo.gl/maps/usj",
+                                    note: "請務必購買快速通關"
+                                },
+                                {
+                                    time: "12:00",
+                                    location: "哈利波特魔法世界",
+                                    description: "品嚐奶油啤酒，體驗禁忌之旅。",
+                                    tag: "娛樂",
+                                    mapLink: "https://goo.gl/maps/usj",
+                                    note: ""
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            computed: {
+                currentDay() {
+                    return this.tripData[this.currentDayIndex];
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

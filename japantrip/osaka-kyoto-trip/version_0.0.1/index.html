@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大阪京都之旅 | Travel Itinerary</title>
+    
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans TC', 'sans-serif'],
+                    },
+                    colors: {
+                        morandi: {
+                            base: '#F5F5F0',       // 米白底色
+                            text: '#4A5568',       // 深灰文字
+                            accent: '#8CA6A4',     // 莫蘭迪綠
+                            blue: '#9FB3C8',       // 霧霾藍
+                            pink: '#D9C8C0',       // 藕粉色
+                            earth: '#BCAAA4',      // 大地色
+                            card: '#FFFFFF',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #F5F5F0;
+            color: #4A5568;
+        }
+        /* 隱藏 Scrollbar 但保持功能 */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.3s ease;
+        }
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col items-center">
+
+    <div id="app" class="w-full max-w-md md:max-w-2xl bg-morandi-base min-h-screen relative shadow-2xl">
+        
+        <header class="sticky top-0 z-50 bg-gradient-to-r from-[#9FB3C8] to-[#8CA6A4] text-white pt-8 pb-6 px-6 rounded-b-[30px] shadow-lg">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-wider">京阪奈之旅</h1>
+                    <p class="text-sm opacity-90 font-light mt-1">Osaka & Kyoto Trip 2025</p>
+                </div>
+                <div class="text-3xl opacity-80">
+                    <i class="fa-solid fa-plane-departure"></i>
+                </div>
+            </div>
+
+            <div class="flex space-x-3 overflow-x-auto hide-scrollbar pb-2">
+                <button 
+                    v-for="(day, index) in itinerary" 
+                    :key="index"
+                    @click="currentDayIndex = index; currentSpot = day.spots[0]"
+                    :class="[
+                        'flex-shrink-0 px-4 py-2 rounded-full text-sm transition-all duration-300 border',
+                        currentDayIndex === index 
+                        ? 'bg-white text-[#8CA6A4] font-bold border-white shadow-md' 
+                        : 'bg-white/20 text-white border-transparent hover:bg-white/30'
+                    ]"
+                >
+                    {{ day.date }}
+                </button>
+            </div>
+        </header>
+
+        <main class="p-4 pb-24">
+            
+            <div class="mb-6 px-2">
+                <h2 class="text-xl font-bold text-gray-700 flex items-center">
+                    <span class="w-2 h-6 bg-morandi-accent mr-3 rounded-full"></span>
+                    {{ currentDayData.title }}
+                </h2>
+                <p class="text-sm text-gray-500 mt-1 ml-5">{{ currentDayData.desc }}</p>
+            </div>
+
+            <div class="space-y-4 relative pl-4 border-l-2 border-morandi-pink/50 ml-3">
+                
+                <div 
+                    v-for="(spot, index) in currentDayData.spots" 
+                    :key="index"
+                    @click="currentSpot = spot"
+                    :class="[
+                        'relative bg-white p-4 rounded-xl shadow-sm border transition-all duration-300 cursor-pointer transform',
+                        currentSpot.name === spot.name 
+                        ? 'border-l-4 border-l-morandi-accent translate-x-1 shadow-md ring-1 ring-morandi-accent/30' 
+                        : 'border-transparent hover:shadow-md'
+                    ]"
+                >
+                    <div 
+                        class="absolute -left-[25px] top-6 w-4 h-4 rounded-full border-2 border-white shadow-sm"
+                        :class="getIconColor(spot.type)"
+                    ></div>
+
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-xs font-bold px-2 py-1 rounded bg-gray-100 text-gray-600 mb-2 inline-block">
+                                {{ spot.time }}
+                            </span>
+                            <h3 class="text-lg font-bold text-gray-800">{{ spot.name }}</h3>
+                            <p class="text-sm text-gray-500 mt-1">{{ spot.note }}</p>
+                        </div>
+                        <div class="text-2xl opacity-80" :class="getTextColor(spot.type)">
+                            <i :class="getIcon(spot.type)"></i>
+                        </div>
+                    </div>
+
+                    <div v-if="currentSpot.name === spot.name" class="mt-4 pt-4 border-t border-gray-100 animate-fade-in">
+                        <div class="flex space-x-2">
+                            <a 
+                                :href="spot.link" 
+                                target="_blank"
+                                class="flex-1 bg-gradient-to-r from-[#9FB3C8] to-[#8CA6A4] text-white text-center py-2 rounded-lg text-sm font-medium hover:opacity-90 shadow-sm transition"
+                            >
+                                <i class="fa-solid fa-location-arrow mr-1"></i> 導航 Go
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <div v-if="currentSpot" class="fixed bottom-0 w-full max-w-md md:max-w-2xl bg-white shadow-[0_-5px_20px_rgba(0,0,0,0.1)] rounded-t-[25px] z-40 overflow-hidden transition-transform duration-500">
+            <div class="h-1 bg-gray-200 w-12 mx-auto mt-2 rounded-full"></div>
+            <div class="p-4 pt-2">
+                <p class="text-xs text-gray-400 mb-2 flex items-center">
+                    <i class="fa-solid fa-map-pin mr-1"></i> 目前位置: {{ currentSpot.name }}
+                </p>
+                <iframe 
+                    width="100%" 
+                    height="150" 
+                    frameborder="0" 
+                    style="border:0; border-radius: 12px;" 
+                    :src="getMapUrl(currentSpot.name)" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const { createApp, ref, computed } = Vue;
+
+        createApp({
+            setup() {
+                const currentDayIndex = ref(0);
+                
+                // 行程資料 (請在此處修改你的行程)
+                const itinerary = ref([
+                    {
+                        date: 'Day 1',
+                        title: '抵達大阪 & 難波探索',
+                        desc: '關西機場入境 -> 飯店 Check-in -> 道頓堀美食',
+                        spots: [
+                            { time: '10:00', name: '關西國際機場 (KIX)', type: 'transport', note: '領取周遊券 & SIM卡', link: 'https://maps.app.goo.gl/KIX' },
+                            { time: '11:30', name: '南海電鐵', type: 'train', note: '搭乘 Rapi:t 前往難波站', link: 'https://maps.app.goo.gl/NambaStation' },
+                            { time: '13:00', name: '飯店 Check-in', type: 'hotel', note: '先寄放行李', link: 'https://maps.google.com/?q=Osaka+Hotel' },
+                            { time: '15:00', name: '道頓堀 (Dotonbori)', type: 'food', note: '跑跑人看板、章魚燒、拉麵', link: 'https://maps.app.goo.gl/Dotonbori' },
+                            { time: '19:00', name: '心齋橋筋商店街', type: 'shop', note: '藥妝店補貨、Uniqlo', link: 'https://maps.app.goo.gl/Shinsaibashi' }
+                        ]
+                    },
+                    {
+                        date: 'Day 2',
+                        title: '京都古都巡禮',
+                        desc: '伏見稻荷 -> 清水寺 -> 祇園',
+                        spots: [
+                            { time: '08:30', name: '淀屋橋站', type: 'train', note: '搭乘京阪電車特急', link: 'https://maps.app.goo.gl/Yodoyabashi' },
+                            { time: '09:30', name: '伏見稻荷大社', type: 'sight', note: '千本鳥居拍照 (建議早到)', link: 'https://maps.app.goo.gl/FushimiInari' },
+                            { time: '12:30', name: '清水寺 (Kiyomizu-dera)', type: 'sight', note: '清水舞台、地主神社', link: 'https://maps.app.goo.gl/Kiyomizu' },
+                            { time: '15:00', name: '二年坂 & 三年坂', type: 'walk', note: '古色古香的街道、星巴克', link: 'https://maps.app.goo.gl/Sannenzaka' },
+                            { time: '18:00', name: '祇園花見小路', type: 'sight', note: '尋找藝妓的身影', link: 'https://maps.app.goo.gl/Gion' }
+                        ]
+                    },
+                    {
+                        date: 'Day 3',
+                        title: '環球影城 USJ',
+                        desc: '全天瑪利歐世界 & 哈利波特',
+                        spots: [
+                            { time: '07:30', name: '大阪環球影城', type: 'sight', note: '記得買快速通關，先衝任天堂', link: 'https://maps.app.goo.gl/USJ' },
+                            { time: '12:00', name: '奇諾比奧咖啡廳', type: 'food', note: '午餐時間 (需抽整理券)', link: 'https://maps.app.goo.gl/USJ' },
+                            { time: '18:00', name: '哈利波特園區', type: 'sight', note: '欣賞夜間霍格華茲城堡', link: 'https://maps.app.goo.gl/USJ' }
+                        ]
+                    }
+                ]);
+
+                const currentDayData = computed(() => itinerary.value[currentDayIndex.value]);
+                const currentSpot = ref(itinerary.value[0].spots[0]);
+
+                // 根據類型返回 ICON class
+                const getIcon = (type) => {
+                    const icons = {
+                        transport: 'fa-solid fa-plane',
+                        train: 'fa-solid fa-train-subway',
+                        hotel: 'fa-solid fa-bed',
+                        food: 'fa-solid fa-utensils',
+                        shop: 'fa-solid fa-bag-shopping',
+                        sight: 'fa-solid fa-camera',
+                        walk: 'fa-solid fa-person-walking'
+                    };
+                    return icons[type] || 'fa-solid fa-map-pin';
+                };
+
+                // 根據類型返回顏色 (用於時間軸圓點)
+                const getIconColor = (type) => {
+                    const colors = {
+                        transport: 'bg-blue-400',
+                        train: 'bg-blue-400',
+                        hotel: 'bg-indigo-300',
+                        food: 'bg-orange-300',
+                        shop: 'bg-pink-300',
+                        sight: 'bg-[#8CA6A4]', // Morandi Green
+                        walk: 'bg-[#BCAAA4]'   // Morandi Earth
+                    };
+                    return colors[type] || 'bg-gray-400';
+                };
+
+                // 根據類型返回文字顏色
+                const getTextColor = (type) => {
+                    const colors = {
+                        transport: 'text-blue-400',
+                        train: 'text-blue-400',
+                        hotel: 'text-indigo-300',
+                        food: 'text-orange-300',
+                        shop: 'text-pink-300',
+                        sight: 'text-[#8CA6A4]',
+                        walk: 'text-[#BCAAA4]'
+                    };
+                    return colors[type] || 'text-gray-400';
+                };
+
+                // 產生 Google Maps Embed URL
+                const getMapUrl = (locationName) => {
+                    // 使用 Google Maps Embed API 的 Search 模式 (不需要 API Key，但有時會有請求限制)
+                    // 為了更穩定，通常建議申請 API Key，但在這裡我們用 output=embed 的 iframe 技巧
+                    return `https://maps.google.com/maps?q=${encodeURIComponent(locationName + ' 日本')}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+                };
+
+                return {
+                    currentDayIndex,
+                    itinerary,
+                    currentDayData,
+                    currentSpot,
+                    getIcon,
+                    getIconColor,
+                    getTextColor,
+                    getMapUrl
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
