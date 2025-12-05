@@ -1,0 +1,101 @@
+/* style.css */
+
+body {
+    background-color: #F5F5F0;
+    color: #4A5568;
+}
+
+/* 隱藏 Scrollbar 但保持功能 */
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Vue Transition Animation */
+.fade-enter-active, .fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+.fade-enter-from, .fade-leave-to {
+    opacity: 0;
+}
+
+/* 額外補充：簡單的淡入動畫 (用於展開卡片時) */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* --- 新增：編輯模式樣式 --- */
+
+/* 輸入框樣式 */
+.edit-input {
+    width: 100%;
+    padding: 4px 8px;
+    border: 1px solid #D9C8C0;
+    border-radius: 6px;
+    background-color: #FAFAFA;
+    color: #4A5568;
+    font-size: 0.9em;
+    outline: none;
+    transition: all 0.2s;
+}
+.edit-input:focus {
+    border-color: #8CA6A4;
+    background-color: #FFFFFF;
+    box-shadow: 0 0 0 2px rgba(140, 166, 164, 0.2);
+}
+
+/* 類型選擇下拉選單 */
+.edit-select {
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid #D9C8C0;
+    background-color: white;
+    font-size: 0.8em;
+    color: #666;
+    outline: none;
+}
+
+/* 刪除按鈕 */
+.btn-delete {
+    color: #E57373; /* 柔和紅 */
+    background: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-delete:hover {
+    background: #FFEBEE;
+    transform: scale(1.1);
+}
+
+/* 新增按鈕 */
+.btn-add {
+    width: 100%;
+    padding: 12px;
+    border: 2px dashed #BCAAA4;
+    border-radius: 12px;
+    color: #BCAAA4;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: transparent;
+}
+.btn-add:hover {
+    background-color: rgba(188, 170, 164, 0.1);
+    color: #8D6E63;
+    border-color: #8D6E63;
+}
