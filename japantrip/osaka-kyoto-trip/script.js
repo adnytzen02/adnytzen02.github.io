@@ -1,6 +1,5 @@
 // script.js
 
-// 1. Tailwind 設定
 tailwind.config = {
     theme: {
         extend: {
@@ -9,13 +8,8 @@ tailwind.config = {
             },
             colors: {
                 morandi: {
-                    base: '#F5F5F0',       // 米白底色
-                    text: '#4A5568',       // 深灰文字
-                    accent: '#8CA6A4',     // 莫蘭迪綠
-                    blue: '#9FB3C8',       // 霧霾藍
-                    pink: '#D9C8C0',       // 藕粉色
-                    earth: '#BCAAA4',      // 大地色
-                    card: '#FFFFFF',
+                    base: '#F5F5F0', text: '#4A5568', accent: '#8CA6A4',
+                    blue: '#9FB3C8', pink: '#D9C8C0', earth: '#BCAAA4', card: '#FFFFFF',
                 }
             }
         }
@@ -30,8 +24,42 @@ createApp({
         const isMapExpanded = ref(false);
         const isEditMode = ref(false);
         const fileInput = ref(null);
+        
+        // --- 新增：狀態管理 ---
+        const currentView = ref('itinerary'); // 控制目前顯示 'itinerary' (行程) 或 'tools' (工具)
 
-        // --- 預設行程資料 (大阪自由行 - 打地鼠) ---
+        // --- 新增：工具變數 ---
+        const exchangeRate = ref(0.215); // 預設匯率 (可修改)
+        const jpyAmount = ref('');
+        const twdAmount = ref('');
+        
+        const billTotal = ref('');
+        const headCount = ref(7); // 預設 7 人
+
+        // --- 匯率計算邏輯 ---
+        const calculateTWD = () => {
+            if (jpyAmount.value) {
+                twdAmount.value = (jpyAmount.value * exchangeRate.value).toFixed(0);
+            } else {
+                twdAmount.value = '';
+            }
+        };
+
+        const calculateJPY = () => {
+            if (twdAmount.value) {
+                jpyAmount.value = (twdAmount.value / exchangeRate.value).toFixed(0);
+            } else {
+                jpyAmount.value = '';
+            }
+        };
+
+        // --- 分帳計算邏輯 ---
+        const splitResult = computed(() => {
+            if (!billTotal.value || !headCount.value || headCount.value <= 0) return 0;
+            return Math.ceil(billTotal.value / headCount.value); // 無條件進位比較方便收錢
+        });
+
+        // --- 原本的行程資料 ---
         const defaultItinerary = [
             {
                 date: '1/11 (日)',
@@ -137,10 +165,10 @@ createApp({
             }
         ];
 
-        // --- 以下邏輯維持不變 ---
-
         const itinerary = ref([...defaultItinerary]);
         const currentSpot = ref(defaultItinerary[0].spots[0]);
+
+        // --- 以下維持原有邏輯 ---
 
         const loadData = () => {
             const saved = localStorage.getItem('trip_mole_2026_v2');
@@ -153,16 +181,12 @@ createApp({
                             currentSpot.value = parsed[0].spots[0];
                         }
                     }
-                } catch (e) {
-                    console.error(e);
-                }
+                } catch (e) { console.error(e); }
             }
         };
         loadData(); 
 
-        const saveData = () => {
-            localStorage.setItem('trip_mole_2026_v2', JSON.stringify(itinerary.value));
-        };
+        const saveData = () => { localStorage.setItem('trip_mole_2026_v2', JSON.stringify(itinerary.value)); };
 
         const exportData = () => {
             const dataStr = JSON.stringify(itinerary.value, null, 4);
@@ -178,9 +202,7 @@ createApp({
             alert('行程已匯出並下載！');
         };
 
-        const triggerImport = () => {
-            fileInput.value.click();
-        };
+        const triggerImport = () => { fileInput.value.click(); };
 
         const handleFileUpload = (event) => {
             const file = event.target.files[0];
@@ -190,26 +212,22 @@ createApp({
                 try {
                     const importedData = JSON.parse(e.target.result);
                     if (Array.isArray(importedData) && importedData.length > 0 && importedData[0].spots) {
-                        if(confirm('確定要匯入此檔案嗎？目前的行程將會被覆蓋。')) {
+                        if(confirm('確定要匯入此檔案嗎？')) {
                             itinerary.value = importedData;
                             saveData();
                             currentDayIndex.value = 0;
                             currentSpot.value = itinerary.value[0].spots[0];
                             alert('匯入成功！');
                         }
-                    } else {
-                        alert('檔案格式錯誤。');
-                    }
-                } catch (error) {
-                    alert('讀取失敗。');
-                }
+                    } else { alert('檔案格式錯誤。'); }
+                } catch (error) { alert('讀取失敗。'); }
                 event.target.value = '';
             };
             reader.readAsText(file);
         };
 
         const resetData = () => {
-            if(confirm('確定要重置回「打地鼠」預設行程嗎？')) {
+            if(confirm('確定要重置回預設行程嗎？')) {
                 itinerary.value = JSON.parse(JSON.stringify(defaultItinerary));
                 saveData();
                 isEditMode.value = false;
@@ -217,26 +235,16 @@ createApp({
             }
         };
 
-        const currentDayData = computed(() => {
-            return itinerary.value[currentDayIndex.value] || { title: '', desc: '', spots: [] };
-        });
-
+        const currentDayData = computed(() => itinerary.value[currentDayIndex.value] || { title: '', desc: '', spots: [] });
+        
         const toggleEditMode = () => {
             if (isEditMode.value) saveData();
             isEditMode.value = !isEditMode.value;
         };
 
         const addSpot = () => {
-            const newSpot = {
-                time: '12:00',
-                name: '新地點',
-                type: 'sight',
-                note: '',
-                link: '#'
-            };
-            if (!itinerary.value[currentDayIndex.value].spots) {
-                itinerary.value[currentDayIndex.value].spots = [];
-            }
+            const newSpot = { time: '12:00', name: '新地點', type: 'sight', note: '', link: '#' };
+            if (!itinerary.value[currentDayIndex.value].spots) itinerary.value[currentDayIndex.value].spots = [];
             itinerary.value[currentDayIndex.value].spots.push(newSpot);
             currentSpot.value = newSpot;
         };
@@ -245,22 +253,14 @@ createApp({
             if(confirm('確定刪除這個地點嗎？')) {
                 const daySpots = itinerary.value[currentDayIndex.value].spots;
                 daySpots.splice(index, 1);
-                if (daySpots.length > 0) {
-                    currentSpot.value = daySpots[Math.max(0, index - 1)];
-                } else {
-                    currentSpot.value = null;
-                }
+                currentSpot.value = daySpots.length > 0 ? daySpots[Math.max(0, index - 1)] : null;
             }
         };
 
         const changeDay = (index) => {
             currentDayIndex.value = index;
             const dayData = itinerary.value[index];
-            if (dayData && dayData.spots && dayData.spots.length > 0) {
-                currentSpot.value = dayData.spots[0];
-            } else {
-                currentSpot.value = null;
-            }
+            currentSpot.value = (dayData && dayData.spots.length > 0) ? dayData.spots[0] : null;
             isMapExpanded.value = false;
         };
 
@@ -285,28 +285,17 @@ createApp({
         };
 
         const getIconColor = (type) => {
-            const colors = {
-                transport: 'bg-blue-400', train: 'bg-blue-400',
-                hotel: 'bg-indigo-300', food: 'bg-orange-300',
-                shop: 'bg-pink-300', sight: 'bg-[#8CA6A4]', walk: 'bg-[#BCAAA4]'
-            };
+            const colors = { transport: 'bg-blue-400', train: 'bg-blue-400', hotel: 'bg-indigo-300', food: 'bg-orange-300', shop: 'bg-pink-300', sight: 'bg-[#8CA6A4]', walk: 'bg-[#BCAAA4]' };
             return colors[type] || 'bg-gray-400';
         };
 
         const getTextColor = (type) => {
-            const colors = {
-                transport: 'text-blue-400', train: 'text-blue-400',
-                hotel: 'text-indigo-300', food: 'text-orange-300',
-                shop: 'text-pink-300', sight: 'text-[#8CA6A4]', walk: 'text-[#BCAAA4]'
-            };
+            const colors = { transport: 'text-blue-400', train: 'text-blue-400', hotel: 'text-indigo-300', food: 'text-orange-300', shop: 'text-pink-300', sight: 'text-[#8CA6A4]', walk: 'text-[#BCAAA4]' };
             return colors[type] || 'text-gray-400';
         };
 
-        const getMapUrl = (locationName) => {
-            if (!locationName) return '';
-            return `https://maps.google.com/maps?q=${encodeURIComponent(locationName + ' 日本')}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
-        };
-
+        const getMapUrl = (locationName) => `https://maps.google.com/maps?q=${encodeURIComponent(locationName + ' 日本')}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+        
         const getNavLink = (spot) => {
             if (!spot) return '#';
             if (spot.link && spot.link !== '#' && spot.link !== '') return spot.link;
@@ -314,28 +303,12 @@ createApp({
         };
 
         return {
-            currentDayIndex,
-            itinerary,
-            currentDayData,
-            currentSpot,
-            isMapExpanded,
-            isEditMode,
-            spotTypes,
-            fileInput,
-            changeDay,
-            selectSpot,
-            toggleEditMode,
-            addSpot,
-            removeSpot,
-            resetData,
-            exportData,
-            triggerImport,
-            handleFileUpload,
-            getIcon,
-            getIconColor,
-            getTextColor,
-            getMapUrl,
-            getNavLink
+            currentDayIndex, itinerary, currentDayData, currentSpot, isMapExpanded, isEditMode, spotTypes, fileInput,
+            currentView, // 新增
+            exchangeRate, jpyAmount, twdAmount, calculateTWD, calculateJPY, // 新增
+            billTotal, headCount, splitResult, // 新增
+            changeDay, selectSpot, toggleEditMode, addSpot, removeSpot, resetData, exportData, triggerImport, handleFileUpload,
+            getIcon, getIconColor, getTextColor, getMapUrl, getNavLink
         };
     }
 }).mount('#app');

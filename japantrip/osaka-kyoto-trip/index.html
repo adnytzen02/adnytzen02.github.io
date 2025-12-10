@@ -17,7 +17,8 @@
         
         <input type="file" ref="fileInput" @change="handleFileUpload" class="hidden" accept=".json">
 
-        <header class="sticky top-0 z-30 bg-gradient-to-r from-[#9FB3C8] to-[#8CA6A4] text-white pt-8 pb-6 px-6 rounded-b-[30px] shadow-lg">
+        <header class="sticky top-0 z-30 bg-gradient-to-r from-[#9FB3C8] to-[#8CA6A4] text-white pt-6 pb-4 px-6 rounded-b-[30px] shadow-lg">
+            
             <div class="flex justify-between items-start mb-4">
                 <div>
                     <h1 class="text-2xl font-bold tracking-wider">大阪自由行</h1>
@@ -26,13 +27,13 @@
                 
                 <div class="flex space-x-2">
                     <template v-if="isEditMode">
-                        <button @click="triggerImport" class="bg-green-500/80 hover:bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center transition shadow-md" title="匯入行程">
+                        <button @click="triggerImport" class="bg-green-500/80 hover:bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center transition shadow-md">
                             <i class="fa-solid fa-file-import text-sm"></i>
                         </button>
-                        <button @click="exportData" class="bg-blue-400/80 hover:bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center transition shadow-md" title="匯出行程">
+                        <button @click="exportData" class="bg-blue-400/80 hover:bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center transition shadow-md">
                             <i class="fa-solid fa-download text-sm"></i>
                         </button>
-                        <button @click="resetData" class="bg-red-400/80 hover:bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center transition shadow-md" title="重置回預設值">
+                        <button @click="resetData" class="bg-red-400/80 hover:bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center transition shadow-md">
                             <i class="fa-solid fa-rotate-left text-sm"></i>
                         </button>
                     </template>
@@ -46,7 +47,24 @@
                 </div>
             </div>
 
-            <div class="flex space-x-3 overflow-x-auto custom-scrollbar pb-2">
+            <div class="flex bg-black/10 p-1 rounded-full mb-4 relative">
+                <button 
+                    @click="currentView = 'itinerary'"
+                    class="flex-1 py-1.5 rounded-full text-sm font-bold transition-all duration-300 z-10"
+                    :class="currentView === 'itinerary' ? 'bg-white text-[#8CA6A4] shadow-sm' : 'text-white/80 hover:text-white'"
+                >
+                    <i class="fa-solid fa-calendar-days mr-1"></i> 行程
+                </button>
+                <button 
+                    @click="currentView = 'tools'"
+                    class="flex-1 py-1.5 rounded-full text-sm font-bold transition-all duration-300 z-10"
+                    :class="currentView === 'tools' ? 'bg-white text-[#8CA6A4] shadow-sm' : 'text-white/80 hover:text-white'"
+                >
+                    <i class="fa-solid fa-toolbox mr-1"></i> 工具
+                </button>
+            </div>
+
+            <div v-if="currentView === 'itinerary'" class="flex space-x-3 overflow-x-auto custom-scrollbar pb-2 transition-all">
                 <button 
                     v-for="(day, index) in itinerary" 
                     :key="index"
@@ -64,99 +82,133 @@
         </header>
 
         <main class="p-4 pb-32">
-            <div class="mb-6 px-2">
-                <div class="flex items-center">
-                    <span class="w-2 h-6 bg-morandi-accent mr-3 rounded-full flex-shrink-0"></span>
-                    <div class="w-full">
-                        <template v-if="!isEditMode">
-                            <h2 class="text-xl font-bold text-gray-700">{{ currentDayData.title }}</h2>
-                            <p class="text-sm text-gray-500 mt-1 ml-0">{{ currentDayData.desc }}</p>
-                        </template>
-                        <template v-else>
-                            <input v-model="currentDayData.title" class="edit-input font-bold mb-2" placeholder="行程標題">
-                            <input v-model="currentDayData.desc" class="edit-input text-sm" placeholder="行程簡述">
-                        </template>
+
+            <div v-show="currentView === 'itinerary'">
+                <div class="mb-6 px-2">
+                    <div class="flex items-center">
+                        <span class="w-2 h-6 bg-morandi-accent mr-3 rounded-full flex-shrink-0"></span>
+                        <div class="w-full">
+                            <template v-if="!isEditMode">
+                                <h2 class="text-xl font-bold text-gray-700">{{ currentDayData.title }}</h2>
+                                <p class="text-sm text-gray-500 mt-1 ml-0">{{ currentDayData.desc }}</p>
+                            </template>
+                            <template v-else>
+                                <input v-model="currentDayData.title" class="edit-input font-bold mb-2" placeholder="行程標題">
+                                <input v-model="currentDayData.desc" class="edit-input text-sm" placeholder="行程簡述">
+                            </template>
+                        </div>
                     </div>
+                </div>
+
+                <div class="space-y-4 relative pl-4 border-l-2 border-morandi-pink/50 ml-3">
+                    <div 
+                        v-for="(spot, index) in currentDayData.spots" 
+                        :key="index"
+                        @click="!isEditMode ? selectSpot(spot) : null" 
+                        :class="[
+                            'relative bg-white p-4 rounded-xl shadow-sm border transition-all duration-300 transform',
+                            (!isEditMode && currentSpot && currentSpot.name === spot.name) 
+                            ? 'border-l-4 border-l-morandi-accent translate-x-1 shadow-md ring-1 ring-morandi-accent/30' 
+                            : 'border-transparent hover:shadow-md',
+                            isEditMode ? 'cursor-default' : 'cursor-pointer'
+                        ]"
+                    >
+                        <div 
+                            class="absolute -left-[25px] top-6 w-4 h-4 rounded-full border-2 border-white shadow-sm transition-colors duration-300"
+                            :class="getIconColor(spot.type)"
+                        ></div>
+                        <div v-if="isEditMode" class="absolute -right-2 -top-2 z-10">
+                            <button @click.stop="removeSpot(index)" class="btn-delete"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1 mr-2">
+                                <div class="mb-2">
+                                    <span v-if="!isEditMode" class="text-xs font-bold px-2 py-1 rounded bg-gray-100 text-gray-600 inline-block">{{ spot.time }}</span>
+                                    <input v-else v-model="spot.time" type="time" class="edit-input w-auto inline-block text-xs py-1">
+                                </div>
+                                <h3 v-if="!isEditMode" class="text-lg font-bold text-gray-800 leading-tight">{{ spot.name }}</h3>
+                                <input v-else v-model="spot.name" class="edit-input font-bold mb-2" placeholder="地點名稱">
+                                <p v-if="!isEditMode" class="text-sm text-gray-500 mt-1">{{ spot.note }}</p>
+                                <input v-else v-model="spot.note" class="edit-input text-sm mt-1" placeholder="備註/筆記">
+                                <div v-if="isEditMode" class="mt-2">
+                                    <input v-model="spot.link" class="edit-input text-xs" placeholder="貼上 Google Maps 網址">
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end">
+                                <div v-if="!isEditMode" class="text-2xl opacity-80" :class="getTextColor(spot.type)"><i :class="getIcon(spot.type)"></i></div>
+                                <select v-else v-model="spot.type" class="edit-select mb-1"><option v-for="t in spotTypes" :value="t.value">{{ t.label }}</option></select>
+                            </div>
+                        </div>
+                        <div v-if="!isEditMode && currentSpot && currentSpot.name === spot.name" class="mt-4 pt-4 border-t border-gray-100 animate-fade-in">
+                            <div class="flex space-x-2">
+                                <a :href="getNavLink(spot)" target="_blank" @click.stop class="flex-1 bg-gradient-to-r from-[#9FB3C8] to-[#8CA6A4] text-white text-center py-2 rounded-lg text-sm font-medium hover:opacity-90 shadow-sm transition"><i class="fa-solid fa-location-arrow mr-1"></i> 導航 Go</a>
+                            </div>
+                        </div>
+                    </div>
+                    <button v-if="isEditMode" @click="addSpot" class="btn-add animate-fade-in"><i class="fa-solid fa-plus mr-1"></i> 新增地點</button>
                 </div>
             </div>
 
-            <div class="space-y-4 relative pl-4 border-l-2 border-morandi-pink/50 ml-3">
-                <div 
-                    v-for="(spot, index) in currentDayData.spots" 
-                    :key="index"
-                    @click="!isEditMode ? selectSpot(spot) : null" 
-                    :class="[
-                        'relative bg-white p-4 rounded-xl shadow-sm border transition-all duration-300 transform',
-                        (!isEditMode && currentSpot && currentSpot.name === spot.name) 
-                        ? 'border-l-4 border-l-morandi-accent translate-x-1 shadow-md ring-1 ring-morandi-accent/30' 
-                        : 'border-transparent hover:shadow-md',
-                        isEditMode ? 'cursor-default' : 'cursor-pointer'
-                    ]"
-                >
-                    <div 
-                        class="absolute -left-[25px] top-6 w-4 h-4 rounded-full border-2 border-white shadow-sm transition-colors duration-300"
-                        :class="getIconColor(spot.type)"
-                    ></div>
-
-                    <div v-if="isEditMode" class="absolute -right-2 -top-2 z-10">
-                        <button @click.stop="removeSpot(index)" class="btn-delete">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
+            <div v-show="currentView === 'tools'" class="space-y-4 animate-fade-in">
+                
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-gray-700">Google 翻譯</h3>
+                        <p class="text-xs text-gray-400">中日互譯 / 語音輸入</p>
                     </div>
+                    <a href="https://translate.google.com/?sl=zh-TW&tl=ja&op=translate" target="_blank" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-blue-600 transition">
+                        <i class="fa-solid fa-language mr-1"></i> 開啟
+                    </a>
+                </div>
 
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1 mr-2">
-                            <div class="mb-2">
-                                <span v-if="!isEditMode" class="text-xs font-bold px-2 py-1 rounded bg-gray-100 text-gray-600 inline-block">
-                                    {{ spot.time }}
-                                </span>
-                                <input v-else v-model="spot.time" type="time" class="edit-input w-auto inline-block text-xs py-1">
-                            </div>
-
-                            <h3 v-if="!isEditMode" class="text-lg font-bold text-gray-800 leading-tight">{{ spot.name }}</h3>
-                            <input v-else v-model="spot.name" class="edit-input font-bold mb-2" placeholder="地點名稱">
-
-                            <p v-if="!isEditMode" class="text-sm text-gray-500 mt-1">{{ spot.note }}</p>
-                            <input v-else v-model="spot.note" class="edit-input text-sm mt-1" placeholder="備註/筆記">
-
-                            <div v-if="isEditMode" class="mt-2">
-                                <label class="text-xs text-gray-400">自訂導航連結 (選填)</label>
-                                <input v-model="spot.link" class="edit-input text-xs" placeholder="貼上 Google Maps 網址">
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col items-end">
-                            <div v-if="!isEditMode" class="text-2xl opacity-80" :class="getTextColor(spot.type)">
-                                <i :class="getIcon(spot.type)"></i>
-                            </div>
-                            <select v-else v-model="spot.type" class="edit-select mb-1">
-                                <option v-for="t in spotTypes" :value="t.value">{{ t.label }}</option>
-                            </select>
-                        </div>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-bold text-gray-700"><i class="fa-solid fa-coins mr-2 text-morandi-accent"></i>匯率試算</h3>
+                        <span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">匯率: 
+                            <input v-model="exchangeRate" class="w-12 bg-transparent text-center border-b border-gray-300 focus:outline-none" type="number" step="0.001">
+                        </span>
                     </div>
-
-                    <div v-if="!isEditMode && currentSpot && currentSpot.name === spot.name" class="mt-4 pt-4 border-t border-gray-100 animate-fade-in">
-                        <div class="flex space-x-2">
-                            <a 
-                                :href="getNavLink(spot)" 
-                                target="_blank"
-                                @click.stop
-                                class="flex-1 bg-gradient-to-r from-[#9FB3C8] to-[#8CA6A4] text-white text-center py-2 rounded-lg text-sm font-medium hover:opacity-90 shadow-sm transition"
-                            >
-                                <i class="fa-solid fa-location-arrow mr-1"></i> 導航 Go
-                            </a>
+                    <div class="flex items-center space-x-3">
+                        <div class="flex-1">
+                            <label class="text-xs text-gray-500 block mb-1">日幣 (JPY)</label>
+                            <input type="number" v-model="jpyAmount" @input="calculateTWD" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200 text-lg font-bold text-gray-700 focus:ring-2 focus:ring-morandi-accent/50 outline-none" placeholder="¥">
+                        </div>
+                        <i class="fa-solid fa-arrow-right-arrow-left text-gray-300 mt-4"></i>
+                        <div class="flex-1">
+                            <label class="text-xs text-gray-500 block mb-1">台幣 (TWD)</label>
+                            <input type="number" v-model="twdAmount" @input="calculateJPY" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200 text-lg font-bold text-gray-700 focus:ring-2 focus:ring-morandi-accent/50 outline-none" placeholder="$">
                         </div>
                     </div>
                 </div>
 
-                <button v-if="isEditMode" @click="addSpot" class="btn-add animate-fade-in">
-                    <i class="fa-solid fa-plus mr-1"></i> 新增地點
-                </button>
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-users-viewfinder mr-2 text-morandi-earth"></i>AA 分帳</h3>
+                    <div class="flex space-x-3 mb-3">
+                        <div class="flex-1">
+                            <label class="text-xs text-gray-500 block mb-1">總金額</label>
+                            <input type="number" v-model="billTotal" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200" placeholder="0">
+                        </div>
+                        <div class="w-20">
+                            <label class="text-xs text-gray-500 block mb-1">人數</label>
+                            <input type="number" v-model="headCount" class="w-full bg-gray-50 p-2 rounded-lg border border-gray-200" placeholder="7">
+                        </div>
+                    </div>
+                    <div class="bg-morandi-base/50 p-3 rounded-lg flex justify-between items-center">
+                        <span class="text-sm text-gray-600">每人應付:</span>
+                        <span class="text-xl font-bold text-morandi-text">{{ splitResult }}</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-2 rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <h3 class="font-bold text-gray-700 m-3 mb-1"><i class="fa-solid fa-cloud-sun mr-2 text-morandi-blue"></i>大阪天氣</h3>
+                    <a class="weatherwidget-io" href="https://forecast7.com/zh-tw/34d69135d50/osaka/" data-label_1="OSAKA" data-label_2="大阪天氣" data-font="Noto Sans TC" data-icons="Climacons Animated" data-mode="Current" data-days="3" data-theme="pure" >OSAKA 大阪天氣</a>
+                </div>
+
             </div>
         </main>
 
         <div 
-            v-if="currentSpot && !isEditMode" 
+            v-if="currentSpot && !isEditMode && currentView === 'itinerary'" 
             class="fixed bottom-0 w-full max-w-md md:max-w-2xl bg-white shadow-[0_-5px_20px_rgba(0,0,0,0.1)] rounded-t-[25px] z-40 transition-transform duration-500 ease-in-out"
             :class="isMapExpanded ? 'translate-y-0' : 'translate-y-[calc(100%-65px)]'"
         >
@@ -174,20 +226,17 @@
                        :class="isMapExpanded ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
                 </div>
             </div>
-
             <div class="p-4 pt-0 bg-white h-[200px]">
-                <iframe 
-                    width="100%" 
-                    height="100%" 
-                    frameborder="0" 
-                    style="border:0; border-radius: 12px;" 
-                    :src="getMapUrl(currentSpot.name)" 
-                    allowfullscreen>
-                </iframe>
+                <iframe width="100%" height="100%" frameborder="0" style="border:0; border-radius: 12px;" :src="getMapUrl(currentSpot.name)" allowfullscreen></iframe>
             </div>
         </div>
 
     </div>
+    
+    <script>
+    !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');
+    </script>
+    
     <script src="script.js"></script>
 </body>
 </html>
