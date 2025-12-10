@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>大阪京都之旅 | Travel Itinerary</title>
+    <title>大阪自由行 - 打地鼠 | Travel Itinerary</title>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -15,27 +15,38 @@
 
     <div id="app" class="w-full max-w-md md:max-w-2xl bg-morandi-base min-h-screen relative shadow-2xl overflow-hidden">
         
+        <input type="file" ref="fileInput" @change="handleFileUpload" class="hidden" accept=".json">
+
         <header class="sticky top-0 z-30 bg-gradient-to-r from-[#9FB3C8] to-[#8CA6A4] text-white pt-8 pb-6 px-6 rounded-b-[30px] shadow-lg">
             <div class="flex justify-between items-start mb-4">
                 <div>
-                    <h1 class="text-2xl font-bold tracking-wider">京阪奈之旅</h1>
-                    <p class="text-sm opacity-90 font-light mt-1">Osaka & Kyoto Trip 2025</p>
+                    <h1 class="text-2xl font-bold tracking-wider">大阪自由行</h1>
+                    <p class="text-sm opacity-90 font-light mt-1">Project: 打地鼠 (2026)</p>
                 </div>
                 
-                <div class="flex space-x-3">
-                    <button v-if="isEditMode" @click="resetData" class="bg-red-400/80 hover:bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center transition shadow-md" title="重置回預設值">
-                        <i class="fa-solid fa-rotate-left text-sm"></i>
-                    </button>
+                <div class="flex space-x-2">
+                    <template v-if="isEditMode">
+                        <button @click="triggerImport" class="bg-green-500/80 hover:bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center transition shadow-md" title="匯入行程">
+                            <i class="fa-solid fa-file-import text-sm"></i>
+                        </button>
+                        <button @click="exportData" class="bg-blue-400/80 hover:bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center transition shadow-md" title="匯出行程">
+                            <i class="fa-solid fa-download text-sm"></i>
+                        </button>
+                        <button @click="resetData" class="bg-red-400/80 hover:bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center transition shadow-md" title="重置回預設值">
+                            <i class="fa-solid fa-rotate-left text-sm"></i>
+                        </button>
+                    </template>
+                    
                     <button 
                         @click="toggleEditMode" 
-                        class="bg-white/20 hover:bg-white/40 text-white rounded-full w-10 h-10 flex items-center justify-center transition backdrop-blur-sm shadow-md"
+                        class="bg-white/20 hover:bg-white/40 text-white rounded-full w-10 h-10 flex items-center justify-center transition backdrop-blur-sm shadow-md ml-1"
                     >
                         <i class="fa-solid text-lg" :class="isEditMode ? 'fa-check' : 'fa-pen-to-square'"></i>
                     </button>
                 </div>
             </div>
 
-            <div class="flex space-x-3 overflow-x-auto hide-scrollbar pb-2">
+            <div class="flex space-x-3 overflow-x-auto custom-scrollbar pb-2">
                 <button 
                     v-for="(day, index) in itinerary" 
                     :key="index"
@@ -53,11 +64,9 @@
         </header>
 
         <main class="p-4 pb-32">
-            
             <div class="mb-6 px-2">
                 <div class="flex items-center">
                     <span class="w-2 h-6 bg-morandi-accent mr-3 rounded-full flex-shrink-0"></span>
-                    
                     <div class="w-full">
                         <template v-if="!isEditMode">
                             <h2 class="text-xl font-bold text-gray-700">{{ currentDayData.title }}</h2>
@@ -72,7 +81,6 @@
             </div>
 
             <div class="space-y-4 relative pl-4 border-l-2 border-morandi-pink/50 ml-3">
-                
                 <div 
                     v-for="(spot, index) in currentDayData.spots" 
                     :key="index"
@@ -144,7 +152,6 @@
                 <button v-if="isEditMode" @click="addSpot" class="btn-add animate-fade-in">
                     <i class="fa-solid fa-plus mr-1"></i> 新增地點
                 </button>
-
             </div>
         </main>
 
