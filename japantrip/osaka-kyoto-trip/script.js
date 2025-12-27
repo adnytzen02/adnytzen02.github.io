@@ -4,12 +4,12 @@ tailwind.config = {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Noto Sans TC', 'sans-serif'],
+                sans: ['"SF Pro Text"', '"SF Pro Display"', 'system-ui', 'Noto Sans TC', 'sans-serif'],
             },
             colors: {
                 morandi: {
-                    base: '#F5F5F0', text: '#4A5568', accent: '#8CA6A4',
-                    blue: '#9FB3C8', pink: '#D9C8C0', earth: '#BCAAA4', card: '#FFFFFF',
+                    base: '#F5F5F0', text: '#1D1D1F', accent: '#8CA6A4',
+                    blue: '#9FB3C8', pink: '#D9C8C0', earth: '#BCAAA4',
                 }
             }
         }
@@ -24,44 +24,20 @@ createApp({
         const isMapExpanded = ref(false);
         const isEditMode = ref(false);
         const fileInput = ref(null);
-        
-        // --- 新增：狀態管理 ---
-        const currentView = ref('itinerary'); // 控制目前顯示 'itinerary' (行程) 或 'tools' (工具)
+        const imageInput = ref(null);
+        const currentView = ref('itinerary');
+        const bookingTab = ref('flight');
+        const currentEditBooking = ref(null);
 
-        // --- 新增：工具變數 ---
-        const exchangeRate = ref(0.215); // 預設匯率 (可修改)
+        const exchangeRate = ref(0.215);
         const jpyAmount = ref('');
         const twdAmount = ref('');
-        
         const billTotal = ref('');
-        const headCount = ref(7); // 預設 7 人
+        const headCount = ref(7);
 
-        // --- 匯率計算邏輯 ---
-        const calculateTWD = () => {
-            if (jpyAmount.value) {
-                twdAmount.value = (jpyAmount.value * exchangeRate.value).toFixed(0);
-            } else {
-                twdAmount.value = '';
-            }
-        };
-
-        const calculateJPY = () => {
-            if (twdAmount.value) {
-                jpyAmount.value = (twdAmount.value / exchangeRate.value).toFixed(0);
-            } else {
-                jpyAmount.value = '';
-            }
-        };
-
-        // --- 分帳計算邏輯 ---
-        const splitResult = computed(() => {
-            if (!billTotal.value || !headCount.value || headCount.value <= 0) return 0;
-            return Math.ceil(billTotal.value / headCount.value); // 無條件進位比較方便收錢
-        });
-
-        // --- 原本的行程資料 ---
+        // Itinerary Data
         const defaultItinerary = [
-            {
+             {
                 date: '1/11 (日)',
                 title: 'Day 1: 抵達大阪 & 難波探索',
                 desc: '心齋橋購物 -> 串炸 -> 章魚燒 -> 燒肉晚餐',
@@ -165,44 +141,104 @@ createApp({
             }
         ];
 
+        // Bookings Data
+        const defaultBookings = [
+            { category: 'flight', title: '去程機票 - 台灣虎航', date: '2026/01/11', time: '09:55 抵達', number: '未填寫', note: 'KIX 第一航廈入境', link: '#' },
+            { category: 'hotel', title: 'Ocean心斎橋', date: '1/11 - 1/17', time: '15:00 CI', number: '未填寫', note: '6晚住宿，寄放行李', link: '#' },
+            { category: 'ticket', title: '京都天橋立一日遊', date: '2026/01/12', time: '07:15 出發', number: '未填寫', note: '集合：蟹道樂道頓堀東店', link: '#' },
+            { category: 'ticket', title: '日本環球影城 USJ', date: '2026/01/14', time: '全日', number: '未填寫', note: '含快速通關', link: '#' },
+            { category: 'flight', title: '回程機票', date: '2026/01/17', time: '15:00 報到', number: '未填寫', note: 'KIX 出境', link: '#' }
+        ];
+
+        // Checklist Data (Default)
+        const defaultChecklist = [
+            {
+                title: '1. 清潔與保養用品',
+                items: [
+                    { name: '牙刷、牙膏', checked: false }, { name: '洗面乳 / 卸妝用品', checked: false }, { name: '隱形眼鏡 + 清潔液', checked: false }, { name: '衛生紙 / 濕紙巾', checked: false }, { name: '酒精 (隨身瓶)', checked: false }, { name: '護唇膏 / 指緣油', checked: false }, { name: '身體乳液 / 護手霜', checked: false }
+                ]
+            },
+            {
+                title: '2. 衣物穿搭',
+                items: [
+                    { name: '內衣褲', checked: false }, { name: '發熱衣 / 發熱褲', checked: false }, { name: '上衣', checked: false }, { name: '褲子', checked: false }, { name: '外套', checked: false }, { name: '襪子', checked: false }, { name: '圍巾、手套、毛帽', checked: false }, { name: '好走的鞋', checked: false }, { name: '真空壓縮袋', checked: false }
+                ]
+            },
+            {
+                title: '3. 隨身物品',
+                items: [
+                    { name: '雨傘', checked: false }, { name: '台幣 / 日幣現鈔', checked: false }, { name: '信用卡', checked: false }, { name: '獨立零錢包', checked: false }, { name: 'SIM卡 / Wifi機', checked: false }, { name: '保溫瓶', checked: false }, { name: '口罩', checked: false }, { name: '環保購物袋', checked: false }, { name: '暖暖包', checked: false }, { name: '原子筆', checked: false }
+                ]
+            },
+            {
+                title: '4. 電器相關',
+                items: [
+                    { name: '手機 + 充電器', checked: false }, { name: '相機 + 電池', checked: false }, { name: '行動電源', checked: false }, { name: '電源轉接頭', checked: false }
+                ]
+            },
+            {
+                title: '5. 重要文件',
+                items: [
+                    { name: '護照', checked: false }, { name: 'VJW QR Code', checked: false }, { name: '電子機票', checked: false }, { name: '訂房憑證', checked: false }, { name: '保險單', checked: false }, { name: '身分證', checked: false }, { name: '2吋照片', checked: false }
+                ]
+            },
+            {
+                title: '6. 藥品',
+                items: [
+                    { name: '暈車藥', checked: false }, { name: '常備藥品', checked: false }, { name: '個人常備藥', checked: false }, { name: 'OK蹦', checked: false }, { name: 'B群 / 維他命C', checked: false }
+                ]
+            }
+        ];
+
         const itinerary = ref([...defaultItinerary]);
-        const currentSpot = ref(defaultItinerary[0].spots[0]);
+        const bookings = ref([...defaultBookings]);
+        const checklistData = ref(JSON.parse(JSON.stringify(defaultChecklist)));
+        const currentSpot = ref(null);
 
-        // --- 以下維持原有邏輯 ---
-
+        // --- Data Persistence ---
         const loadData = () => {
-            const saved = localStorage.getItem('trip_mole_2026_v2');
-            if (saved) {
+            const savedV3 = localStorage.getItem('trip_data_v3');
+            if (savedV3) {
                 try {
-                    const parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed) && parsed.length > 0) {
-                        itinerary.value = parsed;
-                        if (parsed[0].spots && parsed[0].spots.length > 0) {
-                            currentSpot.value = parsed[0].spots[0];
-                        }
-                    }
-                } catch (e) { console.error(e); }
+                    const parsed = JSON.parse(savedV3);
+                    if (parsed.itinerary) itinerary.value = parsed.itinerary;
+                    if (parsed.bookings) bookings.value = parsed.bookings;
+                    if (parsed.checklist) checklistData.value = parsed.checklist; // Load Checklist
+                } catch(e) { console.error('v3 error', e); }
+            } else {
+                // Legacy support
+                const savedV2 = localStorage.getItem('trip_mole_2026_v2');
+                if (savedV2) {
+                    try {
+                        const parsed = JSON.parse(savedV2);
+                        if (Array.isArray(parsed)) itinerary.value = parsed;
+                    } catch (e) { console.error('v2 error', e); }
+                }
+            }
+            if (itinerary.value.length > 0 && itinerary.value[0].spots.length > 0) {
+                currentSpot.value = itinerary.value[0].spots[0];
             }
         };
-        loadData(); 
+        loadData();
 
-        const saveData = () => { localStorage.setItem('trip_mole_2026_v2', JSON.stringify(itinerary.value)); };
+        const saveData = () => {
+            const dataToSave = { 
+                itinerary: itinerary.value, 
+                bookings: bookings.value,
+                checklist: checklistData.value // Save Checklist
+            };
+            localStorage.setItem('trip_data_v3', JSON.stringify(dataToSave));
+        };
 
         const exportData = () => {
-            const dataStr = JSON.stringify(itinerary.value, null, 4);
+            const dataToSave = { itinerary: itinerary.value, bookings: bookings.value, checklist: checklistData.value };
+            const dataStr = JSON.stringify(dataToSave, null, 4);
             const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = "osaka_mole_trip_v2.json";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            alert('行程已匯出並下載！');
+            a.href = url; a.download = "osaka_trip.json"; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            alert('匯出成功');
         };
-
-        const triggerImport = () => { fileInput.value.click(); };
 
         const handleFileUpload = (event) => {
             const file = event.target.files[0];
@@ -211,104 +247,94 @@ createApp({
             reader.onload = (e) => {
                 try {
                     const importedData = JSON.parse(e.target.result);
-                    if (Array.isArray(importedData) && importedData.length > 0 && importedData[0].spots) {
-                        if(confirm('確定要匯入此檔案嗎？')) {
-                            itinerary.value = importedData;
-                            saveData();
-                            currentDayIndex.value = 0;
-                            currentSpot.value = itinerary.value[0].spots[0];
-                            alert('匯入成功！');
-                        }
-                    } else { alert('檔案格式錯誤。'); }
-                } catch (error) { alert('讀取失敗。'); }
+                    if(confirm('確定匯入？')) {
+                        if (importedData.itinerary) itinerary.value = importedData.itinerary;
+                        if (importedData.bookings) bookings.value = importedData.bookings;
+                        if (importedData.checklist) checklistData.value = importedData.checklist;
+                        
+                        saveData();
+                        currentDayIndex.value = 0;
+                        if (itinerary.value[0].spots.length > 0) currentSpot.value = itinerary.value[0].spots[0];
+                        alert('匯入成功');
+                    }
+                } catch (error) { alert('檔案錯誤'); }
                 event.target.value = '';
             };
             reader.readAsText(file);
         };
 
         const resetData = () => {
-            if(confirm('確定要重置回預設行程嗎？')) {
+            if(confirm('確定重置所有資料 (含清單)？')) {
                 itinerary.value = JSON.parse(JSON.stringify(defaultItinerary));
+                bookings.value = JSON.parse(JSON.stringify(defaultBookings));
+                checklistData.value = JSON.parse(JSON.stringify(defaultChecklist));
                 saveData();
                 isEditMode.value = false;
-                currentSpot.value = itinerary.value[0].spots[0];
+                if (itinerary.value[0].spots.length > 0) currentSpot.value = itinerary.value[0].spots[0];
             }
         };
 
+        // --- Checklist Logic ---
+        const toggleChecklistItem = (c, i) => { 
+            checklistData.value[c].items[i].checked = !checklistData.value[c].items[i].checked;
+            saveData(); // Auto save on check
+        };
+
+        const addChecklistItem = (cIndex) => {
+            checklistData.value[cIndex].items.push({ name: '新項目', checked: false });
+            saveData();
+        };
+
+        const removeChecklistItem = (cIndex, iIndex) => {
+            if(confirm('刪除此項目？')) {
+                checklistData.value[cIndex].items.splice(iIndex, 1);
+                saveData();
+            }
+        };
+
+        // ... Other existing logic ...
+        const triggerImageUpload = (bookingItem) => { currentEditBooking.value = bookingItem; imageInput.value.click(); };
+        const handleImageUpload = (event) => {
+            const file = event.target.files[0];
+            if (!file || !currentEditBooking.value) return;
+            if (file.size > 2 * 1024 * 1024) { alert('圖片太大！請小於 2MB'); return; }
+            const reader = new FileReader();
+            reader.onload = (e) => { currentEditBooking.value.image = e.target.result; saveData(); currentEditBooking.value = null; };
+            reader.readAsDataURL(file); event.target.value = '';
+        };
+        const triggerImport = () => fileInput.value.click();
+        const flightBookings = computed(() => bookings.value.filter(b => b.category === 'flight'));
+        const hotelBookings = computed(() => bookings.value.filter(b => b.category === 'hotel'));
+        const ticketBookings = computed(() => bookings.value.filter(b => b.category === 'ticket'));
+        const addBooking = (type) => { bookings.value.push({ category: type, title: '新項目', date: '', time: '', number: '', note: '', link: '#', image: '' }); };
+        const removeBooking = (item) => { if(confirm('確定刪除？')) { const idx = bookings.value.indexOf(item); if (idx > -1) bookings.value.splice(idx, 1); }};
+        const calculateTWD = () => { if (jpyAmount.value) twdAmount.value = (jpyAmount.value * exchangeRate.value).toFixed(0); else twdAmount.value = ''; };
+        const calculateJPY = () => { if (twdAmount.value) jpyAmount.value = (twdAmount.value / exchangeRate.value).toFixed(0); else jpyAmount.value = ''; };
+        const splitResult = computed(() => { if (!billTotal.value || !headCount.value || headCount.value <= 0) return 0; return Math.ceil(billTotal.value / headCount.value); });
         const currentDayData = computed(() => itinerary.value[currentDayIndex.value] || { title: '', desc: '', spots: [] });
-        
-        const toggleEditMode = () => {
-            if (isEditMode.value) saveData();
-            isEditMode.value = !isEditMode.value;
-        };
-
-        const addSpot = () => {
-            const newSpot = { time: '12:00', name: '新地點', type: 'sight', note: '', link: '#' };
-            if (!itinerary.value[currentDayIndex.value].spots) itinerary.value[currentDayIndex.value].spots = [];
-            itinerary.value[currentDayIndex.value].spots.push(newSpot);
-            currentSpot.value = newSpot;
-        };
-
-        const removeSpot = (index) => {
-            if(confirm('確定刪除這個地點嗎？')) {
-                const daySpots = itinerary.value[currentDayIndex.value].spots;
-                daySpots.splice(index, 1);
-                currentSpot.value = daySpots.length > 0 ? daySpots[Math.max(0, index - 1)] : null;
-            }
-        };
-
-        const changeDay = (index) => {
-            currentDayIndex.value = index;
-            const dayData = itinerary.value[index];
-            currentSpot.value = (dayData && dayData.spots.length > 0) ? dayData.spots[0] : null;
-            isMapExpanded.value = false;
-        };
-
-        const selectSpot = (spot) => {
-            currentSpot.value = spot;
-            isMapExpanded.value = true;
-        };
-
-        const spotTypes = [
-            { value: 'transport', label: '交通', icon: 'fa-plane' },
-            { value: 'train', label: '鐵路', icon: 'fa-train-subway' },
-            { value: 'hotel', label: '住宿', icon: 'fa-bed' },
-            { value: 'food', label: '美食', icon: 'fa-utensils' },
-            { value: 'shop', label: '購物', icon: 'fa-bag-shopping' },
-            { value: 'sight', label: '景點', icon: 'fa-camera' },
-            { value: 'walk', label: '散步', icon: 'fa-person-walking' }
-        ];
-
-        const getIcon = (type) => {
-            const found = spotTypes.find(t => t.value === type);
-            return found ? `fa-solid ${found.icon}` : 'fa-solid fa-map-pin';
-        };
-
-        const getIconColor = (type) => {
-            const colors = { transport: 'bg-blue-400', train: 'bg-blue-400', hotel: 'bg-indigo-300', food: 'bg-orange-300', shop: 'bg-pink-300', sight: 'bg-[#8CA6A4]', walk: 'bg-[#BCAAA4]' };
-            return colors[type] || 'bg-gray-400';
-        };
-
-        const getTextColor = (type) => {
-            const colors = { transport: 'text-blue-400', train: 'text-blue-400', hotel: 'text-indigo-300', food: 'text-orange-300', shop: 'text-pink-300', sight: 'text-[#8CA6A4]', walk: 'text-[#BCAAA4]' };
-            return colors[type] || 'text-gray-400';
-        };
-
+        const toggleEditMode = () => { if (isEditMode.value) saveData(); isEditMode.value = !isEditMode.value; };
+        const addSpot = () => { const newSpot = { time: '12:00', name: '新地點', type: 'sight', note: '', link: '#' }; if (!itinerary.value[currentDayIndex.value].spots) itinerary.value[currentDayIndex.value].spots = []; itinerary.value[currentDayIndex.value].spots.push(newSpot); currentSpot.value = newSpot; };
+        const removeSpot = (index) => { if(confirm('刪除？')) { const daySpots = itinerary.value[currentDayIndex.value].spots; daySpots.splice(index, 1); currentSpot.value = daySpots.length > 0 ? daySpots[Math.max(0, index - 1)] : null; }};
+        const changeDay = (index) => { currentDayIndex.value = index; const dayData = itinerary.value[index]; currentSpot.value = (dayData && dayData.spots.length > 0) ? dayData.spots[0] : null; isMapExpanded.value = false; };
+        const selectSpot = (spot) => { currentSpot.value = spot; isMapExpanded.value = true; };
+        const spotTypes = [ { value: 'transport', label: '交通' }, { value: 'train', label: '鐵路' }, { value: 'hotel', label: '住宿' }, { value: 'food', label: '美食' }, { value: 'shop', label: '購物' }, { value: 'sight', label: '景點' }, { value: 'walk', label: '散步' } ];
+        const getIcon = (type) => { const icons = {transport:'fa-plane',train:'fa-train-subway',hotel:'fa-bed',food:'fa-utensils',shop:'fa-bag-shopping',sight:'fa-camera',walk:'fa-person-walking'}; return icons[type] ? `fa-solid ${icons[type]}` : 'fa-solid fa-map-pin'; };
+        const getIconColor = (type) => { const colors = { transport: 'bg-gradient-to-br from-blue-400 to-blue-500', train: 'bg-gradient-to-br from-indigo-400 to-indigo-500', hotel: 'bg-gradient-to-br from-purple-400 to-purple-500', food: 'bg-gradient-to-br from-orange-300 to-orange-400', shop: 'bg-gradient-to-br from-pink-300 to-pink-400', sight: 'bg-gradient-to-br from-[#8CA6A4] to-[#7A9593]', walk: 'bg-gradient-to-br from-[#BCAAA4] to-[#A1887F]' }; return colors[type] || 'bg-gray-400'; };
+        const getTextColor = () => 'text-gray-500';
         const getMapUrl = (locationName) => `https://maps.google.com/maps?q=${encodeURIComponent(locationName + ' 日本')}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
-        
-        const getNavLink = (spot) => {
-            if (!spot) return '#';
-            if (spot.link && spot.link !== '#' && spot.link !== '') return spot.link;
-            return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot.name + ' 日本')}`;
-        };
+        const getNavLink = (spot) => { if (!spot) return '#'; if (spot.link && spot.link !== '#' && spot.link !== '') return spot.link; return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot.name + ' 日本')}`; };
+        const getMapSearchUrl = (query) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query + ' 日本')}`;
+        const getBookingIcon = (category) => { const map = { flight: { icon: 'fa-solid fa-plane-up', color: 'bg-gradient-to-br from-blue-400 to-blue-600' }, hotel: { icon: 'fa-solid fa-bed', color: 'bg-gradient-to-br from-purple-400 to-purple-600' }, ticket: { icon: 'fa-solid fa-ticket', color: 'bg-gradient-to-br from-green-400 to-green-600' } }; return map[category] || { icon: 'fa-solid fa-file', color: 'bg-gray-400' }; };
+        const copyText = (text) => { navigator.clipboard.writeText(text).then(() => alert('已複製')); };
 
         return {
-            currentDayIndex, itinerary, currentDayData, currentSpot, isMapExpanded, isEditMode, spotTypes, fileInput,
-            currentView, // 新增
-            exchangeRate, jpyAmount, twdAmount, calculateTWD, calculateJPY, // 新增
-            billTotal, headCount, splitResult, // 新增
-            changeDay, selectSpot, toggleEditMode, addSpot, removeSpot, resetData, exportData, triggerImport, handleFileUpload,
-            getIcon, getIconColor, getTextColor, getMapUrl, getNavLink
+            currentDayIndex, itinerary, bookings, checklistData, currentDayData, currentSpot, isMapExpanded, isEditMode, spotTypes, fileInput, imageInput,
+            currentView, bookingTab, exchangeRate, jpyAmount, twdAmount, billTotal, headCount, splitResult,
+            flightBookings, hotelBookings, ticketBookings,
+            toggleChecklistItem, addChecklistItem, removeChecklistItem, // 新增的 Return
+            changeDay, selectSpot, toggleEditMode, addSpot, removeSpot, resetData, exportData, triggerImport, handleFileUpload, triggerImageUpload, handleImageUpload,
+            getIcon, getIconColor, getTextColor, getMapUrl, getNavLink, calculateTWD, calculateJPY, addBooking, removeBooking, copyText, 
+            getBookingIcon, getMapSearchUrl
         };
     }
 }).mount('#app');
