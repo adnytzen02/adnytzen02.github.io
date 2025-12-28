@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>日本購物備忘清單 (Google風格版)</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+    <header>
+        <h1>日本購物備忘清單</h1>
+        <p>Material Design 風格匯出 • 圖片點擊放大</p>
+    </header>
+
+    <main>
+        <form id="addForm" class="add-form">
+            <div class="input-group">
+                <label for="name"><span class="icon">⭐</span> 商品名稱 <span class="req">(必填)</span></label>
+                <input type="text" id="name" placeholder="例如：抹茶巧克力" required />
+            </div>
+
+            <div class="input-group">
+                <label for="store"><span class="icon">🏬</span> 店鋪</label>
+                <input type="text" id="store" placeholder="例如：唐吉訶德" />
+            </div>
+
+            <div class="input-group">
+                <label for="amount"><span class="icon">💰</span> 金額 (日元)</label>
+                <input type="number" id="amount" placeholder="0" min="0" />
+            </div>
+
+            <div class="input-group">
+                <label for="quantity"><span class="icon">📦</span> 數量</label>
+                <input type="number" id="quantity" placeholder="1" min="1" value="1" />
+            </div>
+
+            <div class="input-group">
+                <label for="category"><span class="icon">📂</span> 類別</label>
+                <select id="category">
+                    <option value="">未分類</option>
+                    <option value="藥妝">藥妝美妝</option>
+                    <option value="零食">零食伴手禮</option>
+                    <option value="電器">生活電器</option>
+                    <option value="服飾">服飾鞋包</option>
+                    <option value="動漫">動漫周邊</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="note"><span class="icon">📝</span> 備註</label>
+                <input type="text" id="note" placeholder="例如：草莓口味" />
+            </div>
+
+            <div class="input-group">
+                <label for="image"><span class="icon">📎</span> 圖片 (自動壓縮)</label>
+                <input type="file" id="image" accept="image/*" />
+            </div>
+
+            <button type="submit" id="addBtn">
+                <i class="fas fa-plus"></i> 新增項目
+            </button>
+        </form>
+
+        <div class="action-buttons">
+            <input type="file" id="importFile" accept=".html" style="display: none;" />
+            <button id="importBtn"><i class="fas fa-file-import"></i> 匯入舊檔</button>
+            <button id="exportBtn" class="success"><i class="fas fa-file-export"></i> 匯出清單</button>
+            <button id="clearList" class="danger"><i class="fas fa-trash-alt"></i> 清空全部</button>
+        </div>
+
+        <div id="totalAmount">總金額: ¥0</div>
+
+        <div class="table-container">
+            <table id="itemList">
+                <thead>
+                    <tr>
+                        <th width="70">圖片</th>
+                        <th>商品名稱</th>
+                        <th>店鋪</th>
+                        <th width="70">數量</th>
+                        <th width="90">金額</th>
+                        <th width="110">類別</th>
+                        <th>備註</th>
+                        <th width="50">刪除</th>
+                    </tr>
+                </thead>
+                <tbody id="itemBody"></tbody>
+            </table>
+        </div>
+        
+        <input type="file" id="hiddenFileInput" accept="image/*" style="display: none;" />
+    </main>
+
+    <div id="imageLightbox" class="lightbox-modal">
+        <span class="close-lightbox">&times;</span>
+        <img class="lightbox-content" id="lightboxImg">
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
