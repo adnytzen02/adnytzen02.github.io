@@ -1,5 +1,6 @@
 // script.js
 
+// 1. Tailwind 設定
 tailwind.config = {
     theme: {
         extend: {
@@ -16,7 +17,30 @@ tailwind.config = {
     }
 };
 
-const { createApp, ref, computed } = Vue;
+// ==========================================
+// TODO: 請在此處填入您的 Firebase 設定資訊
+// (從 Firebase Console -> 專案設定 -> 一般 -> 下方的 SDK 設定複製)
+// ==========================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyC4vPtFEesCBlWlwOQk604iQM74UOmnmBc",
+    authDomain: "osaka-trip-2026-01.firebaseapp.com",
+    databaseURL: "https://osaka-trip-2026-01-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "osaka-trip-2026-01",
+    storageBucket: "osaka-trip-2026-01.firebasestorage.app",
+    messagingSenderId: "143328118542",
+    appId: "1:143328118542:web:b1c77c757fe1c0845ab95f",
+    measurementId: "G-CPV7JBJEDF"
+  };
+
+// 初始化 Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+// 設定資料庫路徑 (您可以改名，例如 'trip_2026')
+const DB_PATH = 'osaka_trip_data';
+
+// ==========================================
+
+const { createApp, ref, computed, watch, onMounted } = Vue;
 
 createApp({
     setup() {
@@ -28,6 +52,9 @@ createApp({
         const currentView = ref('itinerary');
         const bookingTab = ref('flight');
         const currentEditBooking = ref(null);
+        
+        // 同步狀態指示 (連線中/已同步)
+        const syncStatus = ref('連線中...'); 
 
         const exchangeRate = ref(0.215);
         const jpyAmount = ref('');
@@ -35,7 +62,7 @@ createApp({
         const billTotal = ref('');
         const headCount = ref(7);
 
-        // Itinerary Data
+        // --- 預設資料 (初始化或重置用) ---
         const defaultItinerary = [
              {
                 date: '1/11 (日)',
@@ -141,7 +168,6 @@ createApp({
             }
         ];
 
-        // Bookings Data
         const defaultBookings = [
             { category: 'flight', title: '去程機票 - 台灣虎航', date: '2026/01/11', time: '09:55 抵達', number: '未填寫', note: 'KIX 第一航廈入境', link: '#' },
             { category: 'hotel', title: 'Ocean心斎橋', date: '1/11 - 1/17', time: '15:00 CI', number: '未填寫', note: '6晚住宿，寄放行李', link: '#' },
@@ -150,94 +176,89 @@ createApp({
             { category: 'flight', title: '回程機票', date: '2026/01/17', time: '15:00 報到', number: '未填寫', note: 'KIX 出境', link: '#' }
         ];
 
-        // Checklist Data (Default)
         const defaultChecklist = [
-            {
-                title: '1. 清潔與保養用品',
-                items: [
-                    { name: '牙刷、牙膏', checked: false }, { name: '洗面乳 / 卸妝用品', checked: false }, { name: '隱形眼鏡 + 清潔液', checked: false }, { name: '衛生紙 / 濕紙巾', checked: false }, { name: '酒精 (隨身瓶)', checked: false }, { name: '護唇膏 / 指緣油', checked: false }, { name: '身體乳液 / 護手霜', checked: false }
-                ]
-            },
-            {
-                title: '2. 衣物穿搭',
-                items: [
-                    { name: '內衣褲', checked: false }, { name: '發熱衣 / 發熱褲', checked: false }, { name: '上衣', checked: false }, { name: '褲子', checked: false }, { name: '外套', checked: false }, { name: '襪子', checked: false }, { name: '圍巾、手套、毛帽', checked: false }, { name: '好走的鞋', checked: false }, { name: '真空壓縮袋', checked: false }
-                ]
-            },
-            {
-                title: '3. 隨身物品',
-                items: [
-                    { name: '雨傘', checked: false }, { name: '台幣 / 日幣現鈔', checked: false }, { name: '信用卡', checked: false }, { name: '獨立零錢包', checked: false }, { name: 'SIM卡 / Wifi機', checked: false }, { name: '保溫瓶', checked: false }, { name: '口罩', checked: false }, { name: '環保購物袋', checked: false }, { name: '暖暖包', checked: false }, { name: '原子筆', checked: false }
-                ]
-            },
-            {
-                title: '4. 電器相關',
-                items: [
-                    { name: '手機 + 充電器', checked: false }, { name: '相機 + 電池', checked: false }, { name: '行動電源', checked: false }, { name: '電源轉接頭', checked: false }
-                ]
-            },
-            {
-                title: '5. 重要文件',
-                items: [
-                    { name: '護照', checked: false }, { name: 'VJW QR Code', checked: false }, { name: '電子機票', checked: false }, { name: '訂房憑證', checked: false }, { name: '保險單', checked: false }, { name: '身分證', checked: false }, { name: '2吋照片', checked: false }
-                ]
-            },
-            {
-                title: '6. 藥品',
-                items: [
-                    { name: '暈車藥', checked: false }, { name: '常備藥品', checked: false }, { name: '個人常備藥', checked: false }, { name: 'OK蹦', checked: false }, { name: 'B群 / 維他命C', checked: false }
-                ]
-            }
+            { title: '1. 清潔與保養用品', items: [{ name: '牙刷、牙膏', checked: false }, { name: '洗面乳 / 卸妝用品', checked: false }, { name: '隱形眼鏡 + 清潔液', checked: false }, { name: '衛生紙 / 濕紙巾', checked: false }, { name: '酒精 (隨身瓶)', checked: false }, { name: '護唇膏 / 指緣油', checked: false }, { name: '身體乳液 / 護手霜', checked: false }] },
+            { title: '2. 衣物穿搭', items: [{ name: '內衣褲', checked: false }, { name: '發熱衣 / 發熱褲', checked: false }, { name: '上衣', checked: false }, { name: '褲子', checked: false }, { name: '外套', checked: false }, { name: '襪子', checked: false }, { name: '圍巾、手套、毛帽', checked: false }, { name: '好走的鞋', checked: false }, { name: '真空壓縮袋', checked: false }] },
+            { title: '3. 隨身物品', items: [{ name: '雨傘', checked: false }, { name: '台幣 / 日幣現鈔', checked: false }, { name: '信用卡', checked: false }, { name: '獨立零錢包', checked: false }, { name: 'SIM卡 / Wifi機', checked: false }, { name: '保溫瓶', checked: false }, { name: '口罩', checked: false }, { name: '環保購物袋', checked: false }, { name: '暖暖包', checked: false }, { name: '原子筆', checked: false }] },
+            { title: '4. 電器相關', items: [{ name: '手機 + 充電器', checked: false }, { name: '相機 + 電池', checked: false }, { name: '行動電源', checked: false }, { name: '電源轉接頭', checked: false }] },
+            { title: '5. 重要文件', items: [{ name: '護照', checked: false }, { name: 'VJW QR Code', checked: false }, { name: '電子機票', checked: false }, { name: '訂房憑證', checked: false }, { name: '保險單', checked: false }, { name: '身分證', checked: false }, { name: '2吋照片', checked: false }] },
+            { title: '6. 藥品', items: [{ name: '暈車藥', checked: false }, { name: '常備藥品', checked: false }, { name: '個人常備藥', checked: false }, { name: 'OK蹦', checked: false }, { name: 'B群 / 維他命C', checked: false }] }
         ];
 
+        // --- Reactive State ---
         const itinerary = ref([...defaultItinerary]);
         const bookings = ref([...defaultBookings]);
         const checklistData = ref(JSON.parse(JSON.stringify(defaultChecklist)));
         const currentSpot = ref(null);
+        
+        // 防止重複寫入的 Flag
+        let isReceivingUpdate = false;
 
-        // --- Data Persistence ---
-        const loadData = () => {
-            const savedV3 = localStorage.getItem('trip_data_v3');
-            if (savedV3) {
-                try {
-                    const parsed = JSON.parse(savedV3);
-                    if (parsed.itinerary) itinerary.value = parsed.itinerary;
-                    if (parsed.bookings) bookings.value = parsed.bookings;
-                    if (parsed.checklist) checklistData.value = parsed.checklist; // Load Checklist
-                } catch(e) { console.error('v3 error', e); }
-            } else {
-                // Legacy support
-                const savedV2 = localStorage.getItem('trip_mole_2026_v2');
-                if (savedV2) {
-                    try {
-                        const parsed = JSON.parse(savedV2);
-                        if (Array.isArray(parsed)) itinerary.value = parsed;
-                    } catch (e) { console.error('v2 error', e); }
+        // --- Firebase Synchronization ---
+        onMounted(() => {
+            // 1. 監聽 Firebase 資料變更 (下載)
+            db.ref(DB_PATH).on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    isReceivingUpdate = true; // 標記：這是來自雲端的更新，不用再上傳
+                    
+                    if (data.itinerary) itinerary.value = data.itinerary;
+                    if (data.bookings) bookings.value = data.bookings;
+                    if (data.checklist) checklistData.value = data.checklist;
+                    
+                    // 初始化選取點
+                    if (!currentSpot.value && itinerary.value[0].spots.length > 0) {
+                        currentSpot.value = itinerary.value[0].spots[0];
+                    }
+                    syncStatus.value = '已同步';
+                    
+                    // 為了確保 Vue 反應完畢後再開啟上傳開關
+                    setTimeout(() => { isReceivingUpdate = false; }, 100);
+                } else {
+                    // 如果雲端是空的 (第一次使用)，就把本地預設值推上去
+                    saveData();
                 }
-            }
-            if (itinerary.value.length > 0 && itinerary.value[0].spots.length > 0) {
-                currentSpot.value = itinerary.value[0].spots[0];
-            }
-        };
-        loadData();
+            });
+        });
 
+        // 2. 上傳資料到 Firebase (取代 localStorage.setItem)
         const saveData = () => {
-            const dataToSave = { 
-                itinerary: itinerary.value, 
-                bookings: bookings.value,
-                checklist: checklistData.value // Save Checklist
+            if (isReceivingUpdate) return; // 如果正在接收雲端資料，不要回傳，避免無限迴圈
+
+            syncStatus.value = '同步中...';
+            const dataToSave = {
+                itinerary: JSON.parse(JSON.stringify(itinerary.value)),
+                bookings: JSON.parse(JSON.stringify(bookings.value)),
+                checklist: JSON.parse(JSON.stringify(checklistData.value))
             };
-            localStorage.setItem('trip_data_v3', JSON.stringify(dataToSave));
+            
+            db.ref(DB_PATH).set(dataToSave)
+                .then(() => {
+                    syncStatus.value = '已同步';
+                })
+                .catch((error) => {
+                    console.error("Sync failed: ", error);
+                    syncStatus.value = '同步失敗';
+                });
         };
 
+        // 監聽變數變化，自動存檔
+        // (深度監聽 Deep Watch，只要裡面有任何文字改動都會觸發)
+        watch([itinerary, bookings, checklistData], () => {
+            saveData();
+        }, { deep: true });
+
+
+        // --- 原本的功能函式 (保持不變) ---
+        
         const exportData = () => {
             const dataToSave = { itinerary: itinerary.value, bookings: bookings.value, checklist: checklistData.value };
             const dataStr = JSON.stringify(dataToSave, null, 4);
             const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url; a.download = "osaka_trip.json"; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-            alert('匯出成功');
+            a.href = url; a.download = "osaka_trip_backup.json"; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            alert('備份檔已匯出');
         };
 
         const handleFileUpload = (event) => {
@@ -247,15 +268,12 @@ createApp({
             reader.onload = (e) => {
                 try {
                     const importedData = JSON.parse(e.target.result);
-                    if(confirm('確定匯入？')) {
+                    if(confirm('確定匯入並覆蓋雲端資料？')) {
                         if (importedData.itinerary) itinerary.value = importedData.itinerary;
                         if (importedData.bookings) bookings.value = importedData.bookings;
                         if (importedData.checklist) checklistData.value = importedData.checklist;
-                        
-                        saveData();
-                        currentDayIndex.value = 0;
-                        if (itinerary.value[0].spots.length > 0) currentSpot.value = itinerary.value[0].spots[0];
-                        alert('匯入成功');
+                        // saveData 會被 watch 觸發，自動上傳到 Firebase
+                        alert('匯入成功，正在同步至雲端...');
                     }
                 } catch (error) { alert('檔案錯誤'); }
                 event.target.value = '';
@@ -263,56 +281,45 @@ createApp({
             reader.readAsText(file);
         };
 
+        const triggerImageUpload = (bookingItem) => { currentEditBooking.value = bookingItem; imageInput.value.click(); };
+        const handleImageUpload = (event) => {
+            const file = event.target.files[0];
+            if (!file || !currentEditBooking.value) return;
+            // Firebase Realtime DB 有大小限制，圖片太大會導致同步失敗或變慢
+            if (file.size > 500 * 1024) { alert('圖片太大！為了雲端同步速度，請壓縮至 500KB 以下。'); return; }
+            const reader = new FileReader();
+            reader.onload = (e) => { 
+                currentEditBooking.value.image = e.target.result; 
+                currentEditBooking.value = null; 
+                // saveData 會自動觸發
+            };
+            reader.readAsDataURL(file); event.target.value = '';
+        };
+
         const resetData = () => {
-            if(confirm('確定重置所有資料 (含清單)？')) {
+            if(confirm('確定重置所有資料回預設值？(雲端也會被重置)')) {
                 itinerary.value = JSON.parse(JSON.stringify(defaultItinerary));
                 bookings.value = JSON.parse(JSON.stringify(defaultBookings));
                 checklistData.value = JSON.parse(JSON.stringify(defaultChecklist));
-                saveData();
                 isEditMode.value = false;
                 if (itinerary.value[0].spots.length > 0) currentSpot.value = itinerary.value[0].spots[0];
             }
         };
 
-        // --- Checklist Logic ---
-        const toggleChecklistItem = (c, i) => { 
-            checklistData.value[c].items[i].checked = !checklistData.value[c].items[i].checked;
-            saveData(); // Auto save on check
-        };
-
-        const addChecklistItem = (cIndex) => {
-            checklistData.value[cIndex].items.push({ name: '新項目', checked: false });
-            saveData();
-        };
-
-        const removeChecklistItem = (cIndex, iIndex) => {
-            if(confirm('刪除此項目？')) {
-                checklistData.value[cIndex].items.splice(iIndex, 1);
-                saveData();
-            }
-        };
-
-        // ... Other existing logic ...
-        const triggerImageUpload = (bookingItem) => { currentEditBooking.value = bookingItem; imageInput.value.click(); };
-        const handleImageUpload = (event) => {
-            const file = event.target.files[0];
-            if (!file || !currentEditBooking.value) return;
-            if (file.size > 2 * 1024 * 1024) { alert('圖片太大！請小於 2MB'); return; }
-            const reader = new FileReader();
-            reader.onload = (e) => { currentEditBooking.value.image = e.target.result; saveData(); currentEditBooking.value = null; };
-            reader.readAsDataURL(file); event.target.value = '';
-        };
         const triggerImport = () => fileInput.value.click();
         const flightBookings = computed(() => bookings.value.filter(b => b.category === 'flight'));
         const hotelBookings = computed(() => bookings.value.filter(b => b.category === 'hotel'));
         const ticketBookings = computed(() => bookings.value.filter(b => b.category === 'ticket'));
         const addBooking = (type) => { bookings.value.push({ category: type, title: '新項目', date: '', time: '', number: '', note: '', link: '#', image: '' }); };
         const removeBooking = (item) => { if(confirm('確定刪除？')) { const idx = bookings.value.indexOf(item); if (idx > -1) bookings.value.splice(idx, 1); }};
+        const toggleChecklistItem = (c, i) => { checklistData.value[c].items[i].checked = !checklistData.value[c].items[i].checked; };
+        const addChecklistItem = (cIndex) => { checklistData.value[cIndex].items.push({ name: '新項目', checked: false }); };
+        const removeChecklistItem = (cIndex, iIndex) => { if(confirm('刪除此項目？')) { checklistData.value[cIndex].items.splice(iIndex, 1); }};
         const calculateTWD = () => { if (jpyAmount.value) twdAmount.value = (jpyAmount.value * exchangeRate.value).toFixed(0); else twdAmount.value = ''; };
         const calculateJPY = () => { if (twdAmount.value) jpyAmount.value = (twdAmount.value / exchangeRate.value).toFixed(0); else jpyAmount.value = ''; };
         const splitResult = computed(() => { if (!billTotal.value || !headCount.value || headCount.value <= 0) return 0; return Math.ceil(billTotal.value / headCount.value); });
         const currentDayData = computed(() => itinerary.value[currentDayIndex.value] || { title: '', desc: '', spots: [] });
-        const toggleEditMode = () => { if (isEditMode.value) saveData(); isEditMode.value = !isEditMode.value; };
+        const toggleEditMode = () => { isEditMode.value = !isEditMode.value; };
         const addSpot = () => { const newSpot = { time: '12:00', name: '新地點', type: 'sight', note: '', link: '#' }; if (!itinerary.value[currentDayIndex.value].spots) itinerary.value[currentDayIndex.value].spots = []; itinerary.value[currentDayIndex.value].spots.push(newSpot); currentSpot.value = newSpot; };
         const removeSpot = (index) => { if(confirm('刪除？')) { const daySpots = itinerary.value[currentDayIndex.value].spots; daySpots.splice(index, 1); currentSpot.value = daySpots.length > 0 ? daySpots[Math.max(0, index - 1)] : null; }};
         const changeDay = (index) => { currentDayIndex.value = index; const dayData = itinerary.value[index]; currentSpot.value = (dayData && dayData.spots.length > 0) ? dayData.spots[0] : null; isMapExpanded.value = false; };
@@ -329,9 +336,9 @@ createApp({
 
         return {
             currentDayIndex, itinerary, bookings, checklistData, currentDayData, currentSpot, isMapExpanded, isEditMode, spotTypes, fileInput, imageInput,
-            currentView, bookingTab, exchangeRate, jpyAmount, twdAmount, billTotal, headCount, splitResult,
+            currentView, bookingTab, exchangeRate, jpyAmount, twdAmount, billTotal, headCount, splitResult, syncStatus,
             flightBookings, hotelBookings, ticketBookings,
-            toggleChecklistItem, addChecklistItem, removeChecklistItem, // 新增的 Return
+            toggleChecklistItem, addChecklistItem, removeChecklistItem,
             changeDay, selectSpot, toggleEditMode, addSpot, removeSpot, resetData, exportData, triggerImport, handleFileUpload, triggerImageUpload, handleImageUpload,
             getIcon, getIconColor, getTextColor, getMapUrl, getNavLink, calculateTWD, calculateJPY, addBooking, removeBooking, copyText, 
             getBookingIcon, getMapSearchUrl
