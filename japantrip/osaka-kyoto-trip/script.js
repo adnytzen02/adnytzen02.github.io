@@ -1,6 +1,5 @@
 // script.js
 
-// 1. Tailwind 設定
 tailwind.config = {
     theme: {
         extend: {
@@ -17,10 +16,9 @@ tailwind.config = {
     }
 };
 
-// ==========================================
-// TODO: 請在此處填入您的 Firebase 設定資訊
-// (從 Firebase Console -> 專案設定 -> 一般 -> 下方的 SDK 設定複製)
-// ==========================================
+const { createApp, ref, computed, watch, onMounted } = Vue;
+
+// Firebase Config (請填入您的設定)
   const firebaseConfig = {
     apiKey: "AIzaSyC4vPtFEesCBlWlwOQk604iQM74UOmnmBc",
     authDomain: "osaka-trip-2026-01.firebaseapp.com",
@@ -32,15 +30,15 @@ tailwind.config = {
     measurementId: "G-CPV7JBJEDF"
   };
 
-// 初始化 Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-// 設定資料庫路徑 (您可以改名，例如 'trip_2026')
+// 安全檢查：避免沒有 Firebase 環境時報錯
+let db = null;
 const DB_PATH = 'osaka_trip_data';
-
-// ==========================================
-
-const { createApp, ref, computed, watch, onMounted } = Vue;
+try {
+    if (firebase.apps.length === 0) firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+} catch (e) {
+    console.warn("Firebase not initialized (Offline Mode)");
+}
 
 createApp({
     setup() {
@@ -52,9 +50,7 @@ createApp({
         const currentView = ref('itinerary');
         const bookingTab = ref('flight');
         const currentEditBooking = ref(null);
-        
-        // 同步狀態指示 (連線中/已同步)
-        const syncStatus = ref('連線中...'); 
+        const syncStatus = ref('連線中...');
 
         const exchangeRate = ref(0.215);
         const jpyAmount = ref('');
@@ -62,7 +58,10 @@ createApp({
         const billTotal = ref('');
         const headCount = ref(7);
 
-        // --- 預設資料 (初始化或重置用) ---
+        // --- Drag & Drop State ---
+        const dragData = ref({ type: null, index: null, parentIndex: null });
+
+        // --- Default Data ---
         const defaultItinerary = [
              {
                 date: '1/11 (日)',
@@ -82,98 +81,20 @@ createApp({
                     { time: '19:36', name: 'Ocean心斎橋', type: 'hotel', note: '回程休息', link: '#' }
                 ]
             },
-            {
-                date: '1/12 (一)',
-                title: 'Day 2: 京都天橋立 & 大阪城',
-                desc: '一日團遊 -> 舟屋 -> 飛龍觀 -> 大阪城燈會',
-                spots: [
-                    { time: '06:00', name: 'Ocean心斎橋', type: 'hotel', note: '起床，早餐自理', link: '#' },
-                    { time: '07:00', name: '蟹道樂道頓堀東店', type: 'transport', note: '跟團集合點報到', link: '#' },
-                    { time: '10:00', name: '伊根灣遊船', type: 'sight', note: '欣賞舟屋 (約25分)', link: '#' },
-                    { time: '11:00', name: '天橋立傘松公園', type: 'sight', note: '搭纜車看飛龍觀', link: '#' },
-                    { time: '12:00', name: '天橋立', type: 'food', note: '午餐：半蟹海鮮鍋御膳', link: '#' },
-                    { time: '14:45', name: '美山茅草屋之里', type: 'sight', note: '自由散策 (約60分)', link: '#' },
-                    { time: '17:45', name: '蟹道樂道頓堀東店', type: 'transport', note: '返抵解散', link: '#' },
-                    { time: '19:00', name: '大阪城公園', type: 'sight', note: '觀賞夜間燈光秀/燈會', link: '#' },
-                    { time: '21:21', name: 'Ocean心斎橋', type: 'hotel', note: '回程', link: '#' }
-                ]
-            },
-            {
-                date: '1/13 (二)',
-                title: 'Day 3: 勝尾寺 & 梅田',
-                desc: '達摩聖地 -> 箕面 -> 梅田商圈購物',
-                spots: [
-                    { time: '06:30', name: 'Ocean心斎橋', type: 'hotel', note: '起床', link: '#' },
-                    { time: '10:25', name: '勝尾寺', type: 'sight', note: '滿滿的達摩', link: '#' },
-                    { time: '14:00', name: '箕面市', type: 'food', note: '午餐 (當地定食或連鎖店)', link: '#' },
-                    { time: '15:25', name: 'TRUFFLE mini JR大阪駅', type: 'food', note: 'Lucua大阪店，下午茶', link: '#' },
-                    { time: '16:30', name: '梅田 HEP FIVE', type: 'shop', note: '摩天輪、阪急百貨購物', link: '#' },
-                    { time: '17:46', name: '梅田 滝見小路', type: 'food', note: '晚餐：木地大阪燒 (需排隊，可拆桌)', link: '#' },
-                    { time: '19:30', name: 'Ocean心斎橋', type: 'hotel', note: '回程', link: '#' }
-                ]
-            },
-            {
-                date: '1/14 (三)',
-                title: 'Day 4: 環球影城 USJ',
-                desc: '早起衝 USJ -> 全天遊玩',
-                spots: [
-                    { time: '04:30', name: 'Ocean心斎橋', type: 'hotel', note: '超早起，準備出發', link: '#' },
-                    { time: '06:21', name: '日本環球影城 (USJ)', type: 'sight', note: '全天暢玩，預計21:00離開', link: '#' },
-                    { time: '22:00', name: 'Ocean心斎橋', type: 'hotel', note: '回程休息', link: '#' }
-                ]
-            },
-            {
-                date: '1/15 (四)',
-                title: 'Day 5: 京都漫遊',
-                desc: '清水寺 -> 二三年坂 -> 錦市場 -> 祇園',
-                spots: [
-                    { time: '06:30', name: 'Ocean心斎橋', type: 'hotel', note: '起床，前往京都', link: '#' },
-                    { time: '09:00', name: '清水寺', type: 'sight', note: '清水舞台、地主神社', link: '#' },
-                    { time: '10:30', name: '三年坂 (產寧坂)', type: 'walk', note: '逛街、拍照', link: '#' },
-                    { time: '12:05', name: 'Chiikawa Mogumogu Honpo', type: 'shop', note: '伏見店 (吉伊卡哇)', link: '#' },
-                    { time: '13:30', name: '錦市場', type: 'food', note: '午餐：邊走邊吃 或 名代豬排 (可拆桌)', link: '#' },
-                    { time: '15:00', name: '錦市場', type: 'shop', note: '京都的廚房，購物', link: '#' },
-                    { time: '17:00', name: '祇園 (八坂神社)', type: 'sight', note: '感受古都氛圍', link: '#' },
-                    { time: '20:30', name: 'Ocean心斎橋', type: 'hotel', note: '回程', link: '#' }
-                ]
-            },
-            {
-                date: '1/16 (五)',
-                title: 'Day 6: 大阪深度探索',
-                desc: '市場 -> 神社 -> 扭蛋 -> 梅田電器',
-                spots: [
-                    { time: '06:30', name: 'Ocean心斎橋', type: 'hotel', note: '起床', link: '#' },
-                    { time: '09:15', name: '大阪木津批發市場', type: 'food', note: '參觀批發市場', link: '#' },
-                    { time: '10:28', name: '一味禪', type: 'food', note: '早午餐：天婦羅飯', link: '#' },
-                    { time: '11:49', name: '難波八阪神社', type: 'sight', note: '巨大獅子頭神社', link: '#' },
-                    { time: '12:30', name: '黑門市場', type: 'food', note: '海鮮小吃 (可拆開用餐)', link: '#' },
-                    { time: '13:30', name: '大鳥大社', type: 'sight', note: '和泉國一之宮', link: '#' },
-                    { time: '15:17', name: 'grenier Umeda Store', type: 'food', note: '下午茶：布蕾千層', link: '#' },
-                    { time: '16:20', name: 'Tonkatsu KYK', type: 'food', note: '晚餐：咖哩豬排', link: '#' },
-                    { time: '17:27', name: 'Gachagacha no mori', type: 'shop', note: '梅田店 (超爆多扭蛋)', link: '#' },
-                    { time: '18:30', name: 'Yodobashi Camera 梅田', type: 'shop', note: '電器、玩具購物', link: '#' },
-                    { time: '19:30', name: 'Ocean心斎橋', type: 'hotel', note: '回程', link: '#' }
-                ]
-            },
-            {
-                date: '1/17 (六)',
-                title: 'Day 7: Outlet & 返程',
-                desc: '臨空城 Outlet -> 機場',
-                spots: [
-                    { time: '06:30', name: 'Ocean心斎橋', type: 'hotel', note: '起床，退房', link: '#' },
-                    { time: '09:43', name: 'Rinku Premium Outlets', type: 'shop', note: '臨空城 Outlet 購物', link: '#' },
-                    { time: '13:45', name: 'Rinku Pleasure Town Seacle', type: 'sight', note: '摩天輪 / 周邊設施', link: '#' },
-                    { time: '15:00', name: '關西國際機場 (KIX)', type: 'transport', note: '抵達機場，準備返程', link: '#' }
-                ]
-            }
+            { date: '1/12 (一)', title: 'Day 2: 京都天橋立 & 大阪城', desc: '一日團遊 -> 舟屋 -> 飛龍觀 -> 大阪城燈會', spots: [ { time: '06:00', name: 'Ocean心斎橋', type: 'hotel', note: '起床，早餐自理', link: '#' }, { time: '07:00', name: '蟹道樂道頓堀東店', type: 'transport', note: '跟團集合點報到', link: '#' }, { time: '10:00', name: '伊根灣遊船', type: 'sight', note: '欣賞舟屋 (約25分)', link: '#' }, { time: '11:00', name: '天橋立傘松公園', type: 'sight', note: '搭纜車看飛龍觀', link: '#' }, { time: '12:00', name: '天橋立', type: 'food', note: '午餐：半蟹海鮮鍋御膳', link: '#' }, { time: '14:45', name: '美山茅草屋之里', type: 'sight', note: '自由散策 (約60分)', link: '#' }, { time: '17:45', name: '蟹道樂道頓堀東店', type: 'transport', note: '返抵解散', link: '#' }, { time: '19:00', name: '大阪城公園', type: 'sight', note: '觀賞夜間燈光秀/燈會', link: '#' }, { time: '21:21', name: 'Ocean心斎橋', type: 'hotel', note: '回程', link: '#' } ] },
+            { date: '1/13 (二)', title: 'Day 3: 勝尾寺 & 梅田', desc: '達摩聖地 -> 梅田商圈購物', spots: [ { time: '06:30', name: 'Ocean心斎橋', type: 'hotel', note: '起床', link: '#' }, { time: '10:25', name: '勝尾寺', type: 'sight', note: '滿滿的達摩', link: '#' }, { time: '14:00', name: '箕面市', type: 'food', note: '午餐 (當地定食或連鎖店)', link: '#' }, { time: '15:25', name: 'TRUFFLE mini JR大阪駅', type: 'food', note: 'Lucua大阪店，下午茶', link: '#' }, { time: '16:30', name: '梅田 HEP FIVE', type: 'shop', note: '摩天輪、阪急百貨購物', link: '#' }, { time: '17:46', name: '梅田 滝見小路', type: 'food', note: '晚餐：木地大阪燒 (需排隊，可拆桌)', link: '#' }, { time: '19:30', name: 'Ocean心斎橋', type: 'hotel', note: '回程', link: '#' } ] },
+            { date: '1/14 (三)', title: 'Day 4: 環球影城 USJ', desc: '早起衝 USJ -> 全天遊玩', spots: [ { time: '04:30', name: 'Ocean心斎橋', type: 'hotel', note: '超早起，準備出發', link: '#' }, { time: '06:21', name: '日本環球影城 (USJ)', type: 'sight', note: '全天暢玩，預計21:00離開', link: '#' }, { time: '22:00', name: 'Ocean心斎橋', type: 'hotel', note: '回程休息', link: '#' } ] },
+            { date: '1/15 (四)', title: 'Day 5: 京都漫遊', desc: '清水寺 -> 二三年坂 -> 錦市場 -> 祇園', spots: [ { time: '06:30', name: 'Ocean心斎橋', type: 'hotel', note: '起床，前往京都', link: '#' }, { time: '09:00', name: '清水寺', type: 'sight', note: '清水舞台、地主神社', link: '#' }, { time: '10:30', name: '三年坂 (產寧坂)', type: 'walk', note: '逛街、拍照', link: '#' }, { time: '12:05', name: 'Chiikawa Mogumogu Honpo', type: 'shop', note: '伏見店 (吉伊卡哇)', link: '#' }, { time: '13:30', name: '錦市場', type: 'food', note: '午餐：邊走邊吃 或 名代豬排 (可拆桌)', link: '#' }, { time: '15:00', name: '錦市場', type: 'shop', note: '京都的廚房，購物', link: '#' }, { time: '17:00', name: '祇園 (八坂神社)', type: 'sight', note: '感受古都氛圍', link: '#' }, { time: '20:30', name: 'Ocean心斎橋', type: 'hotel', note: '回程', link: '#' } ] },
+            { date: '1/16 (五)', title: 'Day 6: 大阪深度探索', desc: '市場 -> 神社 -> 扭蛋 -> 梅田電器', spots: [ { time: '06:30', name: 'Ocean心斎橋', type: 'hotel', note: '起床', link: '#' }, { time: '09:15', name: '大阪木津批發市場', type: 'food', note: '參觀批發市場', link: '#' }, { time: '10:28', name: '一味禪', type: 'food', note: '早午餐：天婦羅飯', link: '#' }, { time: '11:49', name: '難波八阪神社', type: 'sight', note: '巨大獅子頭神社', link: '#' }, { time: '12:30', name: '黑門市場', type: 'food', note: '海鮮小吃 (可拆開用餐)', link: '#' }, { time: '13:30', name: '大鳥大社', type: 'sight', note: '和泉國一之宮', link: '#' }, { time: '15:17', name: 'grenier Umeda Store', type: 'food', note: '下午茶：布蕾千層', link: '#' }, { time: '16:20', name: 'Tonkatsu KYK', type: 'food', note: '晚餐：咖哩豬排', link: '#' }, { time: '17:27', name: 'Gachagacha no mori', type: 'shop', note: '梅田店 (超爆多扭蛋)', link: '#' }, { time: '18:30', name: 'Yodobashi Camera 梅田', type: 'shop', note: '電器、玩具購物', link: '#' }, { time: '19:30', name: 'Ocean心斎橋', type: 'hotel', note: '回程', link: '#' } ] },
+            { date: '1/17 (六)', title: 'Day 7: Outlet & 返程', desc: '臨空城 Outlet -> 機場', spots: [ { time: '06:30', name: 'Ocean心斎橋', type: 'hotel', note: '起床，退房', link: '#' }, { time: '09:43', name: 'Rinku Premium Outlets', type: 'shop', note: '臨空城 Outlet 購物', link: '#' }, { time: '13:45', name: 'Rinku Pleasure Town Seacle', type: 'sight', note: '摩天輪 / 周邊設施', link: '#' }, { time: '15:00', name: '關西國際機場 (KIX)', type: 'transport', note: '抵達機場，準備返程', link: '#' } ] }
         ];
 
         const defaultBookings = [
-            { category: 'flight', title: '去程機票 - 台灣虎航', date: '2026/01/11', time: '09:55 抵達', number: '未填寫', note: 'KIX 第一航廈入境', link: '#' },
+            { category: 'flight', title: '去程機票 - 台灣虎航', date: '2026/01/11', time: '09:55 抵達', number: 'IT210', note: 'KIX 第一航廈入境', link: '#', dep: 'TPE', arr: 'KIX' },
             { category: 'hotel', title: 'Ocean心斎橋', date: '1/11 - 1/17', time: '15:00 CI', number: '未填寫', note: '6晚住宿，寄放行李', link: '#' },
             { category: 'ticket', title: '京都天橋立一日遊', date: '2026/01/12', time: '07:15 出發', number: '未填寫', note: '集合：蟹道樂道頓堀東店', link: '#' },
             { category: 'ticket', title: '日本環球影城 USJ', date: '2026/01/14', time: '全日', number: '未填寫', note: '含快速通關', link: '#' },
-            { category: 'flight', title: '回程機票', date: '2026/01/17', time: '15:00 報到', number: '未填寫', note: 'KIX 出境', link: '#' }
+            { category: 'flight', title: '回程機票', date: '2026/01/17', time: '15:00 報到', number: '未填寫', note: 'KIX 出境', link: '#', dep: 'KIX', arr: 'TPE' }
         ];
 
         const defaultChecklist = [
@@ -185,46 +106,115 @@ createApp({
             { title: '6. 藥品', items: [{ name: '暈車藥', checked: false }, { name: '常備藥品', checked: false }, { name: '個人常備藥', checked: false }, { name: 'OK蹦', checked: false }, { name: 'B群 / 維他命C', checked: false }] }
         ];
 
-        // --- Reactive State ---
         const itinerary = ref([...defaultItinerary]);
         const bookings = ref([...defaultBookings]);
         const checklistData = ref(JSON.parse(JSON.stringify(defaultChecklist)));
         const currentSpot = ref(null);
-        
-        // 防止重複寫入的 Flag
         let isReceivingUpdate = false;
 
-        // --- Firebase Synchronization ---
+        // --- Drag & Drop Functions ---
+        // 通用：進入拖曳區域的視覺回饋
+        const onDragEnter = (event) => {
+            if (isEditMode.value) {
+                // 這裡可以加更複雜的邏輯，目前 CSS .draggable-over 使用 :hover 模擬
+            }
+        };
+
+        // 1. 行程拖拉
+        const onSpotDragStart = (event, index) => {
+            if (!isEditMode.value) return;
+            dragData.value = { type: 'spot', index: index };
+            event.dataTransfer.effectAllowed = 'move';
+            event.target.classList.add('draggable-source');
+        };
+
+        const onSpotDrop = (event, index) => {
+            event.target.classList.remove('draggable-source');
+            if (dragData.value.type !== 'spot') return;
+            
+            const fromIndex = dragData.value.index;
+            const toIndex = index;
+            if (fromIndex === toIndex) return;
+
+            const list = itinerary.value[currentDayIndex.value].spots;
+            const item = list.splice(fromIndex, 1)[0];
+            list.splice(toIndex, 0, item);
+            
+            saveData();
+            dragData.value = { type: null, index: null };
+        };
+
+        // 2. 清單拖拉
+        const onChecklistDragStart = (event, cIndex, iIndex) => {
+            if (!isEditMode.value) return;
+            dragData.value = { type: 'checklist', parentIndex: cIndex, index: iIndex };
+            event.dataTransfer.effectAllowed = 'move';
+            event.target.classList.add('draggable-source');
+        };
+
+        const onChecklistDrop = (event, cIndex, iIndex) => {
+            event.target.classList.remove('draggable-source');
+            // 只能在同一個分類內拖拉
+            if (dragData.value.type !== 'checklist' || dragData.value.parentIndex !== cIndex) return;
+
+            const fromIndex = dragData.value.index;
+            const toIndex = iIndex;
+            if (fromIndex === toIndex) return;
+
+            const list = checklistData.value[cIndex].items;
+            const item = list.splice(fromIndex, 1)[0];
+            list.splice(toIndex, 0, item);
+
+            saveData();
+            dragData.value = { type: null, index: null, parentIndex: null };
+        };
+
+        const onDragEnd = (event) => {
+            event.target.classList.remove('draggable-source');
+        };
+
+
+        // --- Firebase & Persistence ---
         onMounted(() => {
-            // 1. 監聽 Firebase 資料變更 (下載)
-            db.ref(DB_PATH).on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    isReceivingUpdate = true; // 標記：這是來自雲端的更新，不用再上傳
-                    
-                    if (data.itinerary) itinerary.value = data.itinerary;
-                    if (data.bookings) bookings.value = data.bookings;
-                    if (data.checklist) checklistData.value = data.checklist;
-                    
-                    // 初始化選取點
-                    if (!currentSpot.value && itinerary.value[0].spots.length > 0) {
-                        currentSpot.value = itinerary.value[0].spots[0];
+            if(db) {
+                db.ref(DB_PATH).on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        isReceivingUpdate = true;
+                        if (data.itinerary) itinerary.value = data.itinerary;
+                        if (data.bookings) bookings.value = data.bookings;
+                        if (data.checklist) checklistData.value = data.checklist;
+                        
+                        if (!currentSpot.value && itinerary.value[0].spots.length > 0) {
+                            currentSpot.value = itinerary.value[0].spots[0];
+                        }
+                        syncStatus.value = '已同步';
+                        setTimeout(() => { isReceivingUpdate = false; }, 100);
+                    } else {
+                        saveData();
                     }
-                    syncStatus.value = '已同步';
-                    
-                    // 為了確保 Vue 反應完畢後再開啟上傳開關
-                    setTimeout(() => { isReceivingUpdate = false; }, 100);
-                } else {
-                    // 如果雲端是空的 (第一次使用)，就把本地預設值推上去
-                    saveData();
-                }
-            });
+                });
+            } else {
+                syncStatus.value = '離線模式';
+                loadDataLocal(); // Fallback to localStorage
+            }
         });
 
-        // 2. 上傳資料到 Firebase (取代 localStorage.setItem)
-        const saveData = () => {
-            if (isReceivingUpdate) return; // 如果正在接收雲端資料，不要回傳，避免無限迴圈
+        const loadDataLocal = () => {
+            const savedV3 = localStorage.getItem('trip_data_v3');
+            if (savedV3) {
+                try {
+                    const parsed = JSON.parse(savedV3);
+                    if (parsed.itinerary) itinerary.value = parsed.itinerary;
+                    if (parsed.bookings) bookings.value = parsed.bookings;
+                    if (parsed.checklist) checklistData.value = parsed.checklist;
+                } catch(e) {}
+            }
+            if (itinerary.value.length > 0) currentSpot.value = itinerary.value[0].spots[0];
+        };
 
+        const saveData = () => {
+            if (isReceivingUpdate) return;
             syncStatus.value = '同步中...';
             const dataToSave = {
                 itinerary: JSON.parse(JSON.stringify(itinerary.value)),
@@ -232,33 +222,27 @@ createApp({
                 checklist: JSON.parse(JSON.stringify(checklistData.value))
             };
             
-            db.ref(DB_PATH).set(dataToSave)
-                .then(() => {
-                    syncStatus.value = '已同步';
-                })
-                .catch((error) => {
-                    console.error("Sync failed: ", error);
-                    syncStatus.value = '同步失敗';
-                });
+            // Save to LocalStorage as backup
+            localStorage.setItem('trip_data_v3', JSON.stringify(dataToSave));
+
+            if(db) {
+                db.ref(DB_PATH).set(dataToSave)
+                    .then(() => { syncStatus.value = '已同步'; })
+                    .catch((error) => { console.error(error); syncStatus.value = '同步失敗'; });
+            } else {
+                syncStatus.value = '已儲存(本機)';
+            }
         };
 
-        // 監聽變數變化，自動存檔
-        // (深度監聽 Deep Watch，只要裡面有任何文字改動都會觸發)
-        watch([itinerary, bookings, checklistData], () => {
-            saveData();
-        }, { deep: true });
+        watch([itinerary, bookings, checklistData], () => { saveData(); }, { deep: true });
 
-
-        // --- 原本的功能函式 (保持不變) ---
-        
         const exportData = () => {
             const dataToSave = { itinerary: itinerary.value, bookings: bookings.value, checklist: checklistData.value };
             const dataStr = JSON.stringify(dataToSave, null, 4);
             const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = "osaka_trip_backup.json"; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-            alert('備份檔已匯出');
+            const a = document.createElement('a'); a.href = url; a.download = "osaka_trip.json"; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+            alert('匯出成功');
         };
 
         const handleFileUpload = (event) => {
@@ -268,12 +252,16 @@ createApp({
             reader.onload = (e) => {
                 try {
                     const importedData = JSON.parse(e.target.result);
-                    if(confirm('確定匯入並覆蓋雲端資料？')) {
+                    if(confirm('確定匯入？')) {
                         if (importedData.itinerary) itinerary.value = importedData.itinerary;
                         if (importedData.bookings) bookings.value = importedData.bookings;
                         if (importedData.checklist) checklistData.value = importedData.checklist;
-                        // saveData 會被 watch 觸發，自動上傳到 Firebase
-                        alert('匯入成功，正在同步至雲端...');
+                        else checklistData.value = JSON.parse(JSON.stringify(defaultChecklist)); // Fallback
+                        
+                        saveData();
+                        currentDayIndex.value = 0;
+                        if (itinerary.value[0].spots.length > 0) currentSpot.value = itinerary.value[0].spots[0];
+                        alert('匯入成功');
                     }
                 } catch (error) { alert('檔案錯誤'); }
                 event.target.value = '';
@@ -285,24 +273,20 @@ createApp({
         const handleImageUpload = (event) => {
             const file = event.target.files[0];
             if (!file || !currentEditBooking.value) return;
-            // Firebase Realtime DB 有大小限制，圖片太大會導致同步失敗或變慢
-            if (file.size > 500 * 1024) { alert('圖片太大！為了雲端同步速度，請壓縮至 500KB 以下。'); return; }
+            if (file.size > 500 * 1024) { alert('圖片太大！請小於 500KB'); return; }
             const reader = new FileReader();
-            reader.onload = (e) => { 
-                currentEditBooking.value.image = e.target.result; 
-                currentEditBooking.value = null; 
-                // saveData 會自動觸發
-            };
+            reader.onload = (e) => { currentEditBooking.value.image = e.target.result; saveData(); currentEditBooking.value = null; };
             reader.readAsDataURL(file); event.target.value = '';
         };
 
         const resetData = () => {
-            if(confirm('確定重置所有資料回預設值？(雲端也會被重置)')) {
+            if(confirm('確定重置？')) {
                 itinerary.value = JSON.parse(JSON.stringify(defaultItinerary));
                 bookings.value = JSON.parse(JSON.stringify(defaultBookings));
                 checklistData.value = JSON.parse(JSON.stringify(defaultChecklist));
                 isEditMode.value = false;
                 if (itinerary.value[0].spots.length > 0) currentSpot.value = itinerary.value[0].spots[0];
+                saveData();
             }
         };
 
@@ -310,11 +294,11 @@ createApp({
         const flightBookings = computed(() => bookings.value.filter(b => b.category === 'flight'));
         const hotelBookings = computed(() => bookings.value.filter(b => b.category === 'hotel'));
         const ticketBookings = computed(() => bookings.value.filter(b => b.category === 'ticket'));
-        const addBooking = (type) => { bookings.value.push({ category: type, title: '新項目', date: '', time: '', number: '', note: '', link: '#', image: '' }); };
+        const addBooking = (type) => { bookings.value.push({ category: type, title: '新項目', date: '', time: '', number: '', note: '', link: '#', image: '', dep:'DEP', arr:'ARR' }); };
         const removeBooking = (item) => { if(confirm('確定刪除？')) { const idx = bookings.value.indexOf(item); if (idx > -1) bookings.value.splice(idx, 1); }};
-        const toggleChecklistItem = (c, i) => { checklistData.value[c].items[i].checked = !checklistData.value[c].items[i].checked; };
-        const addChecklistItem = (cIndex) => { checklistData.value[cIndex].items.push({ name: '新項目', checked: false }); };
-        const removeChecklistItem = (cIndex, iIndex) => { if(confirm('刪除此項目？')) { checklistData.value[cIndex].items.splice(iIndex, 1); }};
+        const toggleChecklistItem = (c, i) => { checklistData.value[c].items[i].checked = !checklistData.value[c].items[i].checked; saveData(); };
+        const addChecklistItem = (cIndex) => { checklistData.value[cIndex].items.push({ name: '新項目', checked: false }); saveData(); };
+        const removeChecklistItem = (cIndex, iIndex) => { if(confirm('刪除項目？')) { checklistData.value[cIndex].items.splice(iIndex, 1); saveData(); }};
         const calculateTWD = () => { if (jpyAmount.value) twdAmount.value = (jpyAmount.value * exchangeRate.value).toFixed(0); else twdAmount.value = ''; };
         const calculateJPY = () => { if (twdAmount.value) jpyAmount.value = (twdAmount.value / exchangeRate.value).toFixed(0); else jpyAmount.value = ''; };
         const splitResult = computed(() => { if (!billTotal.value || !headCount.value || headCount.value <= 0) return 0; return Math.ceil(billTotal.value / headCount.value); });
@@ -339,6 +323,8 @@ createApp({
             currentView, bookingTab, exchangeRate, jpyAmount, twdAmount, billTotal, headCount, splitResult, syncStatus,
             flightBookings, hotelBookings, ticketBookings,
             toggleChecklistItem, addChecklistItem, removeChecklistItem,
+            // Drag & Drop
+            onSpotDragStart, onSpotDrop, onChecklistDragStart, onChecklistDrop, onDragEnd, onDragEnter,
             changeDay, selectSpot, toggleEditMode, addSpot, removeSpot, resetData, exportData, triggerImport, handleFileUpload, triggerImageUpload, handleImageUpload,
             getIcon, getIconColor, getTextColor, getMapUrl, getNavLink, calculateTWD, calculateJPY, addBooking, removeBooking, copyText, 
             getBookingIcon, getMapSearchUrl

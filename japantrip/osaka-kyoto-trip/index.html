@@ -4,68 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>大阪自由行 - 打地鼠 | Travel Itinerary</title>
-    
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-	
-	<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-	
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="antialiased min-h-screen flex justify-center bg-[#F5F5F0]">
 
     <div id="app" class="w-full max-w-md md:max-w-xl min-h-screen relative pb-32">
-        
         <input type="file" ref="fileInput" @change="handleFileUpload" class="hidden" accept=".json">
         <input type="file" ref="imageInput" @change="handleImageUpload" class="hidden" accept="image/*">
 
         <header class="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-[#9FB3C8]/95 to-[#8CA6A4]/95 backdrop-blur-ios transition-all duration-300 shadow-sm border-b border-white/10">
             <div class="max-w-md md:max-w-xl mx-auto px-5 py-4">
-                
                 <div class="flex justify-between items-center mb-5">
-					<div>
-						<h1 class="text-2xl font-bold tracking-tight text-white shadow-sm">大阪自由行</h1>
-						<div class="flex items-center gap-2">
-							<p class="text-xs font-medium text-white/80 uppercase tracking-widest mt-0.5">Project: 打地鼠</p>
-							<span class="text-[9px] px-1.5 py-0.5 rounded bg-white/20 text-white backdrop-blur-sm border border-white/10 animate-pulse" v-if="syncStatus !== '已同步'">
-								{{ syncStatus }}
-							</span>
-							<span class="text-[9px] px-1.5 py-0.5 rounded bg-green-400/80 text-white backdrop-blur-sm border border-white/10" v-else>
-								<i class="fa-solid fa-cloud-check mr-1"></i>已同步
-							</span>
-						</div>
-					</div>
-                    
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight text-white shadow-sm">大阪自由行</h1>
+                        <div class="flex items-center gap-2">
+                            <p class="text-xs font-medium text-white/80 uppercase tracking-widest mt-0.5">Project: 打地鼠</p>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-white/20 text-white backdrop-blur-sm border border-white/10 animate-pulse" v-if="syncStatus !== '已同步'">{{ syncStatus }}</span>
+                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-green-400/80 text-white backdrop-blur-sm border border-white/10" v-else><i class="fa-solid fa-cloud-check mr-1"></i>已同步</span>
+                        </div>
+                    </div>
                     <div class="flex items-center space-x-3">
                         <template v-if="isEditMode">
-                            <button @click="triggerImport" class="w-9 h-9 rounded-full bg-white/20 text-white flex items-center justify-center ios-btn-active backdrop-blur-sm border border-white/20" title="匯入"><i class="fa-solid fa-file-import text-sm"></i></button>
-                            <button @click="exportData" class="w-9 h-9 rounded-full bg-white/20 text-white flex items-center justify-center ios-btn-active backdrop-blur-sm border border-white/20" title="匯出"><i class="fa-solid fa-download text-sm"></i></button>
-                            <button @click="resetData" class="w-9 h-9 rounded-full bg-red-500/80 text-white flex items-center justify-center ios-btn-active backdrop-blur-sm shadow-md" title="重置"><i class="fa-solid fa-rotate-left text-sm"></i></button>
+                            <button @click="triggerImport" class="w-9 h-9 rounded-full bg-white/20 text-white flex items-center justify-center ios-btn-active backdrop-blur-sm border border-white/20"><i class="fa-solid fa-file-import text-sm"></i></button>
+                            <button @click="exportData" class="w-9 h-9 rounded-full bg-white/20 text-white flex items-center justify-center ios-btn-active backdrop-blur-sm border border-white/20"><i class="fa-solid fa-download text-sm"></i></button>
+                            <button @click="resetData" class="w-9 h-9 rounded-full bg-red-500/80 text-white flex items-center justify-center ios-btn-active backdrop-blur-sm shadow-md"><i class="fa-solid fa-rotate-left text-sm"></i></button>
                         </template>
                         <button @click="toggleEditMode" class="w-10 h-10 rounded-full flex items-center justify-center transition-all ios-btn-active shadow-sm border border-white/20" :class="isEditMode ? 'bg-[#4A5568] text-white' : 'bg-white/20 text-white backdrop-blur-md'"><i class="fa-solid text-base" :class="isEditMode ? 'fa-check' : 'fa-pen'"></i></button>
                     </div>
                 </div>
-
                 <div class="bg-black/10 p-1.5 rounded-2xl flex mb-0 backdrop-blur-sm">
                     <button @click="currentView = 'itinerary'" class="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 ios-btn-active truncate" :class="currentView === 'itinerary' ? 'bg-white text-[#8CA6A4] shadow-sm' : 'text-white/80 hover:text-white'">行程</button>
                     <button @click="currentView = 'booking'" class="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 ios-btn-active truncate mx-1" :class="currentView === 'booking' ? 'bg-white text-[#8CA6A4] shadow-sm' : 'text-white/80 hover:text-white'">預訂</button>
                     <button @click="currentView = 'tools'" class="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 ios-btn-active truncate" :class="currentView === 'tools' ? 'bg-white text-[#8CA6A4] shadow-sm' : 'text-white/80 hover:text-white'">工具箱</button>
                 </div>
-
                 <div v-if="currentView === 'booking'" class="flex mt-4 space-x-2 animate-fade-in overflow-x-auto custom-scrollbar pb-1">
                     <button @click="bookingTab = 'flight'" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all border ios-btn-active flex-shrink-0" :class="bookingTab === 'flight' ? 'bg-white text-blue-500 border-white' : 'bg-white/20 text-white border-transparent'"><i class="fa-solid fa-plane-up mr-1"></i> 機票</button>
                     <button @click="bookingTab = 'hotel'" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all border ios-btn-active flex-shrink-0" :class="bookingTab === 'hotel' ? 'bg-white text-purple-500 border-white' : 'bg-white/20 text-white border-transparent'"><i class="fa-solid fa-bed mr-1"></i> 住宿</button>
                     <button @click="bookingTab = 'ticket'" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all border ios-btn-active flex-shrink-0" :class="bookingTab === 'ticket' ? 'bg-white text-green-500 border-white' : 'bg-white/20 text-white border-transparent'"><i class="fa-solid fa-ticket mr-1"></i> 票券</button>
-                    <button @click="bookingTab = 'checklist'" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all border ios-btn-active flex-shrink-0" :class="bookingTab === 'checklist' ? 'bg-white text-[#E6A23C] border-white' : 'bg-white/20 text-white border-transparent'"><i class="fa-solid fa-clipboard-list mr-1"></i> 準備清單</button>
+                    <button @click="bookingTab = 'checklist'" class="px-4 py-1.5 rounded-full text-xs font-bold transition-all border ios-btn-active flex-shrink-0" :class="bookingTab === 'checklist' ? 'bg-white text-[#E6A23C] border-white' : 'bg-white/20 text-white border-transparent'"><i class="fa-solid fa-clipboard-list mr-1"></i> 清單</button>
                 </div>
-
                 <div v-if="currentView === 'itinerary'" class="flex space-x-3 overflow-x-auto custom-scrollbar pb-2 mt-5">
-                    <button v-for="(day, index) in itinerary" :key="index" @click="changeDay(index)" :class="['flex-shrink-0 px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-300 border ios-btn-active', currentDayIndex === index ? 'bg-white text-[#8CA6A4] shadow-md border-transparent scale-105' : 'bg-white/20 text-white border-transparent hover:bg-white/30 backdrop-blur-sm']">
-                        {{ day.date }}
-                    </button>
+                    <button v-for="(day, index) in itinerary" :key="index" @click="changeDay(index)" :class="['flex-shrink-0 px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-300 border ios-btn-active', currentDayIndex === index ? 'bg-white text-[#8CA6A4] shadow-md border-transparent scale-105' : 'bg-white/20 text-white border-transparent hover:bg-white/30 backdrop-blur-sm']">{{ day.date }}</button>
                 </div>
             </div>
         </header>
@@ -86,9 +70,21 @@
                     </template>
                 </div>
                 <div class="space-y-4">
-                    <div v-for="(spot, index) in currentDayData.spots" :key="index" @click="!isEditMode ? selectSpot(spot) : null" :class="['ios-card p-5 relative transition-all duration-300', (!isEditMode && currentSpot && currentSpot.name === spot.name) ? 'ring-2 ring-[#8CA6A4]/50 ring-offset-2 scale-[1.01]' : 'hover:scale-[1.005]', isEditMode ? 'cursor-default' : 'cursor-pointer ios-btn-active']">
+                    <div 
+                        v-for="(spot, index) in currentDayData.spots" 
+                        :key="index"
+                        :draggable="isEditMode"
+                        @dragstart="onSpotDragStart($event, index)"
+                        @dragover.prevent="onDragEnter($event)"
+                        @drop="onSpotDrop($event, index)"
+                        @dragend="onDragEnd($event)"
+                        @click="!isEditMode ? selectSpot(spot) : null" 
+                        :class="['ios-card p-5 relative transition-all duration-300', (!isEditMode && currentSpot && currentSpot.name === spot.name) ? 'ring-2 ring-[#8CA6A4]/50 ring-offset-2 scale-[1.01]' : 'hover:scale-[1.005]', isEditMode ? 'cursor-grab' : 'cursor-pointer ios-btn-active']"
+                    >
                         <div v-if="isEditMode" class="absolute -right-2 -top-2 z-10"><button @click.stop="removeSpot(index)" class="btn-delete"><i class="fa-solid fa-xmark text-sm"></i></button></div>
                         <div class="flex items-start gap-4">
+                            <div v-if="isEditMode" class="drag-handle self-center -ml-2 mr-1"><i class="fa-solid fa-grip-lines text-gray-300"></i></div>
+                            
                             <div class="flex flex-col items-center gap-2 pt-1">
                                 <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-white text-lg shadow-md" :class="getIconColor(spot.type)"><i :class="getIcon(spot.type)"></i></div>
                                 <span v-if="!isEditMode" class="text-[10px] font-bold text-[#8CA6A4] bg-[#F5F5F0] px-2 py-0.5 rounded-full whitespace-nowrap">{{ spot.time }}</span>
@@ -123,9 +119,9 @@
                                 <input v-if="isEditMode" v-model="booking.number" class="edit-input w-24 text-right font-mono" placeholder="航班號"><span v-else class="text-sm font-mono font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">{{ booking.number }}</span>
                             </div>
                             <div class="flex justify-between items-center mb-4 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
-                                <div class="text-center"><input v-if="isEditMode" v-model="booking.date" class="edit-input text-xs w-20 text-center" placeholder="出發"><p v-else class="text-xs text-gray-500 font-bold">{{ booking.date }}</p><p class="text-2xl font-bold text-blue-600 mt-1">DEP</p></div>
-                                <i class="fa-solid fa-plane text-blue-300 text-xl"></i>
-                                <div class="text-center"><input v-if="isEditMode" v-model="booking.time" class="edit-input text-xs w-20 text-center" placeholder="抵達"><p v-else class="text-xs text-gray-500 font-bold">{{ booking.time }}</p><p class="text-2xl font-bold text-blue-600 mt-1">ARR</p></div>
+                                <div class="text-center flex flex-col items-center"><input v-if="isEditMode" v-model="booking.date" class="edit-input text-xs w-20 text-center mb-1" placeholder="出發"><p v-else class="text-xs text-gray-500 font-bold">{{ booking.date }}</p><input v-if="isEditMode" v-model="booking.dep" class="edit-input text-2xl font-bold text-blue-600 text-center w-20 p-0 bg-transparent uppercase" placeholder="DEP"><p v-else class="text-2xl font-bold text-blue-600 mt-1">{{ booking.dep || 'DEP' }}</p></div>
+                                <i class="fa-solid fa-plane text-blue-300 text-xl mx-2"></i>
+                                <div class="text-center flex flex-col items-center"><input v-if="isEditMode" v-model="booking.time" class="edit-input text-xs w-20 text-center mb-1" placeholder="抵達"><p v-else class="text-xs text-gray-500 font-bold">{{ booking.time }}</p><input v-if="isEditMode" v-model="booking.arr" class="edit-input text-2xl font-bold text-blue-600 text-center w-20 p-0 bg-transparent uppercase" placeholder="ARR"><p v-else class="text-2xl font-bold text-blue-600 mt-1">{{ booking.arr || 'ARR' }}</p></div>
                             </div>
                             <div class="grid grid-cols-2 gap-4 text-xs text-gray-500">
                                 <div><span class="block text-[10px] uppercase text-gray-400 font-bold">備註 / 航廈</span><input v-if="isEditMode" v-model="booking.note" class="edit-input w-full" placeholder="第一航廈..."><p v-else class="font-medium text-gray-700 mt-0.5">{{ booking.note }}</p></div>
@@ -175,81 +171,40 @@
                     <button v-if="isEditMode" @click="addBooking('ticket')" class="btn-add animate-fade-in text-sm border-dashed border-2 border-green-300 text-green-500 hover:bg-green-50"><i class="fa-solid fa-plus mr-2"></i> 新增票券</button>
                 </div>
 
-				<div v-if="bookingTab === 'checklist'" class="space-y-4 pt-2 pb-4">
-                    <div 
-                        v-for="(category, cIndex) in checklistData" 
-                        :key="cIndex" 
-                        class="ios-card p-0 overflow-hidden flex flex-col relative transition-all duration-300 hover:shadow-md"
-                    >
+                <div v-if="bookingTab === 'checklist'" class="space-y-4 pt-2 pb-4">
+                    <div v-for="(category, cIndex) in checklistData" :key="cIndex" class="ios-card p-0 overflow-hidden flex flex-col relative transition-all duration-300 hover:shadow-md">
                         <div class="h-2 w-full bg-gradient-to-r from-orange-400 to-orange-600"></div>
-
                         <div class="p-5">
                             <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
                                 <h3 class="font-bold text-gray-800 flex items-center text-base">
-                                    <div class="w-8 h-8 rounded-lg bg-orange-100 text-orange-500 flex items-center justify-center mr-2">
-                                        <i class="fa-solid fa-list-ul text-sm"></i>
-                                    </div>
+                                    <div class="w-8 h-8 rounded-lg bg-orange-100 text-orange-500 flex items-center justify-center mr-2"><i class="fa-solid fa-list-ul text-sm"></i></div>
                                     {{ category.title }}
                                 </h3>
-                                <span class="text-[10px] font-bold text-white bg-orange-500 px-2 py-1 rounded-full shadow-sm shadow-orange-200">
-                                    {{ category.items.filter(i => i.checked).length }} / {{ category.items.length }}
-                                </span>
+                                <span class="text-[10px] font-bold text-white bg-orange-500 px-2 py-1 rounded-full shadow-sm shadow-orange-200">{{ category.items.filter(i => i.checked).length }} / {{ category.items.length }}</span>
                             </div>
-                            
                             <div class="space-y-3">
                                 <div 
                                     v-for="(item, iIndex) in category.items" 
                                     :key="iIndex"
+                                    :draggable="isEditMode"
+                                    @dragstart="onChecklistDragStart($event, cIndex, iIndex)"
+                                    @dragover.prevent="onDragEnter($event)"
+                                    @drop="onChecklistDrop($event, cIndex, iIndex)"
+                                    @dragend="onDragEnd($event)"
                                     class="flex items-center group"
+                                    :class="isEditMode ? 'cursor-grab' : ''"
                                 >
-                                    <div 
-                                        @click="!isEditMode ? toggleChecklistItem(cIndex, iIndex) : null"
-                                        class="w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-colors duration-200 flex-shrink-0 cursor-pointer"
-                                        :class="[
-                                            item.checked ? 'bg-orange-500 border-orange-500' : 'border-gray-300 group-hover:border-orange-400'
-                                        ]"
-                                    >
-                                        <i v-if="item.checked" class="fa-solid fa-check text-white text-[10px]"></i>
-                                    </div>
-
-                                    <span 
-                                        v-if="!isEditMode"
-                                        @click="toggleChecklistItem(cIndex, iIndex)"
-                                        class="text-sm transition-colors duration-200 flex-1 cursor-pointer"
-                                        :class="item.checked ? 'text-gray-400 line-through' : 'text-gray-700 font-medium'"
-                                    >
-                                        {{ item.name }}
-                                    </span>
-
-                                    <input 
-                                        v-else 
-                                        v-model="item.name" 
-                                        class="flex-1 edit-input text-sm py-1" 
-                                        placeholder="項目名稱"
-                                    >
-
-                                    <button 
-                                        v-if="isEditMode" 
-                                        @click="removeChecklistItem(cIndex, iIndex)" 
-                                        class="ml-2 text-red-400 hover:text-red-600 w-6 h-6 flex items-center justify-center transition"
-                                    >
-                                        <i class="fa-solid fa-minus-circle"></i>
-                                    </button>
+                                    <div v-if="isEditMode" class="drag-handle mr-2 text-gray-300 hover:text-orange-400"><i class="fa-solid fa-grip-lines"></i></div>
+                                    <div @click="!isEditMode ? toggleChecklistItem(cIndex, iIndex) : null" class="w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-colors duration-200 flex-shrink-0 cursor-pointer" :class="[item.checked ? 'bg-orange-500 border-orange-500' : 'border-gray-300 group-hover:border-orange-400']"><i v-if="item.checked" class="fa-solid fa-check text-white text-[10px]"></i></div>
+                                    <span v-if="!isEditMode" @click="toggleChecklistItem(cIndex, iIndex)" class="text-sm transition-colors duration-200 flex-1 cursor-pointer" :class="item.checked ? 'text-gray-400 line-through' : 'text-gray-700 font-medium'">{{ item.name }}</span>
+                                    <input v-else v-model="item.name" class="flex-1 edit-input text-sm py-1" placeholder="項目名稱">
+                                    <button v-if="isEditMode" @click="removeChecklistItem(cIndex, iIndex)" class="ml-2 text-red-400 hover:text-red-600 w-6 h-6 flex items-center justify-center transition"><i class="fa-solid fa-minus-circle"></i></button>
                                 </div>
                             </div>
-
-                            <div v-if="isEditMode" class="mt-4 pt-2 border-t border-gray-100/50">
-                                <button 
-                                    @click="addChecklistItem(cIndex)" 
-                                    class="w-full py-2 text-xs font-bold text-orange-500 border border-dashed border-orange-300 rounded-lg hover:bg-orange-50 transition"
-                                >
-                                    <i class="fa-solid fa-plus mr-1"></i> 新增項目
-                                </button>
-                            </div>
+                            <div v-if="isEditMode" class="mt-4 pt-2 border-t border-gray-100/50"><button @click="addChecklistItem(cIndex)" class="w-full py-2 text-xs font-bold text-orange-500 border border-dashed border-orange-300 rounded-lg hover:bg-orange-50 transition"><i class="fa-solid fa-plus mr-1"></i> 新增項目</button></div>
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <div v-show="currentView === 'tools'" class="space-y-5 animate-fade-in pt-2">

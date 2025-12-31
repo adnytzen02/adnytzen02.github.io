@@ -2,7 +2,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
 
-/* 強制背景色，避免白屏 */
 body {
     background-color: #F5F5F0; 
     color: #1D1D1F;
@@ -11,13 +10,12 @@ body {
     margin: 0;
 }
 
-/* 確保 App 容器佔滿並有背景 */
 #app {
     background-color: #F5F5F0;
     min-height: 100vh;
 }
 
-/* 自定義水平捲動條 (iOS 風格細條) */
+/* Custom Scrollbar */
 .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: rgba(140, 166, 164, 0.4) transparent;
@@ -25,108 +23,53 @@ body {
     -webkit-overflow-scrolling: touch;
     padding-bottom: 4px;
 }
+.custom-scrollbar::-webkit-scrollbar { height: 4px; display: block; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; margin: 0 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(140, 166, 164, 0.3); border-radius: 20px; transition: background-color 0.3s; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: rgba(140, 166, 164, 0.8); cursor: pointer; }
 
-.custom-scrollbar::-webkit-scrollbar {
-    height: 4px;
-    display: block;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-    margin: 0 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgba(140, 166, 164, 0.3);
-    border-radius: 20px;
-    transition: background-color 0.3s;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(140, 166, 164, 0.8);
-    cursor: pointer;
-}
-
-/* iOS 風格優化 */
-.backdrop-blur-ios {
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-}
-
+/* iOS Style */
+.backdrop-blur-ios { backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
 .ios-card {
     background: rgba(255, 255, 255, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.6);
     box-shadow: 0 4px 20px -5px rgba(140, 166, 164, 0.15), 0 0 0 1px rgba(0,0,0,0.02);
     border-radius: 24px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.ios-btn-active:active { transform: scale(0.96); transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1); }
+.animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Inputs */
+.edit-input { width: 100%; padding: 8px 12px; border: 1px solid #E5E5EA; border-radius: 12px; background-color: #F2F2F7; color: #1D1D1F; font-size: 0.95em; outline: none; transition: all 0.2s; }
+.edit-input:focus { background-color: #FFFFFF; box-shadow: 0 0 0 3px rgba(140, 166, 164, 0.3); border-color: #8CA6A4; }
+.edit-select { padding: 4px 10px; border-radius: 10px; border: 1px solid #E5E5EA; background-color: #F2F2F7; font-size: 0.85em; color: #4A5568; outline: none; }
+
+/* Buttons */
+.btn-delete { color: #FF3B30; background: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: pointer; }
+.btn-add { width: 100%; padding: 16px; border: 2px dashed #C7C7CC; border-radius: 20px; color: #8E8E93; font-weight: 600; text-align: center; cursor: pointer; background-color: transparent; }
+.btn-add:hover { background-color: rgba(140, 166, 164, 0.1); border-color: #8CA6A4; color: #8CA6A4; }
+
+/* --- Drag & Drop Styles (新增) --- */
+.drag-handle {
+    cursor: grab;
+    color: #C7C7CC;
+    transition: color 0.2s;
+    touch-action: none; /* 防止觸控捲動干擾 */
+}
+.drag-handle:hover { color: #8CA6A4; }
+.drag-handle:active { cursor: grabbing; }
+
+/* 正在被拖曳的元素 (變半透明) */
+.draggable-source {
+    opacity: 0.4;
+    transform: scale(0.98);
 }
 
-.ios-btn-active:active {
-    transform: scale(0.96);
-    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.animate-fade-in {
-    animation: fadeIn 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.edit-input {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #E5E5EA;
-    border-radius: 12px;
-    background-color: #F2F2F7;
-    color: #1D1D1F;
-    font-size: 0.95em;
-    outline: none;
-    transition: all 0.2s;
-}
-.edit-input:focus {
-    background-color: #FFFFFF;
-    box-shadow: 0 0 0 3px rgba(140, 166, 164, 0.3);
-    border-color: #8CA6A4;
-}
-
-.edit-select {
-    padding: 4px 10px;
-    border-radius: 10px;
-    border: 1px solid #E5E5EA;
-    background-color: #F2F2F7;
-    font-size: 0.85em;
-    color: #4A5568;
-    outline: none;
-}
-
-.btn-delete {
-    color: #FF3B30;
-    background: white;
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    cursor: pointer;
-}
-
-.btn-add {
-    width: 100%;
-    padding: 16px;
-    border: 2px dashed #C7C7CC;
-    border-radius: 20px;
-    color: #8E8E93;
-    font-weight: 600;
-    text-align: center;
-    cursor: pointer;
-    background-color: transparent;
-}
-.btn-add:hover {
-    background-color: rgba(140, 166, 164, 0.1);
-    border-color: #8CA6A4;
-    color: #8CA6A4;
+/* 拖曳經過的目標 (產生虛線框或位移提示) */
+.draggable-over {
+    border: 2px dashed #8CA6A4;
+    background-color: rgba(140, 166, 164, 0.05);
+    transform: scale(1.02);
 }
