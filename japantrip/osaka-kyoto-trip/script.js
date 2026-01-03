@@ -51,17 +51,20 @@ createApp({
         const bookingTab = ref('flight');
         const currentEditBooking = ref(null);
         const syncStatus = ref('連線中...');
+        
+        // --- Auth State ---
+        const showAuthModal = ref(false);
+        const authPassword = ref('');
+        const CORRECT_PASSWORD = '2026'; // 設定密碼
 
         const exchangeRate = ref(0.215);
         const jpyAmount = ref('');
         const twdAmount = ref('');
         const billTotal = ref('');
         const headCount = ref(7);
-
-        // --- Drag & Drop State ---
         const dragData = ref({ type: null, index: null, parentIndex: null });
 
-        // --- Default Data ---
+        // Default Itinerary
         const defaultItinerary = [
              {
                 date: '1/11 (日)',
@@ -112,69 +115,68 @@ createApp({
         const currentSpot = ref(null);
         let isReceivingUpdate = false;
 
-        // --- Drag & Drop Functions ---
-        // 通用：進入拖曳區域的視覺回饋
-        const onDragEnter = (event) => {
+        // --- Auth Logic (New) ---
+        const toggleEditMode = () => {
             if (isEditMode.value) {
-                // 這裡可以加更複雜的邏輯，目前 CSS .draggable-over 使用 :hover 模擬
+                // If currently editing, save and exit
+                saveData();
+                isEditMode.value = false;
+            } else {
+                // If viewing, show password modal
+                authPassword.value = '';
+                showAuthModal.value = true;
             }
         };
 
-        // 1. 行程拖拉
+        const verifyPassword = () => {
+            if (authPassword.value === CORRECT_PASSWORD) {
+                showAuthModal.value = false;
+                isEditMode.value = true;
+            } else {
+                alert('密碼錯誤！');
+                authPassword.value = '';
+            }
+        };
+
+        // --- Drag & Drop ---
+        const onDragEnter = (event) => {};
         const onSpotDragStart = (event, index) => {
             if (!isEditMode.value) return;
             dragData.value = { type: 'spot', index: index };
             event.dataTransfer.effectAllowed = 'move';
             event.target.classList.add('draggable-source');
         };
-
         const onSpotDrop = (event, index) => {
             event.target.classList.remove('draggable-source');
             if (dragData.value.type !== 'spot') return;
-            
             const fromIndex = dragData.value.index;
-            const toIndex = index;
-            if (fromIndex === toIndex) return;
-
+            if (fromIndex === index) return;
             const list = itinerary.value[currentDayIndex.value].spots;
             const item = list.splice(fromIndex, 1)[0];
-            list.splice(toIndex, 0, item);
-            
+            list.splice(index, 0, item);
             saveData();
             dragData.value = { type: null, index: null };
         };
-
-        // 2. 清單拖拉
         const onChecklistDragStart = (event, cIndex, iIndex) => {
             if (!isEditMode.value) return;
             dragData.value = { type: 'checklist', parentIndex: cIndex, index: iIndex };
             event.dataTransfer.effectAllowed = 'move';
             event.target.classList.add('draggable-source');
         };
-
         const onChecklistDrop = (event, cIndex, iIndex) => {
             event.target.classList.remove('draggable-source');
-            // 只能在同一個分類內拖拉
             if (dragData.value.type !== 'checklist' || dragData.value.parentIndex !== cIndex) return;
-
             const fromIndex = dragData.value.index;
-            const toIndex = iIndex;
-            if (fromIndex === toIndex) return;
-
+            if (fromIndex === iIndex) return;
             const list = checklistData.value[cIndex].items;
             const item = list.splice(fromIndex, 1)[0];
-            list.splice(toIndex, 0, item);
-
+            list.splice(iIndex, 0, item);
             saveData();
             dragData.value = { type: null, index: null, parentIndex: null };
         };
+        const onDragEnd = (event) => { event.target.classList.remove('draggable-source'); };
 
-        const onDragEnd = (event) => {
-            event.target.classList.remove('draggable-source');
-        };
-
-
-        // --- Firebase & Persistence ---
+        // --- Firebase ---
         onMounted(() => {
             if(db) {
                 db.ref(DB_PATH).on('value', (snapshot) => {
@@ -184,19 +186,14 @@ createApp({
                         if (data.itinerary) itinerary.value = data.itinerary;
                         if (data.bookings) bookings.value = data.bookings;
                         if (data.checklist) checklistData.value = data.checklist;
-                        
-                        if (!currentSpot.value && itinerary.value[0].spots.length > 0) {
-                            currentSpot.value = itinerary.value[0].spots[0];
-                        }
+                        if (!currentSpot.value && itinerary.value[0].spots.length > 0) currentSpot.value = itinerary.value[0].spots[0];
                         syncStatus.value = '已同步';
                         setTimeout(() => { isReceivingUpdate = false; }, 100);
-                    } else {
-                        saveData();
-                    }
+                    } else { saveData(); }
                 });
             } else {
                 syncStatus.value = '離線模式';
-                loadDataLocal(); // Fallback to localStorage
+                loadDataLocal();
             }
         });
 
@@ -221,17 +218,10 @@ createApp({
                 bookings: JSON.parse(JSON.stringify(bookings.value)),
                 checklist: JSON.parse(JSON.stringify(checklistData.value))
             };
-            
-            // Save to LocalStorage as backup
             localStorage.setItem('trip_data_v3', JSON.stringify(dataToSave));
-
             if(db) {
-                db.ref(DB_PATH).set(dataToSave)
-                    .then(() => { syncStatus.value = '已同步'; })
-                    .catch((error) => { console.error(error); syncStatus.value = '同步失敗'; });
-            } else {
-                syncStatus.value = '已儲存(本機)';
-            }
+                db.ref(DB_PATH).set(dataToSave).then(() => { syncStatus.value = '已同步'; }).catch(() => { syncStatus.value = '同步失敗'; });
+            } else { syncStatus.value = '已儲存(本機)'; }
         };
 
         watch([itinerary, bookings, checklistData], () => { saveData(); }, { deep: true });
@@ -256,8 +246,6 @@ createApp({
                         if (importedData.itinerary) itinerary.value = importedData.itinerary;
                         if (importedData.bookings) bookings.value = importedData.bookings;
                         if (importedData.checklist) checklistData.value = importedData.checklist;
-                        else checklistData.value = JSON.parse(JSON.stringify(defaultChecklist)); // Fallback
-                        
                         saveData();
                         currentDayIndex.value = 0;
                         if (itinerary.value[0].spots.length > 0) currentSpot.value = itinerary.value[0].spots[0];
@@ -303,7 +291,7 @@ createApp({
         const calculateJPY = () => { if (twdAmount.value) jpyAmount.value = (twdAmount.value / exchangeRate.value).toFixed(0); else jpyAmount.value = ''; };
         const splitResult = computed(() => { if (!billTotal.value || !headCount.value || headCount.value <= 0) return 0; return Math.ceil(billTotal.value / headCount.value); });
         const currentDayData = computed(() => itinerary.value[currentDayIndex.value] || { title: '', desc: '', spots: [] });
-        const toggleEditMode = () => { isEditMode.value = !isEditMode.value; };
+        
         const addSpot = () => { const newSpot = { time: '12:00', name: '新地點', type: 'sight', note: '', link: '#' }; if (!itinerary.value[currentDayIndex.value].spots) itinerary.value[currentDayIndex.value].spots = []; itinerary.value[currentDayIndex.value].spots.push(newSpot); currentSpot.value = newSpot; };
         const removeSpot = (index) => { if(confirm('刪除？')) { const daySpots = itinerary.value[currentDayIndex.value].spots; daySpots.splice(index, 1); currentSpot.value = daySpots.length > 0 ? daySpots[Math.max(0, index - 1)] : null; }};
         const changeDay = (index) => { currentDayIndex.value = index; const dayData = itinerary.value[index]; currentSpot.value = (dayData && dayData.spots.length > 0) ? dayData.spots[0] : null; isMapExpanded.value = false; };
@@ -323,11 +311,12 @@ createApp({
             currentView, bookingTab, exchangeRate, jpyAmount, twdAmount, billTotal, headCount, splitResult, syncStatus,
             flightBookings, hotelBookings, ticketBookings,
             toggleChecklistItem, addChecklistItem, removeChecklistItem,
-            // Drag & Drop
             onSpotDragStart, onSpotDrop, onChecklistDragStart, onChecklistDrop, onDragEnd, onDragEnter,
             changeDay, selectSpot, toggleEditMode, addSpot, removeSpot, resetData, exportData, triggerImport, handleFileUpload, triggerImageUpload, handleImageUpload,
             getIcon, getIconColor, getTextColor, getMapUrl, getNavLink, calculateTWD, calculateJPY, addBooking, removeBooking, copyText, 
-            getBookingIcon, getMapSearchUrl
+            getBookingIcon, getMapSearchUrl,
+            // New for Auth
+            showAuthModal, authPassword, verifyPassword
         };
     }
 }).mount('#app');
