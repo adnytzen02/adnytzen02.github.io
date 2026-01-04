@@ -51,11 +51,9 @@ createApp({
         const bookingTab = ref('flight');
         const currentEditBooking = ref(null);
         const syncStatus = ref('連線中...');
-        
-        // --- Auth State ---
         const showAuthModal = ref(false);
         const authPassword = ref('');
-        const CORRECT_PASSWORD = '2026'; // 設定密碼
+        const CORRECT_PASSWORD = '2026';
 
         const exchangeRate = ref(0.215);
         const jpyAmount = ref('');
@@ -64,7 +62,7 @@ createApp({
         const headCount = ref(7);
         const dragData = ref({ type: null, index: null, parentIndex: null });
 
-        // Default Itinerary
+        // Default Data
         const defaultItinerary = [
              {
                 date: '1/11 (日)',
@@ -109,74 +107,14 @@ createApp({
             { title: '6. 藥品', items: [{ name: '暈車藥', checked: false }, { name: '常備藥品', checked: false }, { name: '個人常備藥', checked: false }, { name: 'OK蹦', checked: false }, { name: 'B群 / 維他命C', checked: false }] }
         ];
 
+        // States
         const itinerary = ref([...defaultItinerary]);
         const bookings = ref([...defaultBookings]);
         const checklistData = ref(JSON.parse(JSON.stringify(defaultChecklist)));
         const currentSpot = ref(null);
         let isReceivingUpdate = false;
 
-        // --- Auth Logic (New) ---
-        const toggleEditMode = () => {
-            if (isEditMode.value) {
-                // If currently editing, save and exit
-                saveData();
-                isEditMode.value = false;
-            } else {
-                // If viewing, show password modal
-                authPassword.value = '';
-                showAuthModal.value = true;
-            }
-        };
-
-        const verifyPassword = () => {
-            if (authPassword.value === CORRECT_PASSWORD) {
-                showAuthModal.value = false;
-                isEditMode.value = true;
-            } else {
-                alert('密碼錯誤！');
-                authPassword.value = '';
-            }
-        };
-
-        // --- Drag & Drop ---
-        const onDragEnter = (event) => {};
-        const onSpotDragStart = (event, index) => {
-            if (!isEditMode.value) return;
-            dragData.value = { type: 'spot', index: index };
-            event.dataTransfer.effectAllowed = 'move';
-            event.target.classList.add('draggable-source');
-        };
-        const onSpotDrop = (event, index) => {
-            event.target.classList.remove('draggable-source');
-            if (dragData.value.type !== 'spot') return;
-            const fromIndex = dragData.value.index;
-            if (fromIndex === index) return;
-            const list = itinerary.value[currentDayIndex.value].spots;
-            const item = list.splice(fromIndex, 1)[0];
-            list.splice(index, 0, item);
-            saveData();
-            dragData.value = { type: null, index: null };
-        };
-        const onChecklistDragStart = (event, cIndex, iIndex) => {
-            if (!isEditMode.value) return;
-            dragData.value = { type: 'checklist', parentIndex: cIndex, index: iIndex };
-            event.dataTransfer.effectAllowed = 'move';
-            event.target.classList.add('draggable-source');
-        };
-        const onChecklistDrop = (event, cIndex, iIndex) => {
-            event.target.classList.remove('draggable-source');
-            if (dragData.value.type !== 'checklist' || dragData.value.parentIndex !== cIndex) return;
-            const fromIndex = dragData.value.index;
-            if (fromIndex === iIndex) return;
-            const list = checklistData.value[cIndex].items;
-            const item = list.splice(fromIndex, 1)[0];
-            list.splice(iIndex, 0, item);
-            saveData();
-            dragData.value = { type: null, index: null, parentIndex: null };
-        };
-        const onDragEnd = (event) => { event.target.classList.remove('draggable-source'); };
-
-        // --- Firebase ---
+        // Firebase Sync
         onMounted(() => {
             if(db) {
                 db.ref(DB_PATH).on('value', (snapshot) => {
@@ -186,6 +124,7 @@ createApp({
                         if (data.itinerary) itinerary.value = data.itinerary;
                         if (data.bookings) bookings.value = data.bookings;
                         if (data.checklist) checklistData.value = data.checklist;
+                        
                         if (!currentSpot.value && itinerary.value[0].spots.length > 0) currentSpot.value = itinerary.value[0].spots[0];
                         syncStatus.value = '已同步';
                         setTimeout(() => { isReceivingUpdate = false; }, 100);
@@ -257,6 +196,27 @@ createApp({
             reader.readAsText(file);
         };
 
+        // --- Auth ---
+        const toggleEditMode = () => {
+            if (isEditMode.value) { saveData(); isEditMode.value = false; } 
+            else { authPassword.value = ''; showAuthModal.value = true; }
+        };
+        const verifyPassword = () => {
+            if (authPassword.value === CORRECT_PASSWORD) { showAuthModal.value = false; isEditMode.value = true; } 
+            else { alert('密碼錯誤！'); authPassword.value = ''; }
+        };
+
+        const resetData = () => {
+            if(confirm('確定重置？')) {
+                itinerary.value = JSON.parse(JSON.stringify(defaultItinerary));
+                bookings.value = JSON.parse(JSON.stringify(defaultBookings));
+                checklistData.value = JSON.parse(JSON.stringify(defaultChecklist));
+                saveData();
+                isEditMode.value = false;
+            }
+        };
+
+        // Existing Helpers
         const triggerImageUpload = (bookingItem) => { currentEditBooking.value = bookingItem; imageInput.value.click(); };
         const handleImageUpload = (event) => {
             const file = event.target.files[0];
@@ -266,18 +226,6 @@ createApp({
             reader.onload = (e) => { currentEditBooking.value.image = e.target.result; saveData(); currentEditBooking.value = null; };
             reader.readAsDataURL(file); event.target.value = '';
         };
-
-        const resetData = () => {
-            if(confirm('確定重置？')) {
-                itinerary.value = JSON.parse(JSON.stringify(defaultItinerary));
-                bookings.value = JSON.parse(JSON.stringify(defaultBookings));
-                checklistData.value = JSON.parse(JSON.stringify(defaultChecklist));
-                isEditMode.value = false;
-                if (itinerary.value[0].spots.length > 0) currentSpot.value = itinerary.value[0].spots[0];
-                saveData();
-            }
-        };
-
         const triggerImport = () => fileInput.value.click();
         const flightBookings = computed(() => bookings.value.filter(b => b.category === 'flight'));
         const hotelBookings = computed(() => bookings.value.filter(b => b.category === 'hotel'));
@@ -286,12 +234,11 @@ createApp({
         const removeBooking = (item) => { if(confirm('確定刪除？')) { const idx = bookings.value.indexOf(item); if (idx > -1) bookings.value.splice(idx, 1); }};
         const toggleChecklistItem = (c, i) => { checklistData.value[c].items[i].checked = !checklistData.value[c].items[i].checked; saveData(); };
         const addChecklistItem = (cIndex) => { checklistData.value[cIndex].items.push({ name: '新項目', checked: false }); saveData(); };
-        const removeChecklistItem = (cIndex, iIndex) => { if(confirm('刪除項目？')) { checklistData.value[cIndex].items.splice(iIndex, 1); saveData(); }};
+        const removeChecklistItem = (cIndex, iIndex) => { if(confirm('刪除此項目？')) { checklistData.value[cIndex].items.splice(iIndex, 1); saveData(); }};
         const calculateTWD = () => { if (jpyAmount.value) twdAmount.value = (jpyAmount.value * exchangeRate.value).toFixed(0); else twdAmount.value = ''; };
         const calculateJPY = () => { if (twdAmount.value) jpyAmount.value = (twdAmount.value / exchangeRate.value).toFixed(0); else jpyAmount.value = ''; };
         const splitResult = computed(() => { if (!billTotal.value || !headCount.value || headCount.value <= 0) return 0; return Math.ceil(billTotal.value / headCount.value); });
         const currentDayData = computed(() => itinerary.value[currentDayIndex.value] || { title: '', desc: '', spots: [] });
-        
         const addSpot = () => { const newSpot = { time: '12:00', name: '新地點', type: 'sight', note: '', link: '#' }; if (!itinerary.value[currentDayIndex.value].spots) itinerary.value[currentDayIndex.value].spots = []; itinerary.value[currentDayIndex.value].spots.push(newSpot); currentSpot.value = newSpot; };
         const removeSpot = (index) => { if(confirm('刪除？')) { const daySpots = itinerary.value[currentDayIndex.value].spots; daySpots.splice(index, 1); currentSpot.value = daySpots.length > 0 ? daySpots[Math.max(0, index - 1)] : null; }};
         const changeDay = (index) => { currentDayIndex.value = index; const dayData = itinerary.value[index]; currentSpot.value = (dayData && dayData.spots.length > 0) ? dayData.spots[0] : null; isMapExpanded.value = false; };
@@ -306,6 +253,14 @@ createApp({
         const getBookingIcon = (category) => { const map = { flight: { icon: 'fa-solid fa-plane-up', color: 'bg-gradient-to-br from-blue-400 to-blue-600' }, hotel: { icon: 'fa-solid fa-bed', color: 'bg-gradient-to-br from-purple-400 to-purple-600' }, ticket: { icon: 'fa-solid fa-ticket', color: 'bg-gradient-to-br from-green-400 to-green-600' } }; return map[category] || { icon: 'fa-solid fa-file', color: 'bg-gray-400' }; };
         const copyText = (text) => { navigator.clipboard.writeText(text).then(() => alert('已複製')); };
 
+        // Drag & Drop
+        const onDragEnter = (event) => {};
+        const onSpotDragStart = (event, index) => { if (!isEditMode.value) return; dragData.value = { type: 'spot', index: index }; event.dataTransfer.effectAllowed = 'move'; event.target.classList.add('draggable-source'); };
+        const onSpotDrop = (event, index) => { event.target.classList.remove('draggable-source'); if (dragData.value.type !== 'spot') return; const fromIndex = dragData.value.index; if (fromIndex === index) return; const list = itinerary.value[currentDayIndex.value].spots; const item = list.splice(fromIndex, 1)[0]; list.splice(index, 0, item); saveData(); dragData.value = { type: null, index: null }; };
+        const onChecklistDragStart = (event, cIndex, iIndex) => { if (!isEditMode.value) return; dragData.value = { type: 'checklist', parentIndex: cIndex, index: iIndex }; event.dataTransfer.effectAllowed = 'move'; event.target.classList.add('draggable-source'); };
+        const onChecklistDrop = (event, cIndex, iIndex) => { event.target.classList.remove('draggable-source'); if (dragData.value.type !== 'checklist' || dragData.value.parentIndex !== cIndex) return; const fromIndex = dragData.value.index; if (fromIndex === iIndex) return; const list = checklistData.value[cIndex].items; const item = list.splice(fromIndex, 1)[0]; list.splice(iIndex, 0, item); saveData(); dragData.value = { type: null, index: null, parentIndex: null }; };
+        const onDragEnd = (event) => { event.target.classList.remove('draggable-source'); };
+
         return {
             currentDayIndex, itinerary, bookings, checklistData, currentDayData, currentSpot, isMapExpanded, isEditMode, spotTypes, fileInput, imageInput,
             currentView, bookingTab, exchangeRate, jpyAmount, twdAmount, billTotal, headCount, splitResult, syncStatus,
@@ -315,7 +270,6 @@ createApp({
             changeDay, selectSpot, toggleEditMode, addSpot, removeSpot, resetData, exportData, triggerImport, handleFileUpload, triggerImageUpload, handleImageUpload,
             getIcon, getIconColor, getTextColor, getMapUrl, getNavLink, calculateTWD, calculateJPY, addBooking, removeBooking, copyText, 
             getBookingIcon, getMapSearchUrl,
-            // New for Auth
             showAuthModal, authPassword, verifyPassword
         };
     }
