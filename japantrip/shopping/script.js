@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // === 匯出匯入模組 (樣式優化版) ===
+    // === 匯出匯入模組 (含 iOS 返回鍵) ===
     const ioModule = (() => {
         const exportHTML = () => {
             const items = dataModule.get();
@@ -271,15 +271,14 @@ document.addEventListener('DOMContentLoaded', () => {
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>購物清單 ${now}</title>
 <style>
-/* 視覺優化：更柔和的背景、更清晰的數量 */
+/* 視覺優化：深灰藍色背景 */
 :root { 
-    --bg-color: #202124;    /* 稍微調亮，不要全黑，類似 Google 深色模式 */
-    --card-bg: #2d2e31;     /* 卡片也稍微調亮，增加層次 */
+    --bg-color: #202124;
+    --card-bg: #2d2e31;
     --text-primary: #E8EAED;
     --text-secondary: #9AA0A6;
-    --accent: #BB86FC;      /* 霓虹紫 */
-    --accent-bg: rgba(187, 134, 252, 0.2);
-    --price-color: #81C995; /* 柔和的綠色 */
+    --accent: #BB86FC;
+    --price-color: #81C995;
     --border-color: #3c4043;
     --danger: #F28B82;
     --safe-bottom: env(safe-area-inset-bottom, 20px);
@@ -292,18 +291,56 @@ body {
     margin: 0;
     padding-bottom: calc(100px + var(--safe-bottom));
 }
+
+/* Header 改為 Flex 佈局以支援返回鍵 */
 .header {
     background: rgba(32, 33, 36, 0.95);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    padding: 16px;
-    padding-top: max(16px, env(safe-area-inset-top));
-    text-align: center;
+    padding: 12px 16px; /* 稍微調整 padding */
+    padding-top: max(12px, env(safe-area-inset-top));
     position: sticky; top: 0; z-index: 100;
     border-bottom: 1px solid var(--border-color);
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    
+    /* Flexbox 讓標題置中，按鈕在左 */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
-.header h2 { margin: 0; font-size: 19px; letter-spacing: 0.5px; color: var(--text-primary); }
+.header h2 { 
+    margin: 0; 
+    font-size: 19px; 
+    letter-spacing: 0.5px; 
+    color: var(--text-primary);
+    flex: 1; /* 佔滿中間 */
+    text-align: center;
+}
+
+/* 返回按鈕樣式 */
+.back-btn {
+    background: transparent;
+    border: none;
+    color: var(--accent);
+    font-size: 24px;
+    font-weight: 300;
+    padding: 4px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; /* 固定寬度 */
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+.back-btn:active {
+    background: rgba(255,255,255,0.1);
+}
+.header-spacer {
+    width: 40px; /* 右邊的隱形佔位符，確保標題置中 */
+}
+
+/* 其他卡片樣式保持不變 */
 .container { padding: 16px; max-width: 600px; margin: 0 auto; }
 .card {
     background: var(--card-bg);
@@ -332,11 +369,9 @@ body {
 .footer-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
 .price { font-size: 20px; font-weight: 700; color: var(--price-color); }
 .price span { font-size: 13px; margin-right: 2px; }
-
-/* === 重點修改：數量顯示優化 === */
 .qty-badge {
     background: var(--accent);
-    color: #000; /* 黑字對比清晰 */
+    color: #000;
     font-size: 14px;
     font-weight: 800;
     padding: 4px 12px;
@@ -345,8 +380,6 @@ body {
     align-items: center;
     box-shadow: 0 2px 8px rgba(187, 134, 252, 0.3);
 }
-/* =========================== */
-
 .check-wrapper { width: 44px; display: flex; justify-content: flex-end; }
 input[type=checkbox] {
     appearance: none; -webkit-appearance: none;
@@ -388,7 +421,13 @@ input[type=checkbox]:checked::after {
 </style>
 </head>
 <body>
-<div class="header"><h2>購物清單</h2></div>
+<div class="header">
+    <button class="back-btn" onclick="history.back()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <h2>Shopping List (${now})</h2>
+    <div class="header-spacer"></div>
+</div>
 <div class="container">${items.map((i,x)=>`
 <div class="card ${i.checked?'checked':''}" id="card-${x}">
 <div class="img-wrapper" onclick="openModal('${i.image}')">${i.image?`<img src="${i.image}">`:'<div class="no-img"><i class="fas fa-camera"></i></div>'}</div>
@@ -415,7 +454,7 @@ function closeModal(){document.getElementById('imgModal').style.display='none'}
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Japan_List_BetterUI_${now.replace(/\//g,'-')}.html`;
+            a.download = `Japan_List_iOS_${now.replace(/\//g,'-')}.html`;
             a.click();
         };
 
@@ -426,22 +465,18 @@ function closeModal(){document.getElementById('imgModal').style.display='none'}
             reader.onload = ev => {
                 const doc = new DOMParser().parseFromString(ev.target.result, 'text/html');
                 let newItems = [];
-                // 1. JSON 優先 (最穩)
                 const rawDataEl = doc.getElementById('raw-data');
                 if (rawDataEl) {
                     try { newItems = JSON.parse(rawDataEl.textContent); } catch (err) {}
                 }
-                // 2. DOM 解析 (相容模式)
                 if (newItems.length === 0) {
                      const cards = doc.querySelectorAll('.card');
                      if(cards.length > 0) {
                          cards.forEach(card => {
                              const title = card.querySelector('.title')?.textContent.trim() || '未命名';
                              let store = ''; let category = '';
-                             // 解析 Tag
                              const storeBadge = card.querySelector('.badge.store');
                              if (storeBadge) store = storeBadge.textContent.replace('🏬','').trim();
-                             // 解析 Meta (舊版)
                              const meta = card.querySelector('.meta')?.textContent || '';
                              if(!store && meta.includes('🏬')) store = meta.split('🏬')[1].split('|')[0].trim();
                              
@@ -453,13 +488,11 @@ function closeModal(){document.getElementById('imgModal').style.display='none'}
                              }
                              
                              let quantity = 1;
-                             // 新版解析：.qty-badge
                              const qtyBadge = card.querySelector('.qty-badge');
                              if(qtyBadge) {
                                  const m = qtyBadge.textContent.match(/(\d+)/);
                                  if(m) quantity = parseFloat(m[0]);
                              }
-                             // 舊版解析：.qty
                              const oldQty = card.querySelector('.qty');
                              if(oldQty) {
                                  const m = oldQty.textContent.match(/x(\d+)/);
