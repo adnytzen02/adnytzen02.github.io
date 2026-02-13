@@ -1,0 +1,42 @@
+[
+  {
+    "name": "白銀大教堂",
+    "region": "東京",
+    "address": "銀座 1-2-3",
+    "image": "",
+    "url": "https://example.com",
+    "map": "",
+    "notes": "典雅聖地。",
+    "id": 1
+  },
+  {
+    "name": "獅子王秘境",
+    "region": "台北",
+    "address": "信義區 101",
+    "image": "",
+    "url": "",
+    "map": "",
+    "notes": "威嚴美味。",
+    "id": 2
+  },
+  {
+    "name": "うなぎの魚伊 本店",
+    "region": "大阪",
+    "address": "大阪府大阪市旭区高殿4-8-10",
+    "image": "https://lh3.googleusercontent.com/gps-cs-s/AHVAweqhFb07CuUokl_ujsV60d33g7OoEBDr7OU_t2j3t_yPkeHLtUfbCVD5SnRcVpluiSxlknVlypMrMNrdlP6Ha5cYdLo5k7mn4xDEZj2UgD8CC9M-DMumLiIM0kQxxHeP6H5w9D6q=w408-h306-k-no",
+    "url": "https://tabelog.com/tw/osaka/A2701/A270304/27003671/",
+    "map": "https://maps.app.goo.gl/dGf9bXC2QXFeKGEq7",
+    "notes": "大阪メトロ谷町線「関目高殿」駅(5番出口)から徒歩5分\n京阪本線「関目」駅から徒歩10分\n関目高殿駅から260m",
+    "id": 1770198062059
+  },
+  {
+    "name": "肉ときどきレモンサワー 上野",
+    "region": "東京",
+    "address": "東京都台東区上野6-13-2 渡辺上野ビル 4F",
+    "image": "https://meocloud-image.s3.ap-northeast-1.amazonaws.com/images/cms/managed/companies/1038/202502260131372000%E5%86%86_02.webp",
+    "url": "https://tabelog.com/tw/tokyo/A1311/A131101/13281247/",
+    "map": "https://maps.app.goo.gl/8w64HsqBjaauzDN56",
+    "notes": "2000円 食べ放題 飲み放題 肉ときどきレモンサワー。上野駅前店\n牡蠣無制限食べ放題。普段は「食べ飲み放題2,000円」のお店が期間限定フェアを開催。",
+    "id": 1770282193528
+  }
+]

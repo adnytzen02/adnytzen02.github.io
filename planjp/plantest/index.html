@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>聖城美食收藏錄</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+</head>
+<body>
+
+    <div class="marble-bg"></div>
+
+    <div class="header-wrapper">
+        <header class="floating-header">
+            <div class="title-main">
+                <span class="star">✦</span>
+                <h1>聖城玉座收藏錄</h1>
+                <span class="star">✦</span>
+            </div>
+            <p class="title-sub">CAMELOT CULINARY CHRONICLES</p>
+            <div class="divider-line"></div>
+        </header>
+    </div>
+
+    <div class="app-container">
+        <p class="sort-hint">※ 長按卡片可自由調整順序</p>
+        <div class="list-grid" id="list"></div>
+    </div>
+
+    <div class="fab-wrapper">
+        <div class="sub-menu" id="subMenu">
+            <button class="menu-btn" onclick="openFormModal()">
+                <span>✦ 銘刻新的餐廳</span>
+            </button>
+            <button class="menu-btn" onclick="exportData()">
+                <span>✦ 匯出收藏紀錄</span>
+            </button>
+            <button class="menu-btn" onclick="triggerImport()">
+                <span>✦ 匯入收藏紀錄</span>
+            </button>
+            <button class="menu-btn edit-toggle-btn" id="editToggleBtn" onclick="toggleEditMode()">
+                <span id="editBtnText">✦ 編輯現有卡片</span>
+            </button>
+        </div>
+        <button class="fab-main" onclick="toggleMenu()">
+            <span id="fabText">✦ 管理選單 ✦</span>
+        </button>
+    </div>
+
+    <input type="file" id="importFile" style="display:none" accept=".json" onchange="handleImport(event)">
+
+    <div class="modal-overlay" id="detailsModal">
+        <div class="modal-box details-box">
+            <div id="detailsImageContainer" class="details-image-container">
+                <img id="viewImage" src="" alt="餐廳縮圖">
+            </div>
+            <div class="modal-header-deco">
+                <div class="details-deco">✦</div>
+                <h2 id="viewName">---</h2>
+                <div class="header-line"></div>
+            </div>
+            <div class="details-body">
+                <div class="info-row">
+                    <label>區域領域</label>
+                    <div id="viewRegion" class="info-content-box primary-text">---</div>
+                </div>
+                <div class="info-row">
+                    <label>完整位置</label>
+                    <div class="field-with-copy">
+                        <div id="viewAddress" class="info-content-box">---</div>
+                        <button class="btn-copy-charm" onclick="copyToClipboard('viewAddress')">複刻</button>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <label>餐廳網址</label>
+                    <div class="field-with-copy">
+                        <div id="viewUrl" class="info-content-box url-style">---</div>
+                        <button class="btn-copy-charm" onclick="copyToClipboard('viewUrl')">複刻</button>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <label>備註紀錄</label>
+                    <div id="viewNotes" class="note-paper">---</div>
+                </div>
+                
+                <div class="details-action-group">
+                    <a id="viewMapLink" href="#" target="_blank" class="btn-royal-action">Maps 導覽</a>
+                    <a id="viewWebLink" href="#" target="_blank" class="btn-royal-action">前往網址</a>
+                </div>
+
+            </div>
+            <div class="modal-actions-center">
+                <button class="btn-confirm-close" onclick="closeDetailsModal()">✦ 關閉詳情 ✦</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="formModal">
+        <div class="modal-box form-box">
+            <div class="modal-header-deco">
+                <div class="details-deco">✦</div>
+                <h2 id="formModalTitle" class="form-title">銘刻餐廳</h2>
+                <div class="header-line"></div>
+            </div>
+            <div class="form-group-container">
+                <div class="form-item"><label>餐廳名稱</label><input type="text" id="resName" placeholder="例如：白銀大教堂"></div>
+                <div class="form-item"><label>位於地區</label><input type="text" id="resRegion" placeholder="例如：東京、台北"></div>
+                <div class="form-item"><label>完整地址</label><input type="text" id="resAddress" placeholder="詳細地址資訊"></div>
+                <div class="form-item"><label>餐廳縮圖網址 (URL)</label><input type="text" id="resImage" placeholder="貼上圖片連結"></div>
+                <div class="form-item"><label>餐廳網址</label><input type="text" id="resUrl" placeholder="官方網站或訂位連結"></div>
+                <div class="form-item"><label>Google Map 連結</label><input type="text" id="resMap" placeholder="地圖導覽網址"></div>
+                <div class="form-item"><label>備註內容</label><textarea id="resNotes" placeholder="內容..." rows="3"></textarea></div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel-royal" onclick="closeFormModal()">取消銘刻</button>
+                <button class="btn-confirm-royal" onclick="saveData()">確認銘刻</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">已執行銘刻動作</div>
+
+    <script src="script.js"></script>
+</body>
+</html>
