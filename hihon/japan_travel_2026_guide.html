@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 旅日必看 9 大新制與東京自由行全攻略 (全站可編輯版)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        washi: '#FAF8F5',
+                        linen: '#F3EFEA',
+                        cardbg: '#FFFFFF',
+                        ink: '#333333',
+                        inklight: '#666666',
+                        matcha: {
+                            DEFAULT: '#8F9E8B',
+                            light: '#E8EFE8',
+                            dark: '#6B7A67'
+                        },
+                        sakura: {
+                            DEFAULT: '#E07A5F',
+                            light: '#F8ECE9',
+                            dark: '#C85A3F'
+                        },
+                        indigo: {
+                            DEFAULT: '#4C5C68',
+                            light: '#ECEFEF'
+                        },
+                        ochre: {
+                            DEFAULT: '#D9A05B',
+                            light: '#FCF5EB'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', '"PingFang TC"', '"Microsoft JhengHei"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FAF8F5;
+            color: #333333;
+            font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-image: radial-gradient(#E5DFD5 0.75px, transparent 0.75px);
+            background-size: 16px 16px;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 360px;
+            }
+        }
+        .japanese-shadow {
+            box-shadow: 0 4px 20px -2px rgba(120, 110, 100, 0.08), 0 2px 6px -1px rgba(120, 110, 100, 0.04);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #F3EFEA;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #D5CCC1;
+            border-radius: 4px;
+        }
+        .editable-highlight {
+            outline: 2px dashed #E07A5F !important;
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between pb-12">
+
+<!-- Chosen Palette: 日系和風柔和色調 (Japanese Fresh Neutral Palette: Washi Cream #FAF8F5, Linen #F3EFEA, Ink #333333, Matcha #8F9E8B, Sakura Coral #E07A5F, Warm Ochre #D9A05B) -->
+<!-- Application Structure Plan: 
+     本系統採用「主題分頁儀表板 + 全站資料動態編輯」的架構。
+     設計理由：報告包含法規新制、神社參拜指南、旅遊避坑提醒、機票攻略與行李行程工具。為提升使用者體驗，打破純文章式閱讀：
+     1. 頁首提供「預覽 / 全站編輯模式」切換、資料重置與 JSON 匯入匯出，滿足可編輯網站的需求。
+     2. 【2026九大新制】：結合時間與影響程度標籤，並以 Chart.js 提供額外規費調漲比較圖。
+     3. 【神社參拜百科】：依據「願望類別」進行互動式動態篩選（求財、學業、戀愛、交通等）。
+     4. 【避坑與實用須知】：卡片化呈現 10 必知與 7 不必跟風，支援即時內嵌編輯。
+     5. 【機票搶票攻略】：提供出發地與淡旺季價格互動圖表，並標示線上旅展時程。
+     6. 【互動清單與行程包】：可打勾的互動式行李清單（具備進度條），與出發/機場/飯店小幫手。
+-->
+<!-- Visualization & Content Choices:
+     - 2026 新規費用調漲 -> Chart.js 柱狀圖 -> 清楚呈現離境稅、住宿稅上限等額外費用增幅。
+     - 機票價格淡旺季 -> Chart.js 折線/雙軸圖 -> 比對傳統航空與廉航於淡旺季之價格浮動。
+     - 神社參拜分類 -> HTML/CSS Grid + JS 多重篩選器 -> 快速依個人願望尋找對應神社。
+     - 行李備忘清單 -> 動態可編輯 HTML Checkbox + localStorage 保存 -> 實用且個人化。
+     - 全站編輯控制器 -> Vanilla JS 事件驅動與狀態同步 -> 免後端即可實現全站資料更新與 JSON 備份。
+-->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+<!-- Header & Global Navigation -->
+<header class="bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-[#E8E2D8]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <!-- Brand Title -->
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl p-2 bg-matcha-light text-matcha-dark rounded-xl flex items-center justify-center">
+                    <i class="fa-solid font-bold fa-torii-gate"></i>
+                </span>
+                <div>
+                    <h1 class="text-xl font-bold text-ink tracking-tight flex items-center gap-2">
+                        2026 旅日全攻略 <span class="text-xs font-normal px-2 py-0.5 bg-sakura-light text-sakura-dark rounded-full border border-sakura/20">可編輯電子手冊</span>
+                    </h1>
+                    <p class="text-xs text-inklight">最新法規新制 • 神社百科 • 避坑指南 • 互動行程清單</p>
+                </div>
+            </div>
+
+            <!-- Global Action Controls -->
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+                <!-- Mode Toggle -->
+                <button id="edit-mode-btn" onclick="toggleEditMode()" class="px-3 py-1.5 rounded-lg border border-matcha text-matcha-dark hover:bg-matcha-light transition-all flex items-center gap-1.5 font-medium">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span id="edit-mode-text">啟用全站編輯</span>
+                </button>
+
+                <!-- Data Actions -->
+                <button onclick="exportData()" class="px-2.5 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition-all flex items-center gap-1" title="匯出JSON備份">
+                    <i class="fa-solid fa-download"></i>
+                    <span>匯出</span>
+                </button>
+                <label class="px-2.5 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 cursor-pointer transition-all flex items-center gap-1" title="匯入JSON設定">
+                    <i class="fa-solid fa-upload"></i>
+                    <span>匯入</span>
+                    <input type="file" id="import-file" onchange="importData(event)" class="hidden" accept=".json">
+                </label>
+                <button onclick="resetToDefaultData()" class="px-2.5 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-all flex items-center gap-1" title="重置回初始預設">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>重置</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex space-x-1 mt-3 overflow-x-auto custom-scrollbar pb-1 text-sm border-t border-gray-100 pt-2">
+            <button onclick="switchTab('tab-rules')" id="btn-tab-rules" class="tab-btn px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all bg-matcha text-white shadow-sm">
+                <i class="fa-solid fa-triangle-exclamation mr-1.5"></i>2026 九大新制
+            </button>
+            <button onclick="switchTab('tab-shrines')" id="btn-tab-shrines" class="tab-btn px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all text-inklight hover:bg-linen">
+                <i class="fa-solid fa-place-of-worship mr-1.5"></i>神社參拜指南
+            </button>
+            <button onclick="switchTab('tab-hacks')" id="btn-tab-hacks" class="tab-btn px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all text-inklight hover:bg-linen">
+                <i class="fa-solid fa-lightbulb mr-1.5"></i>避坑與實用須知
+            </button>
+            <button onclick="switchTab('tab-flights')" id="btn-tab-flights" class="tab-btn px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all text-inklight hover:bg-linen">
+                <i class="fa-solid fa-plane-departure mr-1.5"></i>機票搶票攻略
+            </button>
+            <button onclick="switchTab('tab-tools')" id="btn-tab-tools" class="tab-btn px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-all text-inklight hover:bg-linen">
+                <i class="fa-solid fa-list-check mr-1.5"></i>互動清單與助手
+            </button>
+        </nav>
+    </div>
+</header>
+
+<!-- Main Content Area -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex-grow">
+
+    <!-- EDIT MODE BANNER (Hidden by default) -->
+    <div id="edit-mode-banner" class="hidden mb-6 p-4 bg-sakura-light/80 border border-sakura/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-sakura-dark text-sm">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-pen-nib text-lg animate-bounce"></i>
+            <div>
+                <p class="font-bold">全站編輯模式已開啟！</p>
+                <p class="text-xs text-sakura-dark/80">您可以直接點擊卡片上的「編輯」按鈕修改標題與內文，或新增/刪除卡片。所有變動皆會自動儲存於您的瀏覽器中。</p>
+            </div>
+        </div>
+        <button onclick="toggleEditMode()" class="px-3 py-1 bg-sakura text-white rounded-lg text-xs font-medium hover:bg-sakura-dark transition-all shadow-sm whitespace-nowrap">
+            完成編輯並返回預覽
+        </button>
+    </div>
+
+    <!-- ==================== TAB 1: 2026 九大新制 ==================== -->
+    <section id="tab-rules" class="tab-content block space-y-6">
+        <!-- Section Intro -->
+        <div class="bg-white p-6 rounded-2xl border border-[#E8E2D8] japanese-shadow">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-ink flex items-center gap-2">
+                        <i class="fa-solid fa-bell text-sakura"></i> 2026年 旅日必看 9 大新制整理
+                    </h2>
+                    <p class="text-sm text-inklight mt-1">
+                        本區塊收錄 2026 年起適用之日本入境、稅制、交通與消費最新規定。點擊下方可進行關鍵字檢索或時間篩選。
+                    </p>
+                </div>
+                <div id="add-rule-btn-container" class="hidden">
+                    <button onclick="openRuleModal()" class="px-4 py-2 bg-matcha text-white text-sm rounded-xl hover:bg-matcha-dark transition-all flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-plus"></i> 新增新制項目
+                    </button>
+                </div>
+            </div>
+
+            <!-- Controls & Filter -->
+            <div class="mt-4 pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                        <input type="text" id="rule-search" oninput="renderRules()" placeholder="搜尋新制關鍵字..." class="w-full pl-9 pr-3 py-1.5 text-xs bg-linen/50 border border-gray-200 rounded-xl focus:outline-none focus:border-matcha">
+                    </div>
+                </div>
+                <div class="text-xs text-inklight">
+                    顯示數量：<span id="rule-count-badge" class="font-bold text-matcha-dark">9</span> 項
+                </div>
+            </div>
+        </div>
+
+        <!-- Rules Chart Summary -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-[#E8E2D8] japanese-shadow">
+                <h3 class="text-base font-bold text-ink mb-1 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-column text-matcha"></i> 2026 主要旅遊規費與調整幅度預覽
+                </h3>
+                <p class="text-xs text-inklight mb-4">分析 2026 年各項費用調整前後之金額變化（單位：日圓）</p>
+                <div class="chart-container">
+                    <canvas id="rulesFeeChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-ochre-light/50 p-5 rounded-2xl border border-ochre/20 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-ochre-dark mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info"></i> 新制快訊重點提示
+                    </h3>
+                    <ul class="text-xs text-ink space-y-2.5 leading-relaxed">
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-check text-matcha mt-0.5"></i>
+                            <span><b>行動電源：</b>4月中起航行中禁止充電，每人上限2顆(160Wh以下)。</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-check text-matcha mt-0.5"></i>
+                            <span><b>退稅變革：</b>11月起實施「先付後退」，改至機場 KIOSK 辦理退稅。</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-check text-matcha mt-0.5"></i>
+                            <span><b>離境稅調漲：</b>7/1 起由 1,000 日圓漲至 3,000 日圓。</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-check text-matcha mt-0.5"></i>
+                            <span><b>密封袋解封：</b>11月起消耗品取消密封袋包裝及50萬日圓上限。</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="mt-4 pt-3 border-t border-ochre/20 text-xs text-inklight italic">
+                    💡 提示：前往日本前請務必重複核對最新法規，避免帶錯行動電源或錯過退稅。
+                </div>
+            </div>
+        </div>
+
+        <!-- Rules Grid Container -->
+        <div id="rules-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Dynamic Injection via JS -->
+        </div>
+    </section>
+
+    <!-- ==================== TAB 2: 神社參拜指南 ==================== -->
+    <section id="tab-shrines" class="tab-content hidden space-y-6">
+        <!-- Section Intro -->
+        <div class="bg-white p-6 rounded-2xl border border-[#E8E2D8] japanese-shadow">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-ink flex items-center gap-2">
+                        <i class="fa-solid fa-torii-gate text-sakura"></i> 日本神社參拜與守護領域指南
+                    </h2>
+                    <p class="text-sm text-inklight mt-1">
+                        去日本別看到神社就拜！不同神社有不同的擅長守護領域，依據您的祈願目標選擇合適的神社系統。
+                    </p>
+                </div>
+                <div id="add-shrine-btn-container" class="hidden">
+                    <button onclick="openShrineModal()" class="px-4 py-2 bg-matcha text-white text-sm rounded-xl hover:bg-matcha-dark transition-all flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-plus"></i> 新增神社類型
+                    </button>
+                </div>
+            </div>
+
+            <!-- Wish Category Filter Buttons -->
+            <div class="mt-5 pt-4 border-t border-gray-100">
+                <p class="text-xs font-bold text-inklight mb-2">💡 依祈願目標（守護領域）快速篩選：</p>
+                <div id="shrine-filter-buttons" class="flex flex-wrap gap-2 text-xs">
+                    <button onclick="filterShrines('all')" class="shrine-filter-btn px-3 py-1.5 rounded-xl bg-matcha text-white font-medium">全部神社系統</button>
+                    <button onclick="filterShrines('財運/事業')" class="shrine-filter-btn px-3 py-1.5 rounded-xl bg-linen text-inklight hover:bg-matcha-light">💰 財運 / 生意 / 事業</button>
+                    <button onclick="filterShrines('學業/考試')" class="shrine-filter-btn px-3 py-1.5 rounded-xl bg-linen text-inklight hover:bg-matcha-light">🎓 學業 / 考試 / 證照</button>
+                    <button onclick="filterShrines('戀able/結緣')" class="shrine-filter-btn px-3 py-1.5 rounded-xl bg-linen text-inklight hover:bg-matcha-light">❤️ 戀愛 / 姻緣 / 復合</button>
+                    <button onclick="filterShrines('交通/旅行')" class="shrine-filter-btn px-3 py-1.5 rounded-xl bg-linen text-inklight hover:bg-matcha-light">✈️ 交通 / 旅途安全</button>
+                    <button onclick="filterShrines('健康/除厄')" class="shrine-filter-btn px-3 py-1.5 rounded-xl bg-linen text-inklight hover:bg-matcha-light">⛩️ 健康 / 消災 / 防疫</button>
+                    <button onclick="filterShrines('藝術/美貌')" class="shrine-filter-btn px-3 py-1.5 rounded-xl bg-linen text-inklight hover:bg-matcha-light">🎨 藝術 / 美貌 / 創造力</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shrines Grid -->
+        <div id="shrines-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Dynamic Injection via JS -->
+        </div>
+    </section>
+
+    <!-- ==================== TAB 3: 避坑與實用須知 ==================== -->
+    <section id="tab-hacks" class="tab-content hidden space-y-6">
+        <!-- Sub Tabs -->
+        <div class="bg-white p-4 rounded-2xl border border-[#E8E2D8] japanese-shadow flex flex-wrap items-center justify-between gap-4">
+            <div class="flex space-x-2">
+                <button onclick="switchHacksSubTab('sub-must-know')" id="btn-sub-must-know" class="sub-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-indigo text-white">
+                    <i class="fa-solid fa-list-ol mr-1"></i> 去日本前必知 10 件事
+                </button>
+                <button onclick="switchHacksSubTab('sub-no-follow')" id="btn-sub-no-follow" class="sub-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-linen text-inklight hover:bg-gray-200">
+                    <i class="fa-solid fa-ban mr-1"></i> 不必跟風 7 事
+                </button>
+                <button onclick="switchHacksSubTab('sub-pro-tips')" id="btn-sub-pro-tips" class="sub-tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-linen text-inklight hover:bg-gray-200">
+                    <i class="fa-solid fa-kit-medical mr-1"></i> 藥妝與生活 3 大神助攻
+                </button>
+            </div>
+            <button id="add-hack-btn" onclick="openHackModal()" class="hidden px-3 py-1.5 bg-matcha text-white text-xs rounded-xl hover:bg-matcha-dark">
+                <i class="fa-solid fa-plus"></i> 新增提醒卡片
+            </button>
+        </div>
+
+        <!-- Sub Section 1: 必知 10 件事 -->
+        <div id="sub-must-know" class="sub-hacks-content block">
+            <div id="must-know-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Dynamic Injected -->
+            </div>
+        </div>
+
+        <!-- Sub Section 2: 不必跟風 7 事 -->
+        <div id="sub-no-follow" class="sub-hacks-content hidden">
+            <div id="no-follow-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Dynamic Injected -->
+            </div>
+        </div>
+
+        <!-- Sub Section 3: 實用小提醒 (藥妝/洗衣/VJW) -->
+        <div id="sub-pro-tips" class="sub-hacks-content hidden">
+            <div id="pro-tips-grid" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <!-- Dynamic Injected -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 4: 機票搶票攻略 ==================== -->
+    <section id="tab-flights" class="tab-content hidden space-y-6">
+        <!-- Section Intro -->
+        <div class="bg-white p-6 rounded-2xl border border-[#E8E2D8] japanese-shadow">
+            <h2 class="text-2xl font-bold text-ink flex items-center gap-2">
+                <i class="fa-solid fa-plane-departure text-sakura"></i> 出國旅遊機票淡旺季與搶票全攻略
+            </h2>
+            <p class="text-sm text-inklight mt-1">
+                別再相信「星期幾買最便宜」的迷思！掌握旺季預訂節奏、官網購票原則與線上旅展時間，輕鬆搶到機票甜甜價。
+            </p>
+        </div>
+
+        <!-- Flight Visuals & Strategy -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Chart Container -->
+            <div class="lg:col-span-2 bg-white p-5 rounded-2xl border border-[#E8E2D8] japanese-shadow">
+                <h3 class="text-base font-bold text-ink mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-tags text-matcha"></i> 台灣出發（日本線）來回促銷甜甜價參考表
+                </h3>
+                <p class="text-xs text-inklight mb-4">單位：新台幣 (NT$)，已含基本稅金與託運行李</p>
+                <div class="chart-container">
+                    <canvas id="flightPricesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Fairs & Timing Matrix -->
+            <div class="bg-white p-5 rounded-2xl border border-[#E8E2D8] japanese-shadow flex flex-col justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-ink mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-check text-sakura"></i> 線上旅展與搶票黃金期
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <div class="p-3 bg-matcha-light/60 rounded-xl border border-matcha/20">
+                            <span class="text-xs font-bold text-matcha-dark block">🌸 5～6 月 TTE 線上旅展</span>
+                            <p class="text-xs text-ink mt-1"><b>鎖定目標：</b>購買當年下半年（7月～12月）機票。</p>
+                        </div>
+
+                        <div class="p-3 bg-sakura-light/60 rounded-xl border border-sakura/20">
+                            <span class="text-xs font-bold text-sakura-dark block">🍁 10～11 月 ITF 線上旅展</span>
+                            <p class="text-xs text-ink mt-1"><b>鎖定目標：</b>購買隔年上半年（10月～隔年6月）機票。</p>
+                        </div>
+
+                        <div class="p-3 bg-ochre-light/60 rounded-xl border border-ochre/20">
+                            <span class="text-xs font-bold text-ochre-dark block">⚡ 離出發時間極近？</span>
+                            <p class="text-xs text-ink mt-1">出發 2 個月內直接鎖定當下「促銷」或旅行社「清倉票」。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-gray-100 text-xs text-inklight">
+                    💡 <b>黃金法則：</b>大旺季（過年/櫻花/暑前2週）需提早 8-12 個月官網開賣即搶！
+                </div>
+            </div>
+        </div>
+
+        <!-- Strategy Grid Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="bg-white p-5 rounded-2xl border border-[#E8E2D8] japanese-shadow">
+                <span class="text-xs font-bold px-2.5 py-1 bg-red-100 text-red-600 rounded-full">🚨 超級大旺季</span>
+                <h4 class="text-base font-bold text-ink mt-2">過年連假</h4>
+                <p class="text-xs text-inklight mt-1"><b>價格估計：</b>淡季價 × 2.5 ～ 4 倍</p>
+                <p class="text-xs text-ink mt-2">剛開賣（約前1年）買通常最便宜，價格幾乎不會下殺，越晚買越貴。</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-[#E8E2D8] japanese-shadow">
+                <span class="text-xs font-bold px-2.5 py-1 bg-orange-100 text-orange-600 rounded-full">🔥 大旺季</span>
+                <h4 class="text-base font-bold text-ink mt-2">寒假、暑假前2週、清明/中秋/櫻花季</h4>
+                <p class="text-xs text-inklight mt-1"><b>價格估計：</b>淡季價 × 1.5 ～ 2.5 倍</p>
+                <p class="text-xs text-ink mt-2">建議提早 8 個月～1 年入手，不適用清倉促銷邏輯。</p>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-[#E8E2D8] japanese-shadow">
+                <span class="text-xs font-bold px-2.5 py-1 bg-green-100 text-green-700 rounded-full">🎯 小旺季 / 淡季</span>
+                <h4 class="text-base font-bold text-ink mt-2">3日連假、花火節、楓葉季 / 5-6月、9月</h4>
+                <p class="text-xs text-inklight mt-1"><b>搶票策略：</b>出發半年前關注促銷</p>
+                <p class="text-xs text-ink mt-2">日期具彈性（改為午去早回或前後挪移幾天），容易挖到甜甜價！</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 5: 互動清單與行程助手 ==================== -->
+    <section id="tab-tools" class="tab-content hidden space-y-6">
+        <!-- Checklist Dashboard -->
+        <div class="bg-white p-6 rounded-2xl border border-[#E8E2D8] japanese-shadow">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-ink flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-matcha"></i> 旅日互動行李準備清單
+                    </h2>
+                    <p class="text-sm text-inklight mt-1">勾選您已準備好的物品，進度條會即時更新。您可以新增或刪除個人專屬項目。</p>
+                </div>
+                <button onclick="addChecklistItemPrompt()" class="px-3.5 py-2 bg-matcha text-white text-xs rounded-xl hover:bg-matcha-dark transition-all flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-plus"></i> 新增檢查項目
+                </button>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mt-5">
+                <div class="flex justify-between text-xs font-bold text-ink mb-1">
+                    <span>打包完成度</span>
+                    <span id="checklist-progress-text">0% (0/0)</span>
+                </div>
+                <div class="w-full h-3 bg-linen rounded-full overflow-hidden">
+                    <div id="checklist-progress-bar" class="h-full bg-matcha transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checklist Categories Grid -->
+        <div id="checklist-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            <!-- Dynamic Injection -->
+        </div>
+
+        <!-- Airport & Flight Info Helper Box -->
+        <div class="bg-white p-6 rounded-2xl border border-[#E8E2D8] japanese-shadow space-y-5">
+            <h3 class="text-lg font-bold text-ink flex items-center gap-2 border-b border-gray-100 pb-3">
+                <i class="fa-solid fa-route text-sakura"></i> 行程出發與機場小幫手卡片
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs">
+                <!-- Airport Info Card -->
+                <div class="p-4 bg-linen/50 rounded-xl border border-gray-200">
+                    <h4 class="font-bold text-ink text-sm mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-plane-departure text-indigo"></i> 出境報到須知
+                    </h4>
+                    <ul class="space-y-1.5 text-inklight leading-relaxed">
+                        <li><b>建議抵達：</b>起飛前 2.5 ~ 3 小時至櫃台。</li>
+                        <li><b>行動電源：</b>嚴禁托運，隨身攜帶（注意額定容量）。</li>
+                        <li><b>液體規範：</b>隨身每瓶小於100ml，裝入透明夾鏈袋。</li>
+                    </ul>
+                </div>
+
+                <!-- VJW Card -->
+                <div class="p-4 bg-matcha-light/40 rounded-xl border border-matcha/20">
+                    <h4 class="font-bold text-matcha-dark text-sm mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-qrcode"></i> Visit Japan Web 準備
+                    </h4>
+                    <p class="text-inklight leading-relaxed mb-2">
+                        填寫完畢請<b>務必截圖入境與海關 QR Code</b>！成田/羽田機場免費Wi-Fi偶有連線不穩，截圖能大幅提升通關速度。
+                    </p>
+                </div>
+
+                <!-- Skyliner / Hotel Helper -->
+                <div class="p-4 bg-ochre-light/40 rounded-xl border border-ochre/20">
+                    <h4 class="font-bold text-ochre-dark text-sm mb-2 flex items-center gap-1.5">
+                        <i class="fa-solid fa-train"></i> 成田 Skyliner & 住宿小提醒
+                    </h4>
+                    <p class="text-inklight leading-relaxed">
+                        搭乘 Skyliner 可直接於線上預訂優惠套票。住宿 Check-in 日文備忘：<i>「予約してます (Yo-ya-ku shi-te-masu)」</i>。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Modal for Rule/Shrine/Hack Editing -->
+<div id="editor-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-2xl w-full max-w-lg overflow-hidden transform transition-all">
+        <div class="p-4 bg-linen border-b border-gray-200 flex justify-between items-center">
+            <h3 id="modal-title" class="font-bold text-ink text-base">編輯項目</h3>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-ink text-lg"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="modal-form" onsubmit="handleModalSubmit(event)" class="p-5 space-y-4 text-xs">
+            <input type="hidden" id="modal-type">
+            <input type="hidden" id="modal-id">
+
+            <div>
+                <label class="block font-bold text-ink mb-1">名稱 / 標題</label>
+                <input type="text" id="modal-field-title" required class="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:border-matcha text-xs">
+            </div>
+
+            <div id="modal-field-subtitle-container">
+                <label class="block font-bold text-ink mb-1">副標題 / 實施日期 / 神社主神</label>
+                <input type="text" id="modal-field-subtitle" class="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:border-matcha text-xs">
+            </div>
+
+            <div id="modal-field-tag-container">
+                <label class="block font-bold text-ink mb-1">標籤 / 分類（多個請用半形逗號分隔）</label>
+                <input type="text" id="modal-field-tags" class="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:border-matcha text-xs">
+            </div>
+
+            <div>
+                <label class="block font-bold text-ink mb-1">詳細說明 / 內容</label>
+                <textarea id="modal-field-desc" rows="4" required class="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:border-matcha text-xs"></textarea>
+            </div>
+
+            <div class="pt-3 border-t border-gray-100 flex justify-end gap-2">
+                <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl border border-gray-300 text-gray-600 hover:bg-gray-100">取消</button>
+                <button type="submit" class="px-4 py-2 rounded-xl bg-matcha text-white hover:bg-matcha-dark font-medium shadow-sm">儲存變更</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="mt-12 border-t border-[#E8E2D8] bg-white py-6">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-inklight space-y-1">
+        <p><b>2026 旅日必看新制與東京自由行全攻略</b> • 資訊整合與互動編輯手冊</p>
+        <p class="text-gray-400">所有修改資料皆保存在本機瀏覽器（LocalStorage），可隨時匯出備份。</p>
+    </div>
+</footer>
+
+<!-- JavaScript Core Logic -->
+<script>
+    /* ==========================================================================
+       1. DATA STRUCTURE & DEFAULT STATE
+       ========================================================================== */
+    const STORAGE_KEY = 'JAPAN_TRAVEL_2026_APP_DATA_V2';
+
+    const defaultData = {
+        rules: [
+            { id: 'r1', title: '① 行動電源機上禁用', date: '04月中起', tags: ['航班安全', '重要'], desc: '航行中禁止使用行動電源充電。每人最多帶 2 顆 160Wh 以下登機，嚴禁放入託運行李。', impact: '高' },
+            { id: 'r2', title: '② 西瓜卡大改版', date: '秋季起', tags: ['交通票卡'], desc: 'Suica 儲值上限從 2 萬日圓大幅提高至 30 萬日圓！陪了大家 25 年的企鵝吉祥物預計年底退休。', impact: '中' },
+            { id: 'r3', title: '③ 住宿稅擴大徵收', date: '2026年起', tags: ['住宿規費'], desc: '北海道、沖繩、輕井澤今年新加入徵收。京都最貴，每人每晚最高收 10,000 日圓住宿稅。', impact: '中' },
+            { id: 'r4', title: '④ 餐廳深夜附加費', date: '2026年起', tags: ['餐飲消費'], desc: '夜間 22:00 後消費多付 7%~10% 深夜服務費。連鎖平價餐飲如松屋、食其家已開始執行。', impact: '低' },
+            { id: 'r5', title: '⑤ 離境稅漲 3 倍', date: '07/01起', tags: ['機場規費'], desc: '國際觀光旅客離境稅由 1,000 日圓調漲至 3,000 日圓，機票結帳時自動隨票徵收（約多台幣600元）。', impact: '高' },
+            { id: 'r6', title: '⑥ 退稅改先付後退', date: '11月起', tags: ['購物退稅', '重要'], desc: '實體店家結帳一律先付含稅價，出境前往機場 KIOSK 才能辦理退稅。商品記得於 90 天內帶出境。', impact: '高' },
+            { id: 'r7', title: '⑦ 免稅密封袋限制取消', date: '11月起', tags: ['藥妝購物'], desc: '消耗品 50 萬日圓上限取消，購買藥妝化妝品不用再強制裝入透明密封袋，方便行李打包！', impact: '中' },
+            { id: 'r8', title: '⑧ 北海道 3 座機場調漲', date: '06/01起', tags: ['機場設施費'], desc: '新千歲、函館、旭川機場調漲設施利用費。05/31 前完成開票者不受此調漲影響。', impact: '低' },
+            { id: 'r9', title: '⑨ 鹿兒島新幹線全額補助', date: '06月起', tags: ['交通優惠'], desc: '針對台灣旅客專屬福利！可申請「博多 ➔ 鹿兒島中央」單程新幹線全額補助，現省約台幣 2,400 元。', impact: '中' }
+        ],
+        shrines: [
+            { id: 's1', name: '稻荷神社', kanji: '稲荷（いなり）', god: '宇迦之御魂神', domain: '財運/事業', tags: ['求財運', '創業開張', '加薪人脈'], example: '京都 伏見稻荷大社', desc: '看到滿滿紅色鳥居與狐狸神使就是稻荷神社。適合祈求事業、創業、開店、業績、加薪、財運與人脈。' },
+            { id: 's2', name: '浅間神社', kanji: '浅間（せんげん）', god: '木花咲耶姬命', domain: '健康/除厄', tags: ['女性運勢', '求子順產', '家庭平安'], example: '富士山本宮淺間大社', desc: '與富士山信仰相關，主神是櫻花與火山之女神。守護女性與生育，適合祈求求子順產、家庭幸福、健康平安。' },
+            { id: 's3', name: '住吉神社', kanji: '住吉（すみよし）', god: '住吉三神', domain: '交通/旅行', tags: ['旅行平安', '交通安全', '海外發展'], example: '大阪 住吉大社', desc: '原本為守護航海與海事之神，現代延伸為旅行、交通、搬家、出國與海外工作順利之守護神。' },
+            { id: 's4', name: '貴船神社', kanji: '貴船（きふね）', god: '高龗神', domain: '戀愛/結緣', tags: ['戀愛結緣', '復合', '水占卜'], example: '京都 貴船神社', desc: '供奉水與雨之神。因水象徵情感流動，特別以戀愛、復合、姻緣與心願成就闻名，著名特色為水占卜。' },
+            { id: 's5', name: '天神 / 天滿宮', kanji: '天神（てんじん）', god: '菅原道真', domain: '學業/考試', tags: ['考試及格', '學業升學', '證照公職'], example: '福岡太宰府天滿宮、京都北野天滿宮', desc: '日本最有名的學問之神！看到「天神、天滿宮」均為此系統，極適合祈求考試、學業、證照與面試順利。' },
+            { id: 's6', name: '祇園 / 八坂神社', kanji: '祇園（ぎおん）', god: '素戔嗚尊（須佐之男命）', domain: '健康/除厄', tags: ['消災除厄', '無病息災', '驅邪'], example: '京都 八坂神社', desc: '源自京都八坂神社，古代主要功能為祈求健康、消災、除厄、驅邪與防疫，祇園祭最初即為平息疫病而生。' },
+            { id: 's7', name: '惠比壽神社', kanji: '恵比寿（えびす）', god: '惠比壽神', domain: '財運/事業', tags: ['生意興隆', '商業繁盛', '人緣福氣'], example: '西宮神社、惠比壽神社', desc: '供奉日本最接地氣的財神（七福神之一）。商人、老闆特別常拜，適合祈求生意興隆、財富與商業福氣。' },
+            { id: 's8', name: '金毘羅宮', kanji: '金毘羅（こんぴら）', god: '大物主神', domain: '交通/旅行', tags: ['跨越難關', '人生突破', '遠行安全'], example: '香川 金刀比羅宮', desc: '保佑航海與遠行。延伸為面臨人生重大挑戰時，祈求「跨越人生難關」、事業突破與目標達成。' },
+            { id: 's9', name: '秋葉神社', kanji: '秋葉（あきは）', god: '火之迦具土神', domain: '健康/除厄', tags: ['防火平安', '3C設備', 'IT科技'], example: '秋葉原秋葉神社', desc: '最重要功能為防火，現代延伸為居家平安、工廠安全、機械設備與 IT 電子產品穩定。秋葉原地名即源於此。' },
+            { id: 's10', name: '嚴島神社', kanji: '厳島（いつくしま）', god: '市杵島姬命 / 辯才天', domain: '藝術/美貌', tags: ['藝術音樂', '女性魅力', '財富創作'], example: '廣島 宮島嚴島神社', desc: '與辯才天信仰結合極深，除了海上守護，特別象徵藝術、音樂、美貌、女性魅力與藝術創造力。' }
+        ],
+        mustKnow: [
+            { id: 'mk1', title: '① 垃圾桶真的很少🗑️', desc: '買完飲料或零食垃圾可能要拿著走很久，建議包包裡隨手放一個小垃圾袋備用。' },
+            { id: 'mk2', title: '② 現金還是要準備一點💴', desc: '雖然多數店家能刷卡或 Pay，但傳統拉麵店、神社御守、市場小吃依然只收日圓現金。' },
+            { id: 'mk3', title: '③ 電車真的很準時🚆', desc: '晚一分鐘都真的會錯過！建議提早 5～10 分鐘抵達月台候車。' },
+            { id: 'mk4', title: '④ 手扶梯站立習慣差異🛗', desc: '東京通常站左邊讓右邊；大阪、京都多數站右邊讓左邊。記得觀察旁人留出通道。' },
+            { id: 'mk5', title: '⑤ 電車上保持安靜🤫', desc: '日本車廂內極少人大聲交談或接聽電話，請將手機切換為靜音模式。' },
+            { id: 'mk6', title: '⑥ 日本超商真的超強🏪', desc: '7-Eleven、Lawson、FamilyMart 飯糰、炸雞、熟食與甜點都具備極高水準！' },
+            { id: 'mk7', title: '⑦ 記得自備環保袋🛍️', desc: '大部分商店塑膠袋均需另外收費，隨身帶環保袋既省錢又環保。' },
+            { id: 'mk8', title: '⑧ 藥妝不要第一間就買💊', desc: '同商品不同藥妝店價差可能高達數百日幣，多比較 2-3 家能省下不少錢。' },
+            { id: 'mk9', title: '⑨ Google Maps 超重要📍', desc: '在日本自由行全靠它！換乘出口、月台番線與步行導航都非常準確。' },
+            { id: 'mk10', title: '⑩ 行李箱千萬不要帶太滿🧳', desc: '日本太好買了！伴手禮、藥妝、服飾...建議出發前至少預留三分之一空間。' }
+        ],
+        noFollow: [
+            { id: 'nf1', title: '1. 不推 IG / TikTok 排隊名店', desc: '拍照人擠人，吃完往往不如預期。改用日本在地 Tabelog 尋找 3.5 分以上的店家更實在。' },
+            { id: 'nf2', title: '2. 日本不是完全沒垃圾桶', desc: '便利商店、車站月台、公廁都有垃圾桶，但禁止倒外食垃圾。買完現場吃完順手回收最省事。' },
+            { id: 'nf3', title: '3. 別再誤傳「車廂不能講話」', desc: '可以輕聲交談，只要控制好音量即可，並非不能開口說話。' },
+            { id: 'nf4', title: '4. 不要盲捧單一超商', desc: '三大超商各有強項：全家（炸雞最強）、7-11（冰沙與奶昔）、Lawson（甜點與文具生活品）。' },
+            { id: 'nf5', title: '5. 計程車偶爾搭很可以', desc: '短程（1-2公里）多人分攤其實只比台灣貴一點點。逛一整天鐵腿時別硬撐！' },
+            { id: 'nf6', title: '6. Donki 唐吉訶德沒必要逛太久', desc: '商品多但擺放雜亂。純買藥妝去松本清或 Sundrug、@cosme 效率更高。' },
+            { id: 'nf7', title: '7. 預約門票別只靠 Klook / KKday', desc: '許多展望台或景點直連官網購買往往更便宜，且具備彈性退換時間的權益。' }
+        ],
+        proTips: [
+            { id: 'pt1', title: '💊 1️⃣ 藥妝店急救', desc: '日韓藥妝店密度極高，若身體不適，當地藥品針對日本病毒或水土不服往往非常有效。' },
+            { id: 'pt2', title: '🧺 2️⃣ 善用飯店洗衣設施', desc: '日本飯店幾乎都有投幣式洗烘衣機。帶 3 天份衣服即可玩 10 天，空間留給新鞋更划算！' },
+            { id: 'pt3', title: '📲 3️⃣ Visit Japan Web 截圖保存', desc: '不需列印紙本，在台灣先填好並將 QR Code 截圖保存在手機相簿，通關速度快很多。' }
+        ],
+        checklist: [
+            { id: 'c1', cat: '必備證件類', text: '護照 (有效期至少6個月以上)', checked: true },
+            { id: 'c2', cat: '必備證件類', text: 'Visit Japan Web QR Code 截圖', checked: true },
+            { id: 'c3', cat: '必備證件類', text: '日圓現金與信用卡 (建議備實體卡)', checked: false },
+            { id: 'c4', cat: '必備證件類', text: '電子機票與飯店確認單 (手機備份)', checked: true },
+            { id: 'c5', cat: '衣物與生活', text: '天數 +1 天之替換衣物', checked: false },
+            { id: 'c6', cat: '衣物與生活', text: '折疊晴雨傘', checked: false },
+            { id: 'c7', cat: '衣物與生活', text: '個人便鞋 / 輕便運動鞋', checked: false },
+            { id: 'c8', cat: '個人保養藥品', text: '常備藥 (頭痛/腸胃/感冒藥)', checked: false },
+            { id: 'c9', cat: '個人保養藥品', text: '盥洗包與保養品', checked: false },
+            { id: 'c10', cat: '科技用品', text: '合規行動電源 (160Wh以下、隨身帶)', checked: false },
+            { id: 'c11', cat: '科技用品', text: '日本 eSIM / SIM 卡或漫遊', checked: false },
+            { id: 'c12', cat: '科技用品', text: '隨身環保購物袋', checked: false }
+        ]
+    };
+
+    let appData = JSON.parse(JSON.stringify(defaultData));
+    let isEditMode = false;
+    let currentShrineFilter = 'all';
+    let rulesChart = null;
+    let flightsChart = null;
+
+    /* ==========================================================================
+       2. INITIALIZATION & STORAGE HANDLING
+       ========================================================================== */
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDataFromStorage();
+        renderAllSections();
+        initCharts();
+    });
+
+    function loadDataFromStorage() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            try {
+                appData = JSON.parse(stored);
+            } catch (e) {
+                console.error("Failed to parse stored data", e);
+                appData = JSON.parse(JSON.stringify(defaultData));
+            }
+        }
+    }
+
+    function saveDataToStorage() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+    }
+
+    function resetToDefaultData() {
+        if (confirm("確定要重置所有內容回預設狀態嗎？您自訂的變更將會遺失。")) {
+            appData = JSON.parse(JSON.stringify(defaultData));
+            saveDataToStorage();
+            renderAllSections();
+            updateCharts();
+            alert("已成功重置為初始資料！");
+        }
+    }
+
+    function exportData() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `Japan_Travel_2026_Data_${new Date().toISOString().slice(0,10)}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    }
+
+    function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if (imported.rules && imported.shrines) {
+                    appData = imported;
+                    saveDataToStorage();
+                    renderAllSections();
+                    updateCharts();
+                    alert("資料成功匯入！");
+                } else {
+                    alert("匯入的檔案格式不符。");
+                }
+            } catch (err) {
+                alert("JSON 解析失敗，請確認檔案格式是否正確。");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    /* ==========================================================================
+       3. EDIT MODE SWITCHING
+       ========================================================================== */
+    function toggleEditMode() {
+        isEditMode = !isEditMode;
+        const btnText = document.getElementById('edit-mode-text');
+        const banner = document.getElementById('edit-mode-banner');
+        
+        const addRuleBtn = document.getElementById('add-rule-btn-container');
+        const addShrineBtn = document.getElementById('add-shrine-btn-container');
+        const addHackBtn = document.getElementById('add-hack-btn');
+
+        if (isEditMode) {
+            btnText.innerText = "結束編輯模式";
+            banner.classList.remove('hidden');
+            addRuleBtn.classList.remove('hidden');
+            addShrineBtn.classList.remove('hidden');
+            addHackBtn.classList.remove('hidden');
+        } else {
+            btnText.innerText = "啟用全站編輯";
+            banner.classList.add('hidden');
+            addRuleBtn.classList.add('hidden');
+            addShrineBtn.classList.add('hidden');
+            addHackBtn.classList.add('hidden');
+        }
+
+        renderAllSections();
+    }
+
+    /* ==========================================================================
+       4. TAB NAVIGATION & RENDERING
+       ========================================================================== */
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('bg-matcha', 'text-white', 'shadow-sm');
+            btn.classList.add('text-inklight', 'hover:bg-linen');
+        });
+
+        document.getElementById(tabId).classList.remove('hidden');
+        const activeBtn = document.getElementById('btn-' + tabId);
+        activeBtn.classList.add('bg-matcha', 'text-white', 'shadow-sm');
+        activeBtn.classList.remove('text-inklight', 'hover:bg-linen');
+
+        // Re-trigger chart resize if visible
+        if (tabId === 'tab-rules' && rulesChart) rulesChart.resize();
+        if (tabId === 'tab-flights' && flightsChart) flightsChart.resize();
+    }
+
+    function switchHacksSubTab(subId) {
+        document.querySelectorAll('.sub-hacks-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+            btn.classList.remove('bg-indigo', 'text-white');
+            btn.classList.add('bg-linen', 'text-inklight');
+        });
+
+        document.getElementById(subId).classList.remove('hidden');
+        const activeBtn = document.getElementById('btn-' + subId);
+        activeBtn.classList.add('bg-indigo', 'text-white');
+        activeBtn.classList.remove('bg-linen', 'text-inklight');
+    }
+
+    function renderAllSections() {
+        renderRules();
+        renderShrines();
+        renderHacks();
+        renderChecklist();
+    }
+
+    /* ==========================================================================
+       5. RULES SECTION (TAB 1)
+       ========================================================================== */
+    function renderRules() {
+        const container = document.getElementById('rules-grid');
+        const query = document.getElementById('rule-search')?.value.toLowerCase() || '';
+        
+        const filtered = appData.rules.filter(r => 
+            r.title.toLowerCase().includes(query) || 
+            r.desc.toLowerCase().includes(query) ||
+            r.tags.some(t => t.toLowerCase().includes(query))
+        );
+
+        document.getElementById('rule-count-badge').innerText = filtered.length;
+
+        container.innerHTML = filtered.map(r => `
+            <div class="bg-white p-5 rounded-2xl border border-[#E8E2D8] japanese-shadow flex flex-col justify-between relative group hover:border-matcha/50 transition-all">
+                <div>
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-xs font-bold px-2.5 py-0.5 bg-sakura-light text-sakura-dark rounded-full border border-sakura/20">${r.date}</span>
+                        <div class="flex items-center gap-1">
+                            ${r.tags.map(t => `<span class="text-[10px] px-2 py-0.5 bg-linen text-inklight rounded-md">${t}</span>`).join('')}
+                        </div>
+                    </div>
+                    <h3 class="text-base font-bold text-ink mb-2">${r.title}</h3>
+                    <p class="text-xs text-inklight leading-relaxed">${r.desc}</p>
+                </div>
+
+                ${isEditMode ? `
+                    <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-end gap-2 text-xs">
+                        <button onclick="openRuleModal('${r.id}')" class="px-2.5 py-1 bg-matcha-light text-matcha-dark rounded-lg hover:bg-matcha hover:text-white transition-all">
+                            <i class="fa-solid fa-pen"></i> 編輯
+                        </button>
+                        <button onclick="deleteRule('${r.id}')" class="px-2.5 py-1 bg-red-50 text-red-600 rounded-lg hover:bg-red-500 hover:text-white transition-all">
+                            <i class="fa-solid fa-trash"></i> 刪除
+                        </button>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+    }
+
+    function deleteRule(id) {
+        if (confirm("確定要刪除這項新制嗎？")) {
+            appData.rules = appData.rules.filter(r => r.id !== id);
+            saveDataToStorage();
+            renderRules();
+            updateCharts();
+        }
+    }
+
+    /* ==========================================================================
+       6. SHRINES SECTION (TAB 2)
+       ========================================================================== */
+    function filterShrines(category) {
+        currentShrineFilter = category;
+        document.querySelectorAll('.shrine-filter-btn').forEach(btn => {
+            btn.classList.remove('bg-matcha', 'text-white');
+            btn.classList.add('bg-linen', 'text-inklight');
+        });
+        event.currentTarget.classList.add('bg-matcha', 'text-white');
+        event.currentTarget.classList.remove('bg-linen', 'text-inklight');
+        renderShrines();
+    }
+
+    function renderShrines() {
+        const container = document.getElementById('shrines-grid');
+        const filtered = currentShrineFilter === 'all' 
+            ? appData.shrines 
+            : appData.shrines.filter(s => s.domain === currentShrineFilter);
+
+        container.innerHTML = filtered.map(s => `
+            <div class="bg-white p-5 rounded-2xl border border-[#E8E2D8] japanese-shadow flex flex-col justify-between relative hover:border-sakura/40 transition-all">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold px-2.5 py-0.5 bg-ochre-light text-ochre-dark rounded-full border border-ochre/30">
+                            <i class="fa-solid fa-star mr-1"></i>${s.domain}
+                        </span>
+                        <span class="text-xs text-gray-400 font-serif">${s.kanji}</span>
+                    </div>
+
+                    <h3 class="text-lg font-bold text-ink">${s.name}</h3>
+                    <p class="text-xs text-matcha-dark font-medium mb-3">主神：${s.god}</p>
+
+                    <div class="flex flex-wrap gap-1 mb-3">
+                        ${s.tags.map(t => `<span class="text-[10px] px-2 py-0.5 bg-matcha-light/60 text-matcha-dark rounded-md">#${t}</span>`).join('')}
+                    </div>
+
+                    <p class="text-xs text-inklight leading-relaxed mb-3">${s.desc}</p>
+                </div>
+
+                <div>
+                    <div class="p-2.5 bg-linen/60 rounded-xl text-xs text-ink border border-gray-100">
+                        <span class="font-bold text-sakura-dark block mb-0.5">⛩️ 代表神社：</span>
+                        ${s.example}
+                    </div>
+
+                    ${isEditMode ? `
+                        <div class="mt-3 pt-2 border-t border-gray-100 flex items-center justify-end gap-2 text-xs">
+                            <button onclick="openShrineModal('${s.id}')" class="px-2.5 py-1 bg-matcha-light text-matcha-dark rounded-lg hover:bg-matcha hover:text-white transition-all">
+                                編輯
+                            </button>
+                            <button onclick="deleteShrine('${s.id}')" class="px-2.5 py-1 bg-red-50 text-red-600 rounded-lg hover:bg-red-500 hover:text-white transition-all">
+                                刪除
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function deleteShrine(id) {
+        if (confirm("確定要刪除此神社類型嗎？")) {
+            appData.shrines = appData.shrines.filter(s => s.id !== id);
+            saveDataToStorage();
+            renderShrines();
+        }
+    }
+
+    /* ==========================================================================
+       7. HACKS & TIPS SECTION (TAB 3)
+       ========================================================================== */
+    function renderHacks() {
+        // Must Know
+        document.getElementById('must-know-grid').innerHTML = appData.mustKnow.map(mk => `
+            <div class="bg-white p-5 rounded-2xl border border-[#E8E2D8] japanese-shadow flex flex-col justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-ink mb-2">${mk.title}</h3>
+                    <p class="text-xs text-inklight leading-relaxed">${mk.desc}</p>
+                </div>
+                ${isEditMode ? `
+                    <div class="mt-3 pt-2 border-t border-gray-100 flex justify-end gap-2 text-xs">
+                        <button onclick="openHackModal('mustKnow', '${mk.id}')" class="px-2 py-1 bg-matcha-light text-matcha-dark rounded-lg">編輯</button>
+                        <button onclick="deleteHack('mustKnow', '${mk.id}')" class="px-2 py-1 bg-red-50 text-red-600 rounded-lg">刪除</button>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+
+        // No Follow
+        document.getElementById('no-follow-grid').innerHTML = appData.noFollow.map(nf => `
+            <div class="bg-white p-5 rounded-2xl border border-[#E8E2D8] japanese-shadow flex flex-col justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-sakura-dark mb-2">${nf.title}</h3>
+                    <p class="text-xs text-inklight leading-relaxed">${nf.desc}</p>
+                </div>
+                ${isEditMode ? `
+                    <div class="mt-3 pt-2 border-t border-gray-100 flex justify-end gap-2 text-xs">
+                        <button onclick="openHackModal('noFollow', '${nf.id}')" class="px-2 py-1 bg-matcha-light text-matcha-dark rounded-lg">編輯</button>
+                        <button onclick="deleteHack('noFollow', '${nf.id}')" class="px-2 py-1 bg-red-50 text-red-600 rounded-lg">刪除</button>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+
+        // Pro Tips
+        document.getElementById('pro-tips-grid').innerHTML = appData.proTips.map(pt => `
+            <div class="bg-white p-5 rounded-2xl border border-[#E8E2D8] japanese-shadow flex flex-col justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-matcha-dark mb-2">${pt.title}</h3>
+                    <p class="text-xs text-inklight leading-relaxed">${pt.desc}</p>
+                </div>
+                ${isEditMode ? `
+                    <div class="mt-3 pt-2 border-t border-gray-100 flex justify-end gap-2 text-xs">
+                        <button onclick="openHackModal('proTips', '${pt.id}')" class="px-2 py-1 bg-matcha-light text-matcha-dark rounded-lg">編輯</button>
+                        <button onclick="deleteHack('proTips', '${pt.id}')" class="px-2 py-1 bg-red-50 text-red-600 rounded-lg">刪除</button>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+    }
+
+    function deleteHack(type, id) {
+        if (confirm("確定要刪除嗎？")) {
+            appData[type] = appData[type].filter(item => item.id !== id);
+            saveDataToStorage();
+            renderHacks();
+        }
+    }
+
+    /* ==========================================================================
+       8. CHECKLIST SECTION (TAB 5)
+       ========================================================================== */
+    function renderChecklist() {
+        const container = document.getElementById('checklist-grid');
+        const categories = [...new Set(appData.checklist.map(c => c.cat))];
+
+        let total = appData.checklist.length;
+        let checkedCount = appData.checklist.filter(c => c.checked).length;
+        let pct = total > 0 ? Math.round((checkedCount / total) * 100) : 0;
+
+        document.getElementById('checklist-progress-text').innerText = `${pct}% (${checkedCount}/${total})`;
+        document.getElementById('checklist-progress-bar').style.width = `${pct}%`;
+
+        container.innerHTML = categories.map(cat => {
+            const items = appData.checklist.filter(c => c.cat === cat);
+            return `
+                <div class="bg-white p-5 rounded-2xl border border-[#E8E2D8] japanese-shadow">
+                    <h3 class="font-bold text-ink text-sm border-b border-gray-100 pb-2 mb-3 flex items-center gap-1.5">
+                        <i class="fa-solid fa-folder-closed text-ochre"></i> ${cat}
+                    </h3>
+                    <div class="space-y-2">
+                        ${items.map(item => `
+                            <div class="flex items-center justify-between text-xs group">
+                                <label class="flex items-start gap-2 cursor-pointer select-none pr-2">
+                                    <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleCheckitem('${item.id}')" class="mt-0.5 rounded text-matcha focus:ring-matcha">
+                                    <span class="${item.checked ? 'line-through text-gray-400' : 'text-ink'} leading-tight">${item.text}</span>
+                                </label>
+                                <button onclick="deleteCheckitem('${item.id}')" class="text-gray-300 hover:text-red-500 text-xs px-1">
+                                    <i class="fa-solid fa-times"></i>
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function toggleCheckitem(id) {
+        const item = appData.checklist.find(c => c.id === id);
+        if (item) {
+            item.checked = !item.checked;
+            saveDataToStorage();
+            renderChecklist();
+        }
+    }
+
+    function deleteCheckitem(id) {
+        appData.checklist = appData.checklist.filter(c => c.id !== id);
+        saveDataToStorage();
+        renderChecklist();
+    }
+
+    function addChecklistItemPrompt() {
+        const text = prompt("請輸入新增的備忘物品名稱：");
+        if (!text) return;
+        const cat = prompt("請輸入分類 (例如：必備證件類, 衣物與生活, 個人保養藥品, 科技用品)：", "科技用品");
+        if (!cat) return;
+
+        appData.checklist.push({
+            id: 'c_' + Date.now(),
+            cat: cat,
+            text: text,
+            checked: false
+        });
+        saveDataToStorage();
+        renderChecklist();
+    }
+
+    /* ==========================================================================
+       9. MODAL EDITING HANDLERS
+       ========================================================================== */
+    function openModal(title, type, id = '') {
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-type').value = type;
+        document.getElementById('modal-id').value = id;
+        document.getElementById('editor-modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('editor-modal').classList.add('hidden');
+        document.getElementById('modal-form').reset();
+    }
+
+    function openRuleModal(id = '') {
+        openModal(id ? '編輯新制項目' : '新增新制項目', 'rule', id);
+        document.getElementById('modal-field-subtitle-container').classList.remove('hidden');
+        document.getElementById('modal-field-tag-container').classList.remove('hidden');
+
+        if (id) {
+            const rule = appData.rules.find(r => r.id === id);
+            if (rule) {
+                document.getElementById('modal-field-title').value = rule.title;
+                document.getElementById('modal-field-subtitle').value = rule.date;
+                document.getElementById('modal-field-tags').value = rule.tags.join(',');
+                document.getElementById('modal-field-desc').value = rule.desc;
+            }
+        }
+    }
+
+    function openShrineModal(id = '') {
+        openModal(id ? '編輯神社類型' : '新增神社類型', 'shrine', id);
+        document.getElementById('modal-field-subtitle-container').classList.remove('hidden');
+        document.getElementById('modal-field-tag-container').classList.remove('hidden');
+
+        if (id) {
+            const shrine = appData.shrines.find(s => s.id === id);
+            if (shrine) {
+                document.getElementById('modal-field-title').value = shrine.name;
+                document.getElementById('modal-field-subtitle').value = shrine.god;
+                document.getElementById('modal-field-tags').value = shrine.tags.join(',');
+                document.getElementById('modal-field-desc').value = shrine.desc;
+            }
+        }
+    }
+
+    function openHackModal(type, id = '') {
+        openModal(id ? '編輯須知卡片' : '新增須知卡片', type, id);
+        document.getElementById('modal-field-subtitle-container').classList.add('hidden');
+        document.getElementById('modal-field-tag-container').classList.add('hidden');
+
+        if (id) {
+            const hack = appData[type].find(h => h.id === id);
+            if (hack) {
+                document.getElementById('modal-field-title').value = hack.title;
+                document.getElementById('modal-field-desc').value = hack.desc;
+            }
+        }
+    }
+
+    function handleModalSubmit(event) {
+        event.preventDefault();
+        const type = document.getElementById('modal-type').value;
+        const id = document.getElementById('modal-id').value;
+
+        const title = document.getElementById('modal-field-title').value;
+        const subtitle = document.getElementById('modal-field-subtitle').value;
+        const tagsRaw = document.getElementById('modal-field-tags').value;
+        const desc = document.getElementById('modal-field-desc').value;
+
+        const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()) : [];
+
+        if (type === 'rule') {
+            if (id) {
+                const rule = appData.rules.find(r => r.id === id);
+                if (rule) {
+                    rule.title = title;
+                    rule.date = subtitle;
+                    rule.tags = tags;
+                    rule.desc = desc;
+                }
+            } else {
+                appData.rules.push({
+                    id: 'r_' + Date.now(),
+                    title: title,
+                    date: subtitle || '2026起',
+                    tags: tags.length ? tags : ['新制'],
+                    desc: desc,
+                    impact: '中'
+                });
+            }
+            renderRules();
+            updateCharts();
+        } else if (type === 'shrine') {
+            if (id) {
+                const shrine = appData.shrines.find(s => s.id === id);
+                if (shrine) {
+                    shrine.name = title;
+                    shrine.god = subtitle;
+                    shrine.tags = tags;
+                    shrine.desc = desc;
+                }
+            } else {
+                appData.shrines.push({
+                    id: 's_' + Date.now(),
+                    name: title,
+                    kanji: title,
+                    god: subtitle || '宮奉神祇',
+                    domain: '綜合平安',
+                    tags: tags.length ? tags : ['祈福'],
+                    example: title,
+                    desc: desc
+                });
+            }
+            renderShrines();
+        } else if (['mustKnow', 'noFollow', 'proTips'].includes(type)) {
+            if (id) {
+                const hack = appData[type].find(h => h.id === id);
+                if (hack) {
+                    hack.title = title;
+                    hack.desc = desc;
+                }
+            } else {
+                appData[type].push({
+                    id: 'h_' + Date.now(),
+                    title: title,
+                    desc: desc
+                });
+            }
+            renderHacks();
+        }
+
+        saveDataToStorage();
+        closeModal();
+    }
+
+    /* ==========================================================================
+       10. CHART.JS INTEGRATION
+       ========================================================================== */
+    function initCharts() {
+        // Rules Fee Increase Chart
+        const ctxRules = document.getElementById('rulesFeeChart').getContext('2d');
+        rulesChart = new Chart(ctxRules, {
+            type: 'bar',
+            data: {
+                labels: ['離境稅 (日圓)', '京都住宿稅上限 (日圓)', '深夜附加費 (%)', '機票規費預估 (台幣)'],
+                datasets: [
+                    {
+                        label: '調漲前 / 原規定',
+                        data: [1000, 2000, 0, 1000],
+                        backgroundColor: '#8F9E8B'
+                    },
+                    {
+                        label: '2026 新制調漲後',
+                        data: [3000, 10000, 10, 1600],
+                        backgroundColor: '#E07A5F'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.raw;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Flight Prices Chart
+        const ctxFlights = document.getElementById('flightPricesChart').getContext('2d');
+        flightsChart = new Chart(ctxFlights, {
+            type: 'line',
+            data: {
+                labels: ['東京', '沖繩', '北海道', '關西(大阪)', '福岡'],
+                datasets: [
+                    {
+                        label: '傳統航空甜甜價 (NT$)',
+                        data: [11000, 6500, 16500, 10000, 9000],
+                        borderColor: '#E07A5F',
+                        backgroundColor: 'rgba(224, 122, 95, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: '廉價航空甜甜價 (NT$)',
+                        data: [7000, 5000, 10000, 6500, 6000],
+                        borderColor: '#8F9E8B',
+                        backgroundColor: 'rgba(143, 158, 139, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { font: { size: 11 } } }
+                },
+                scales: {
+                    y: { beginAtZero: false, min: 4000 }
+                }
+            }
+        });
+    }
+
+    function updateCharts() {
+        if (rulesChart) rulesChart.update();
+        if (flightsChart) flightsChart.update();
+    }
+</script>
+</body>
+</html>
