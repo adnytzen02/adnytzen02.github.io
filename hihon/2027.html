@@ -1,0 +1,2354 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2027 日本旅程視覺化指南 ｜ Japan Travel Intelligence</title>
+  <!-- Google Fonts: Noto Serif TC (標題典雅) & Noto Sans TC (內文清晰) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'shironeri': '#FAF9F5', // 基底畫布 60% (白練/生成色)
+            'gofun': '#FFFFFF',     // 結構表面 20% (胡粉透白)
+            'seiji': '#689C8F',     // 青磁色 10% (主題與導覽)
+            'seiji-dark': '#4D7B6F',
+            'seiji-light': '#EDF4F2',
+            'sumi': '#2C3134',      // 墨色主文字
+            'ainezumi': '#586870',  // 藍鼠次要輔助文字
+            'kohaku': '#D49B4B',    // 琥珀色 5% (暖調提示)
+            'jinzamomi': '#EE827C', // 甚三紅 5% (警示避坑)
+            'jinzamomi-light': '#FDF2F1'
+          },
+          fontFamily: {
+            serif: ['"Noto Serif TC"', 'serif'],
+            sans: ['"Noto Sans TC"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #FAF9F5;
+      color: #2C3134;
+      font-family: 'Noto Sans TC', sans-serif;
+      line-height: 1.78;
+    }
+    .vertical-text {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      letter-spacing: 0.2em;
+    }
+    .subtle-border {
+      border: 1px solid rgba(104, 156, 143, 0.2);
+    }
+    .wabi-card {
+      background-color: #FFFFFF;
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .wabi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px -6px rgba(44, 49, 52, 0.06);
+    }
+    /* 編輯模式啟動時之特定卡片樣式 */
+    body.is-editing .editable-text {
+      outline: 1.5px dashed rgba(104, 156, 143, 0.5);
+      outline-offset: 3px;
+      cursor: text;
+      border-radius: 4px;
+      background-color: rgba(104, 156, 143, 0.04);
+    }
+    body.is-editing .editable-text:hover {
+      background-color: rgba(104, 156, 143, 0.1);
+      outline-color: #689C8F;
+    }
+    body.is-editing .image-edit-overlay {
+      display: flex !important;
+    }
+    body.is-editing .add-image-slot {
+      display: flex !important;
+    }
+    /* 自訂柔和捲軸 */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #FAF9F5;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #689C8F;
+    }
+  </style>
+</head>
+<body class="selection:bg-seiji/20 selection:text-sumi antialiased flex flex-col min-h-screen">
+
+  <!-- ==================== 0. 全域固定導航列 (Sticky Header) ==================== -->
+  <header class="sticky top-0 z-50 bg-shironeri/95 backdrop-blur-md border-b subtle-border shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+      <!-- 標誌 -->
+      <a href="javascript:void(0)" onclick="switchTab('overview')" class="flex items-center gap-3 group shrink-0">
+        <span class="w-8 h-8 rounded-full bg-seiji text-white flex items-center justify-center font-serif text-sm font-semibold shadow-sm group-hover:scale-105 transition-transform">
+          日
+        </span>
+        <div class="flex flex-col">
+          <span class="font-serif font-bold text-sumi tracking-wider text-base sm:text-lg">旅日紀要・2027</span>
+          <span class="text-[10px] text-ainezumi tracking-widest uppercase -mt-1 hidden sm:inline">Japan Travel Intelligence</span>
+        </div>
+      </a>
+
+      <!-- 分頁式選單 (桌機) -->
+      <nav class="hidden md:flex items-center gap-1.5 text-xs lg:text-sm font-medium text-ainezumi">
+        <button onclick="switchTab('overview')" class="tab-btn px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5" data-tab="overview">
+          <span>🗺️</span> 行程全域視覺
+        </button>
+        <button onclick="switchTab('regulations')" class="tab-btn px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5" data-tab="regulations">
+          <span>⚖️</span> 邊境法規新制
+        </button>
+        <button onclick="switchTab('shrines')" class="tab-btn px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5" data-tab="shrines">
+          <span>⛩️</span> 神社神祇祈願
+        </button>
+        <button onclick="switchTab('lifestyle')" class="tab-btn px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5" data-tab="lifestyle">
+          <span>🍵</span> 在地生活避坑
+        </button>
+        <button onclick="switchTab('logistics')" class="tab-btn px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5" data-tab="logistics">
+          <span>🧳</span> 空地SOP與行李
+        </button>
+      </nav>
+
+      <!-- 右側工具：編輯開關與行李計數器 -->
+      <div class="flex items-center gap-2">
+        <!-- 編輯模式按鈕 -->
+        <button id="toggle-edit-mode-btn" onclick="toggleEditMode()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-seiji/40 bg-white text-sumi hover:bg-seiji/10 transition-all shadow-xs" title="開啟編輯模式可更換或插入自訂圖片、修改各卡片文字">
+          <span id="edit-mode-icon" class="text-xs">✏️</span>
+          <span id="edit-mode-text" class="font-medium">開啟自訂編輯</span>
+        </button>
+
+        <!-- 行李清單快速按鈕 -->
+        <button onclick="switchTab('logistics'); scrollToElement('checklist-anchor');" class="flex items-center gap-1.5 bg-seiji/10 hover:bg-seiji/20 text-seiji px-3 py-1.5 rounded-full text-xs font-medium transition-colors border border-seiji/20">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+          <span class="hidden sm:inline">行李檢核</span>
+          <span id="nav-checklist-counter" class="bg-seiji text-white text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold">0/16</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 移動端分頁水平滑動條 -->
+    <div class="flex md:hidden overflow-x-auto px-4 py-2 border-t subtle-border bg-shironeri text-xs font-medium gap-2 no-scrollbar">
+      <button onclick="switchTab('overview')" class="tab-btn whitespace-nowrap px-3 py-1 rounded-full transition-colors" data-tab="overview">🗺️ 行程總覽</button>
+      <button onclick="switchTab('regulations')" class="tab-btn whitespace-nowrap px-3 py-1 rounded-full transition-colors" data-tab="regulations">⚖️ 邊境法規</button>
+      <button onclick="switchTab('shrines')" class="tab-btn whitespace-nowrap px-3 py-1 rounded-full transition-colors" data-tab="shrines">⛩️ 神社祈願</button>
+      <button onclick="switchTab('lifestyle')" class="tab-btn whitespace-nowrap px-3 py-1 rounded-full transition-colors" data-tab="lifestyle">🍵 生活避坑</button>
+      <button onclick="switchTab('logistics')" class="tab-btn whitespace-nowrap px-3 py-1 rounded-full transition-colors" data-tab="logistics">🧳 空地與行李</button>
+    </div>
+  </header>
+
+  <!-- 編輯提示橫幅（開啟編輯時顯現） -->
+  <div id="editing-indicator-banner" class="hidden bg-seiji text-white text-xs py-2 px-4 sticky top-16 md:top-16 z-40 shadow-sm transition-all duration-300">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+        <span><strong>已啟動自訂圖文編輯模式</strong>：各分頁卡片已開放「📷 更換/插入圖片」，亦可點選標有虛線框之文字直接修改，系統會自動離線保存。</span>
+      </div>
+      <div class="flex items-center gap-3 shrink-0">
+        <button onclick="promptResetCustomData()" class="underline text-[11px] opacity-90 hover:opacity-100">重設所有圖文</button>
+        <button onclick="toggleEditMode()" class="px-2.5 py-0.5 bg-white text-seiji rounded text-[11px] font-bold hover:bg-shironeri">完成退出</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主要內容容器 -->
+  <main class="flex-1">
+
+    <!-- ========================================================================= -->
+    <!-- 分頁 1：行程全域視覺 (Overview & Gateways & Heat Clock)                  -->
+    <!-- ========================================================================= -->
+    <div id="tab-overview" class="tab-pane">
+      <!-- 英雄主視覺區 -->
+      <section class="relative pt-10 pb-12 md:pt-16 md:pb-20 overflow-hidden border-b subtle-border">
+        <div class="absolute right-4 top-10 font-serif text-[110px] md:text-[180px] text-seiji/[0.04] font-bold select-none pointer-events-none vertical-text">
+          空間調和
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+            <div class="max-w-3xl">
+              <div class="inline-flex items-center gap-2 px-3 py-1 bg-seiji/10 text-seiji rounded-full text-xs tracking-wider font-medium mb-3">
+                <span class="w-1.5 h-1.5 rounded-full bg-seiji animate-ping"></span>
+                分頁架構 ｜ 2027 年度日本全域旅行決策支援系統
+              </div>
+              <h1 class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold text-sumi tracking-tight leading-tight mb-3">
+                日本全域視覺圖表與戰略決策矩陣
+              </h1>
+              <p class="text-ainezumi text-sm sm:text-base max-w-2xl font-light">
+                依據「間（Ma）」之留白美學與日系和色平衡法則，結構化全年度客流地雷、四大核心門戶多維度對比與最新邊境規範，提供高信噪比的自由行方案。
+              </p>
+            </div>
+
+            <!-- 和風印記 -->
+            <div class="hidden md:flex items-center gap-3 border-l-2 border-seiji/30 pl-4 py-1 shrink-0">
+              <span class="vertical-text font-serif text-xs text-ainezumi tracking-widest">令和九年・全域可視化</span>
+              <span class="w-8 h-8 rounded bg-jinzamomi/10 border border-jinzamomi/20 text-jinzamomi text-xs flex items-center justify-center font-serif font-bold">
+                極
+              </span>
+            </div>
+          </div>
+
+          <!-- 3 大全局戰略指標摘要 -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+            <div class="wabi-card p-5 rounded-2xl subtle-border">
+              <div class="flex items-center justify-between text-xs text-ainezumi mb-1.5">
+                <span>避坑指針</span>
+                <span class="text-jinzamomi font-mono font-bold">3 大極高人潮地雷</span>
+              </div>
+              <div class="font-serif text-lg font-bold text-sumi">年末年始 ｜ 黃金週 ｜ 盂蘭盆</div>
+              <p class="text-xs text-ainezumi mt-2">連休房價飆漲 2–4 倍，新幹線全車指定席極端擁擠，必須提前防範。</p>
+            </div>
+
+            <div class="wabi-card p-5 rounded-2xl subtle-border">
+              <div class="flex items-center justify-between text-xs text-ainezumi mb-1.5">
+                <span>制度劇變</span>
+                <span class="text-kohaku font-mono font-bold">2026–2027 邊境新政</span>
+              </div>
+              <div class="font-serif text-lg font-bold text-sumi">退稅改先付後退 ｜ 機上禁充行動電源</div>
+              <p class="text-xs text-ainezumi mt-2">離境需保留 3.5 小時，免稅密封袋全面解禁，Suica 上限升至 30 萬円。</p>
+            </div>
+
+            <div class="wabi-card p-5 rounded-2xl subtle-border">
+              <div class="flex items-center justify-between text-xs text-ainezumi mb-1.5">
+                <span>最佳節奏</span>
+                <span class="text-seiji font-mono font-bold">舒適氣候雙高峰</span>
+              </div>
+              <div class="font-serif text-lg font-bold text-sumi">10–11 月金秋少雨 ｜ 3–4 月春櫻</div>
+              <p class="text-xs text-ainezumi mt-2">秋季氣候最宜人（14–20°C）；櫻花季需提早 6 個月完成機票與住宿預約。</p>
+            </div>
+          </div>
+
+          <!-- 2027 全年度客流地雷與氣候避坑熱力時鐘 -->
+          <div class="pt-6">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-3">
+              <div>
+                <div class="flex items-center gap-2 text-seiji font-mono text-xs uppercase tracking-wider mb-1">
+                  <span>Part 01</span>
+                  <span>•</span>
+                  <span>Heat Clock</span>
+                </div>
+                <h2 class="font-serif text-xl sm:text-2xl font-bold text-sumi">2027 全年度客流地雷與氣候避坑熱力時鐘</h2>
+              </div>
+              <div class="flex items-center gap-3 text-xs">
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-jinzamomi"></span> 極高擁擠/封閉</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-kohaku"></span> 中高度天候干擾</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-seiji"></span> 平穩宜人推薦</span>
+              </div>
+            </div>
+
+            <!-- 12 個月份熱力互動卡片網格 -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5" id="month-grid">
+              <div class="wabi-card p-4 rounded-xl border border-jinzamomi/30 bg-jinzamomi-light/40 cursor-pointer" onclick="showMonthModal(1)">
+                <div class="flex justify-between items-start mb-1.5">
+                  <span class="font-serif text-lg font-bold text-sumi">01 月</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-jinzamomi text-white font-medium">年末年始</span>
+                </div>
+                <p class="text-xs font-medium text-sumi mb-0.5">封閉型擁擠 ｜ 店家大休業</p>
+                <p class="text-[11px] text-ainezumi">新幹線極度難求，避免長途跨城移動；鎖定市區初詣參拜。</p>
+              </div>
+
+              <div class="wabi-card p-4 rounded-xl subtle-border cursor-pointer" onclick="showMonthModal(2)">
+                <div class="flex justify-between items-start mb-1.5">
+                  <span class="font-serif text-lg font-bold text-sumi">02 月</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-seiji/20 text-seiji font-medium">冬雪彩燈</span>
+                </div>
+                <p class="text-xs font-medium text-sumi mb-0.5">乾冷降雪 ｜ 冬季折扣季</p>
+                <p class="text-[11px] text-ainezumi">都會區少雪乾冷，溫泉旅館提前 3 個月；白川鄉點燈需半年前抽籤。</p>
+              </div>
+
+              <div class="wabi-card p-4 rounded-xl subtle-border cursor-pointer" onclick="showMonthModal(3)">
+                <div class="flex justify-between items-start mb-1.5">
+                  <span class="font-serif text-lg font-bold text-sumi">03 月</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-kohaku/20 text-kohaku font-medium">春櫻盛開</span>
+                </div>
+                <p class="text-xs font-medium text-sumi mb-0.5">吉野櫻滿開 ｜ 極致旺季</p>
+                <p class="text-[11px] text-ainezumi">3 月下旬氣候溫和（12–18°C），住宿機票須提早 6 個月前完成鎖定。</p>
+              </div>
+
+              <div class="wabi-card p-4 rounded-xl border border-jinzamomi/30 bg-jinzamomi-light/40 cursor-pointer" onclick="showMonthModal(4)">
+                <div class="flex justify-between items-start mb-1.5">
+                  <span class="font-serif text-lg font-bold text-sumi">04-05 月</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-jinzamomi text-white font-medium">黃金週 GW</span>
+                </div>
+                <p class="text-xs font-medium text-sumi mb-0.5">04/29 – 05/05 ｜ 全境過載</p>
+                <p class="text-[11px] text-ainezumi">本土最大出遊潮，房價飆全年之冠；避開一線城市轉往近郊深度漫遊。</p>
+              </div>
+
+              <div class="wabi-card p-4 rounded-xl subtle-border cursor-pointer" onclick="showMonthModal(5)">
+                <div class="flex justify-between items-start mb-1.5">
+                  <span class="font-serif text-lg font-bold text-sumi">05 月中旬</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-seiji/20 text-seiji font-medium">舒適初夏</span>
+                </div>
+                <p class="text-xs font-medium text-sumi mb-0.5">綠意盎然 ｜ 人流回落</p>
+                <p class="text-[11px] text-ainezumi">GW 結束後至梅雨前為極佳空檔，氣候涼爽宜人，適合戶外踏青健行。</p>
+              </div>
+
+              <div class="wabi-card p-4 rounded-xl subtle-border cursor-pointer" onclick="showMonthModal(6)">
+                <div class="flex justify-between items-start mb-1.5">
+                  <span class="font-serif text-lg font-bold text-sumi">06 月</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-kohaku/20 text-kohaku font-medium">梅雨潮濕</span>
+                </div>
+                <p class="text-xs font-medium text-sumi mb-0.5">6月中–7月上 ｜ 雨期干擾</p>
+                <p class="text-[11px] text-ainezumi">全境持續濕熱多雨，重心應轉移至室內美術館、巨型水族館與地下商場。</p>
+              </div>
+
+              <div class="wabi-card p-4 rounded-xl subtle-border cursor-pointer" onclick="showMonthModal(7)">
+                <div class="flex justify-between items-start mb-1.5">
+                  <span class="font-serif text-lg font-bold text-sumi">07 月</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-kohaku/20 text-kohaku font-medium">盛夏祭典</span>
+                </div>
+                <p class="text-xs font-medium text-sumi mb-0.5">常態突破 35°C ｜ 體能考驗</p>
+                <p class="text-[11px] text-ainezumi">採「晨間戶外、午後室內、夜間祭典」三段式排程，11:00-15:00 嚴格避暑。</p>
+              </div>
+
+              <div class="wabi-card p-4 rounded-xl border border-jinzamomi/30 bg-jinzamomi-light/40 cursor-pointer" onclick="showMonthModal(8)">
+                <div class="flex justify-between items-start mb-1.5">
+                  <span class="font-serif text-lg font-bold text-sumi">08 月中旬</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-jinzamomi text-white font-medium">盂蘭盆節</span>
+                </div>
+                <p class="text-xs font-medium text-sumi mb-0.5">08/11 – 08/16 ｜ 酷暑返鄉</p>
+                <p class="text-[11px] text-ainezumi">家族出遊與返鄉重疊，景點排隊倍增；建議前往長野、信州等高海拔避暑地。</p>
+              </div>
+
+              <div class="wabi-card p-4 rounded-xl subtle-border cursor-pointer" onclick="showMonthModal(9)">
+                <div class="flex justify-between items-start mb-1.5">
+                  <span class="font-serif text-lg font-bold text-sumi">09 月</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-kohaku/20 text-kohaku font-medium">颱風多發</span>
+                </div>
+                <p class="text-xs font-medium text-sumi mb-0.5">不可抗力 ｜ 鐵道航班預警</p>
+                <p class="text-[11px] text-ainezumi">規劃保留前後半日緩衝期，務必保足旅遊不便險；避免安排離島渡輪。</p>
+              </div>
+
+              <div class="wabi-card p-4 rounded-xl subtle-border cursor-pointer" onclick="showMonthModal(10)">
+                <div class="flex justify-between items-start mb-1.5">
+                  <span class="font-serif text-lg font-bold text-sumi">10 月</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-seiji/20 text-seiji font-medium">金秋舒適</span>
+                </div>
+                <p class="text-xs font-medium text-sumi mb-0.5">晴朗乾燥 ｜ 氣候體感最佳</p>
+                <p class="text-[11px] text-ainezumi">平均 14–20°C，雨量稀少，為全日本最適宜進行戶外步行與深度漫遊期。</p>
+              </div>
+
+              <div class="wabi-card p-4 rounded-xl subtle-border cursor-pointer" onclick="showMonthModal(11)">
+                <div class="flex justify-between items-start mb-1.5">
+                  <span class="font-serif text-lg font-bold text-sumi">11 月</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-kohaku/20 text-kohaku font-medium">紅葉名所</span>
+                </div>
+                <p class="text-xs font-medium text-sumi mb-0.5">層林盡染 ｜ 夜間特別拜觀</p>
+                <p class="text-[11px] text-ainezumi">京都與熱門紅葉景區住宿需提前 4 至 5 個月佈局，避免房價翻倍。</p>
+              </div>
+
+              <div class="wabi-card p-4 rounded-xl border border-jinzamomi/30 bg-jinzamomi-light/40 cursor-pointer" onclick="showMonthModal(12)">
+                <div class="flex justify-between items-start mb-1.5">
+                  <span class="font-serif text-lg font-bold text-sumi">12 月下旬</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-jinzamomi text-white font-medium">跨年返鄉</span>
+                </div>
+                <p class="text-xs font-medium text-sumi mb-0.5">12/29 – 01/03 ｜ 全國返鄉</p>
+                <p class="text-[11px] text-ainezumi">新幹線車票極度難搶，大型百貨多在元旦休業，需預先儲備餐飲計畫。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 四大核心門戶多維度決策矩陣（支援照片自訂插入與置換） -->
+      <section class="py-12 md:py-16 border-b subtle-border bg-shironeri/60">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+            <div>
+              <div class="flex items-center gap-2 text-seiji font-mono text-xs uppercase tracking-wider mb-1">
+                <span>Part 02</span>
+                <span>•</span>
+                <span>Gateway Matrix</span>
+              </div>
+              <h2 class="font-serif text-2xl sm:text-3xl font-bold text-sumi">四大核心門戶多維度決策矩陣</h2>
+              <p class="text-ainezumi text-xs sm:text-sm mt-1">
+                依據地理定位、標竿水族館、名勝指標、步行能耗與適配客群，提供精準選擇。點選頂端「開啟自訂編輯」即可為各門戶更換上傳實景照片。
+              </p>
+            </div>
+            <div class="text-xs text-ainezumi bg-white px-3 py-1.5 rounded-lg border subtle-border shrink-0">
+              📷 點擊編輯按鈕即可更換各城市門面照片
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- 1. 東京 (Tokyo) -->
+            <div class="wabi-card rounded-2xl p-6 subtle-border flex flex-col justify-between group/card relative" data-card-id="dest-tokyo">
+              <div>
+                <!-- 圖片容器 (可自訂編輯) -->
+                <div class="image-container mb-4 relative rounded-xl overflow-hidden bg-shironeri border subtle-border aspect-video flex items-center justify-center">
+                  <img id="img-dest-tokyo" src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=600&q=80" alt="東京街景" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105">
+                  <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+                    <button onclick="openImageModal('dest-tokyo', 'img-dest-tokyo', '東京封面照')" class="px-3 py-1.5 bg-white text-sumi rounded-lg text-xs font-medium hover:bg-shironeri shadow">
+                      📷 更換/插入照片
+                    </button>
+                  </div>
+                </div>
+
+                <div class="flex justify-between items-start mb-3">
+                  <div>
+                    <span class="text-xs text-seiji font-serif tracking-widest block">首都圈門戶</span>
+                    <h3 class="font-serif text-2xl font-bold text-sumi editable-text" data-key="title-tokyo">東京</h3>
+                    <span class="text-xs text-ainezumi font-mono">Tokyo Metropole</span>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full bg-seiji/10 text-seiji text-xs font-semibold">步調最快</span>
+                </div>
+
+                <div class="space-y-3 text-xs">
+                  <div>
+                    <span class="text-ainezumi font-medium block mb-0.5">核心定位</span>
+                    <p class="text-sumi editable-text" data-key="pos-tokyo">潮流購物、前衛視覺展覽、現代天際線、富士山與鎌倉近郊跳板。</p>
+                  </div>
+                  <div>
+                    <span class="text-ainezumi font-medium block mb-0.5">代表性頂級水族館</span>
+                    <p class="text-sumi font-semibold editable-text" data-key="aqua-tokyo">Maxell Aqua Park 品川（光影海豚秀）、墨田水族館（水母槽）。</p>
+                  </div>
+                  <div>
+                    <span class="text-ainezumi font-medium block mb-0.5">旗艦地標景點</span>
+                    <p class="text-sumi editable-text" data-key="spot-tokyo">SHIBUYA SKY、淺草寺、明治神宮、東京哈利波特影城。</p>
+                  </div>
+                  <div>
+                    <span class="text-ainezumi font-medium block mb-0.5">交通與步行能耗</span>
+                    <p class="text-sumi editable-text" data-key="walk-tokyo">鐵路密集但立體站體複雜；每日步行負荷常達 1.5 至 2 萬步。</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6 pt-4 border-t subtle-border">
+                <span class="text-[11px] text-ainezumi block mb-1">最佳適配客群</span>
+                <span class="inline-block bg-shironeri text-sumi px-2.5 py-1 rounded text-xs font-medium editable-text" data-key="fit-tokyo">偏好打卡、前衛展覽、大型購物與夜景者</span>
+              </div>
+            </div>
+
+            <!-- 2. 京阪神 (Kansai) -->
+            <div class="wabi-card rounded-2xl p-6 subtle-border flex flex-col justify-between group/card relative" data-card-id="dest-kansai">
+              <div>
+                <div class="image-container mb-4 relative rounded-xl overflow-hidden bg-shironeri border subtle-border aspect-video flex items-center justify-center">
+                  <img id="img-dest-kansai" src="https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=600&q=80" alt="京都祇園與古寺" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105">
+                  <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+                    <button onclick="openImageModal('dest-kansai', 'img-dest-kansai', '京阪神封面照')" class="px-3 py-1.5 bg-white text-sumi rounded-lg text-xs font-medium hover:bg-shironeri shadow">
+                      📷 更換/插入照片
+                    </button>
+                  </div>
+                </div>
+
+                <div class="flex justify-between items-start mb-3">
+                  <div>
+                    <span class="text-xs text-seiji font-serif tracking-widest block">關西文化圈</span>
+                    <h3 class="font-serif text-2xl font-bold text-sumi editable-text" data-key="title-kansai">京阪神</h3>
+                    <span class="text-xs text-ainezumi font-mono">Kyoto • Osaka • Kobe</span>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full bg-kohaku/10 text-kohaku text-xs font-semibold">密度最高</span>
+                </div>
+
+                <div class="space-y-3 text-xs">
+                  <div>
+                    <span class="text-ainezumi font-medium block mb-0.5">核心定位</span>
+                    <p class="text-sumi editable-text" data-key="pos-kansai">傳統千年古都（京都）＋ 庶民美食活力（大阪）＋ 異國海港洋風（神戶）。</p>
+                  </div>
+                  <div>
+                    <span class="text-ainezumi font-medium block mb-0.5">代表性頂級水族館</span>
+                    <p class="text-sumi font-semibold editable-text" data-key="aqua-kansai">大阪海遊館（巨型鯨鯊水槽）、神戶須磨海洋世界（虎鯨展示表演）。</p>
+                  </div>
+                  <div>
+                    <span class="text-ainezumi font-medium block mb-0.5">旗艦地標景點</span>
+                    <p class="text-sumi editable-text" data-key="spot-kansai">清水寺、伏見稻荷大社、大阪城、道頓堀、日本環球影城（USJ）。</p>
+                  </div>
+                  <div>
+                    <span class="text-ainezumi font-medium block mb-0.5">交通與步行能耗</span>
+                    <p class="text-sumi editable-text" data-key="walk-kansai">私鐵與 JR 極度發達，三城互通僅 30–50 分；海外旅客密度全日之冠。</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6 pt-4 border-t subtle-border">
+                <span class="text-[11px] text-ainezumi block mb-1">最佳適配客群</span>
+                <span class="inline-block bg-shironeri text-sumi px-2.5 py-1 rounded text-xs font-medium editable-text" data-key="fit-kansai">初訪日本，或渴望深度體驗世界級寺廟古蹟者</span>
+              </div>
+            </div>
+
+            <!-- 3. 名古屋 (Chubu) -->
+            <div class="wabi-card rounded-2xl p-6 subtle-border flex flex-col justify-between group/card relative" data-card-id="dest-nagoya">
+              <div>
+                <div class="image-container mb-4 relative rounded-xl overflow-hidden bg-shironeri border subtle-border aspect-video flex items-center justify-center">
+                  <img id="img-dest-nagoya" src="https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=600&q=80" alt="名古屋城" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105">
+                  <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+                    <button onclick="openImageModal('dest-nagoya', 'img-dest-nagoya', '名古屋封面照')" class="px-3 py-1.5 bg-white text-sumi rounded-lg text-xs font-medium hover:bg-shironeri shadow">
+                      📷 更換/插入照片
+                    </button>
+                  </div>
+                </div>
+
+                <div class="flex justify-between items-start mb-3">
+                  <div>
+                    <span class="text-xs text-seiji font-serif tracking-widest block">中部昇龍道</span>
+                    <h3 class="font-serif text-2xl font-bold text-sumi editable-text" data-key="title-nagoya">名古屋</h3>
+                    <span class="text-xs text-ainezumi font-mono">Nagoya • Chubu</span>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full bg-seiji/10 text-seiji text-xs font-semibold">節奏平穩</span>
+                </div>
+
+                <div class="space-y-3 text-xs">
+                  <div>
+                    <span class="text-ainezumi font-medium block mb-0.5">核心定位</span>
+                    <p class="text-sumi editable-text" data-key="pos-nagoya">戰國武將歷史、近代工業重鎮、吉卜力美學樂園、昇龍道高山跳板。</p>
+                  </div>
+                  <div>
+                    <span class="text-ainezumi font-medium block mb-0.5">代表性頂級水族館</span>
+                    <p class="text-sumi font-semibold editable-text" data-key="aqua-nagoya">名古屋港水族館（全日本頂級規模，南北館配置虎鯨與白鯨展示）。</p>
+                  </div>
+                  <div>
+                    <span class="text-ainezumi font-medium block mb-0.5">旗艦地標景點</span>
+                    <p class="text-sumi editable-text" data-key="spot-nagoya">名古屋城、吉卜力公園、熱田神宮、大須商店街、樂高樂園。</p>
+                  </div>
+                  <div>
+                    <span class="text-ainezumi font-medium block mb-0.5">交通與步行能耗</span>
+                    <p class="text-sumi editable-text" data-key="walk-nagoya">地鐵路網單純，人流密度舒適平穩；極適合作為往返白川鄉之中繼站。</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6 pt-4 border-t subtle-border">
+                <span class="text-[11px] text-ainezumi block mb-1">最佳適配客群</span>
+                <span class="inline-block bg-shironeri text-sumi px-2.5 py-1 rounded text-xs font-medium editable-text" data-key="fit-nagoya">熱愛吉卜力、鍾情海洋巨獸、喜愛舒適慢活者</span>
+              </div>
+            </div>
+
+            <!-- 4. 福岡 (Kyushu) -->
+            <div class="wabi-card rounded-2xl p-6 subtle-border flex flex-col justify-between group/card relative" data-card-id="dest-fukuoka">
+              <div>
+                <div class="image-container mb-4 relative rounded-xl overflow-hidden bg-shironeri border subtle-border aspect-video flex items-center justify-center">
+                  <img id="img-dest-fukuoka" src="https://images.unsplash.com/photo-1590559899731-a372a1464e29?auto=format&fit=crop&w=600&q=80" alt="福岡博多街景與屋台" class="w-full h-full object-cover transition-transform duration-500 group-hover/card:scale-105">
+                  <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+                    <button onclick="openImageModal('dest-fukuoka', 'img-dest-fukuoka', '福岡封面照')" class="px-3 py-1.5 bg-white text-sumi rounded-lg text-xs font-medium hover:bg-shironeri shadow">
+                      📷 更換/插入照片
+                    </button>
+                  </div>
+                </div>
+
+                <div class="flex justify-between items-start mb-3">
+                  <div>
+                    <span class="text-xs text-seiji font-serif tracking-widest block">九州探索門戶</span>
+                    <h3 class="font-serif text-2xl font-bold text-sumi editable-text" data-key="title-fukuoka">福岡</h3>
+                    <span class="text-xs text-ainezumi font-mono">Fukuoka • Kyushu</span>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full bg-seiji/20 text-seiji text-xs font-semibold">鬆弛自適</span>
+                </div>
+
+                <div class="space-y-3 text-xs">
+                  <div>
+                    <span class="text-ainezumi font-medium block mb-0.5">核心定位</span>
+                    <p class="text-sumi editable-text" data-key="pos-fukuoka">屋台夜生活美食、豚骨拉麵原鄉、鬆弛自適步調、全九州探索門戶。</p>
+                  </div>
+                  <div>
+                    <span class="text-ainezumi font-medium block mb-0.5">代表性頂級水族館</span>
+                    <p class="text-sumi font-semibold editable-text" data-key="aqua-fukuoka">海洋世界海之中道（海景海豚表演、大型露天沙丁魚潮流水槽）。</p>
+                  </div>
+                  <div>
+                    <span class="text-ainezumi font-medium block mb-0.5">旗艦地標景點</span>
+                    <p class="text-sumi editable-text" data-key="spot-fukuoka">太宰府天滿宮、大濠公園、博多運河城、門司港歷史區、糸島。</p>
+                  </div>
+                  <div>
+                    <span class="text-ainezumi font-medium block mb-0.5">交通與步行能耗</span>
+                    <p class="text-sumi editable-text" data-key="walk-fukuoka">機場至博多市中心地鐵僅 10 分鐘車程；物價平實，轉換成本全日最低。</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6 pt-4 border-t subtle-border">
+                <span class="text-[11px] text-ainezumi block mb-1">最佳適配客群</span>
+                <span class="inline-block bg-shironeri text-sumi px-2.5 py-1 rounded text-xs font-medium editable-text" data-key="fit-fukuoka">崇尚慢步調度假、排斥繁複轉乘之休閒旅客</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 四季特色與預訂前置期時間模型 -->
+          <div class="mt-12 bg-white rounded-2xl p-6 md:p-8 subtle-border">
+            <h3 class="font-serif text-lg font-bold text-sumi mb-4 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-kohaku"></span>
+              四季特色與訂房票券預訂前置期決策模型
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+              <div class="p-4 rounded-xl bg-shironeri border border-seiji/20">
+                <span class="text-seiji font-bold block mb-1">春季（櫻花季 ｜ 3月下旬–4月中旬）</span>
+                <p class="text-ainezumi mb-2">染井吉野櫻滿開、夜櫻點燈。舒適溫和（12–18°C）。</p>
+                <span class="inline-block px-2 py-0.5 rounded bg-jinzamomi/10 text-jinzamomi font-semibold">須提前 6 個月預約鎖定</span>
+              </div>
+              <div class="p-4 rounded-xl bg-shironeri border border-seiji/20">
+                <span class="text-seiji font-bold block mb-1">夏季（祭典季 ｜ 6月–8月）</span>
+                <p class="text-ainezumi mb-2">祇園祭、天神祭、大型花火大會。濕熱常破 35°C。</p>
+                <span class="inline-block px-2 py-0.5 rounded bg-kohaku/10 text-kohaku font-semibold">觀覽席建議提前 3 至 4 個月</span>
+              </div>
+              <div class="p-4 rounded-xl bg-shironeri border border-seiji/20">
+                <span class="text-seiji font-bold block mb-1">秋季（賞楓季 ｜ 10月中旬–11月下旬）</span>
+                <p class="text-ainezumi mb-2">滿山層林盡染、夜間拜觀。晴朗乾燥（14–20°C）。</p>
+                <span class="inline-block px-2 py-0.5 rounded bg-kohaku/10 text-kohaku font-semibold">京都紅葉區需提前 4 至 5 個月</span>
+              </div>
+              <div class="p-4 rounded-xl bg-shironeri border border-seiji/20">
+                <span class="text-seiji font-bold block mb-1">冬季（雪景季 ｜ 12月–2月）</span>
+                <p class="text-ainezumi mb-2">冬季彩燈、溫泉。都會區乾冷少雪，雪集中日本海側。</p>
+                <span class="inline-block px-2 py-0.5 rounded bg-seiji/10 text-seiji font-semibold">溫泉旅館建議提前 3 個月</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 分頁 2：邊境法規新制 (2026–2027 Border Regulations)                     -->
+    <!-- ========================================================================= -->
+    <div id="tab-regulations" class="tab-pane hidden">
+      <section class="py-12 md:py-20 border-b subtle-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="max-w-3xl mb-10">
+            <div class="flex items-center gap-2 text-jinzamomi font-mono text-xs uppercase tracking-wider mb-1">
+              <span>Section 02</span>
+              <span>•</span>
+              <span>Border & Laws</span>
+            </div>
+            <h2 class="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-sumi mb-3">
+              2026–2027 旅日法規變革與邊境制度結構性分析
+            </h2>
+            <p class="text-ainezumi text-sm sm:text-base">
+              日本政府針對抑制過度觀光（Overtourism）所推行之邊境管理、稅制調整與公共安全新規劃，直接衝擊行李配置、預算與返國動線。
+            </p>
+          </div>
+
+          <!-- 重大衝擊橫幅提醒 -->
+          <div class="mb-8 p-5 rounded-2xl bg-jinzamomi-light border border-jinzamomi/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex items-start gap-3">
+              <span class="w-8 h-8 rounded-full bg-jinzamomi text-white flex items-center justify-center font-bold text-sm shrink-0">!</span>
+              <div>
+                <h4 class="font-serif text-base font-bold text-sumi">返國重大動線調整：退稅全面改採「先付後退」KIOSK 查驗</h4>
+                <p class="text-xs text-ainezumi mt-0.5">實體店面結帳一律收取含稅價；出境日需憑護照與電子憑證於機場 KIOSK 機台操作退款。請務必將抵達機場時間從原本起飛前 2 小時提前至 <strong class="text-jinzamomi font-semibold">起飛前 3 至 3.5 小時</strong>！</p>
+              </div>
+            </div>
+            <span class="px-3 py-1 bg-white rounded-lg text-xs font-mono font-bold text-jinzamomi border border-jinzamomi/20 shrink-0">11 月起正式施行</span>
+          </div>
+
+          <!-- 9 大法規變更卡片網格 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-12">
+            <!-- 1. 行動電源 -->
+            <div class="wabi-card p-5 rounded-xl border subtle-border flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between items-center text-xs mb-2">
+                  <span class="font-mono font-bold text-jinzamomi">01 / 安全條例</span>
+                  <span class="text-ainezumi">4月中旬起</span>
+                </div>
+                <h4 class="font-serif text-base font-bold text-sumi mb-2">行動電源機上全程禁用</h4>
+                <div class="space-y-1.5 text-xs text-ainezumi">
+                  <p><strong class="text-sumi">原規範：</strong>航程中允許接線為行動裝置充電。</p>
+                  <p><strong class="text-sumi">新制：</strong>航行全程嚴禁使用行動電源充電；每人上限維持 2 顆（單顆 160Wh 以下），必須手提登機，嚴禁托運。</p>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t subtle-border text-xs text-seiji font-medium">
+                💡 登機前於候機室充飽手機；隨身攜帶充電線使用機上座椅 USB 孔。
+              </div>
+            </div>
+
+            <!-- 2. Suica 大改版 -->
+            <div class="wabi-card p-5 rounded-xl border subtle-border flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between items-center text-xs mb-2">
+                  <span class="font-mono font-bold text-seiji">02 / 電子支付</span>
+                  <span class="text-ainezumi">秋季起</span>
+                </div>
+                <h4 class="font-serif text-base font-bold text-sumi mb-2">Suica 西瓜卡大幅改版</h4>
+                <div class="space-y-1.5 text-xs text-ainezumi">
+                  <p><strong class="text-sumi">原規範：</strong>單卡儲值上限為 20,000 日圓；企鵝吉祥物為象徵。</p>
+                  <p><strong class="text-sumi">新制：</strong>儲值上限提高至 300,000 日圓；陪伴大眾 25 年之企鵝吉祥物於年底正式退休。</p>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t subtle-border text-xs text-seiji font-medium">
+                💡 大額購物可直接感應支付，大幅降低頻繁儲值與攜帶實體硬幣負擔。
+              </div>
+            </div>
+
+            <!-- 3. 住宿稅擴大 -->
+            <div class="wabi-card p-5 rounded-xl border subtle-border flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between items-center text-xs mb-2">
+                  <span class="font-mono font-bold text-kohaku">03 / 地方稅收</span>
+                  <span class="text-ainezumi">2026年起陸續實施</span>
+                </div>
+                <h4 class="font-serif text-base font-bold text-sumi mb-2">住宿稅跨區域擴大開徵</h4>
+                <div class="space-y-1.5 text-xs text-ainezumi">
+                  <p><strong class="text-sumi">原規範：</strong>僅東京、大阪、京都、福岡等少數都市課徵定額稅。</p>
+                  <p><strong class="text-sumi">新制：</strong>北海道、沖繩、輕井澤正式加入；京都市調升最高級距，每人每晚最高達 10,000 日圓。</p>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t subtle-border text-xs text-seiji font-medium">
+                💡 訂房網站多未含此稅，入住時需備妥相應日幣現金或信用卡現場繳納。
+              </div>
+            </div>
+
+            <!-- 4. 深夜附加費 -->
+            <div class="wabi-card p-5 rounded-xl border subtle-border flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between items-center text-xs mb-2">
+                  <span class="font-mono font-bold text-sumi">04 / 餐飲消費</span>
+                  <span class="text-ainezumi">常態化實施</span>
+                </div>
+                <h4 class="font-serif text-base font-bold text-sumi mb-2">連鎖餐飲深夜附加費</h4>
+                <div class="space-y-1.5 text-xs text-ainezumi">
+                  <p><strong class="text-sumi">原規範：</strong>全日 24 小時餐點價格統一標示，無時段加成。</p>
+                  <p><strong class="text-sumi">新制：</strong>每日 22:00 至次日 05:00 消費全面加收 7% 至 10% 附加費（吉野家、松屋、食其家等）。</p>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t subtle-border text-xs text-seiji font-medium">
+                💡 夜貓自由行旅客預算微增，建議於 22:00 前完成晚餐或轉往超商採買。
+              </div>
+            </div>
+
+            <!-- 5. 離境稅調漲 -->
+            <div class="wabi-card p-5 rounded-xl border subtle-border flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between items-center text-xs mb-2">
+                  <span class="font-mono font-bold text-jinzamomi">05 / 邊境稅收</span>
+                  <span class="text-ainezumi">07月01日起</span>
+                </div>
+                <h4 class="font-serif text-base font-bold text-sumi mb-2">國際旅客出境稅調漲 3 倍</h4>
+                <div class="space-y-1.5 text-xs text-ainezumi">
+                  <p><strong class="text-sumi">原規範：</strong>每人每次隨機票代收 1,000 日圓（約 NT$210）。</p>
+                  <p><strong class="text-sumi">新制：</strong>出境稅調升至 3,000 日圓（約 NT$630），機票開票時隨稅費自動結算。</p>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t subtle-border text-xs text-seiji font-medium">
+                💡 每人機票成本增約 NT$420，機票比價時請務必檢視含稅總額。
+              </div>
+            </div>
+
+            <!-- 6. 退稅先付後退 -->
+            <div class="wabi-card p-5 rounded-xl border border-jinzamomi/30 bg-jinzamomi-light/20 flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between items-center text-xs mb-2">
+                  <span class="font-mono font-bold text-jinzamomi">06 / 退稅機制</span>
+                  <span class="text-ainezumi">11月起正式施行</span>
+                </div>
+                <h4 class="font-serif text-base font-bold text-sumi mb-2">退稅改採「先付後退」制度</h4>
+                <div class="space-y-1.5 text-xs text-ainezumi">
+                  <p><strong class="text-sumi">原規範：</strong>於免稅店出示護照，結帳現場直接扣除 10% 消費稅。</p>
+                  <p><strong class="text-sumi">新制：</strong>一律收取含稅價；出境當天憑護照與電子憑證於機場 KIOSK 機台驗證後退款（限 90 天內攜出）。</p>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t subtle-border text-xs text-jinzamomi font-medium">
+                💡 抽驗品不可全數裝入托運行李；務必預留額外排隊操作 KIOSK 時間。
+              </div>
+            </div>
+
+            <!-- 7. 免稅密封袋限制取消 -->
+            <div class="wabi-card p-5 rounded-xl border subtle-border flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between items-center text-xs mb-2">
+                  <span class="font-mono font-bold text-seiji">07 / 行李裝載</span>
+                  <span class="text-ainezumi">11月起正式施行</span>
+                </div>
+                <h4 class="font-serif text-base font-bold text-sumi mb-2">免稅專用密封袋限制取消</h4>
+                <div class="space-y-1.5 text-xs text-ainezumi">
+                  <p><strong class="text-sumi">原規範：</strong>消耗品滿 5,000 至 500,000 日圓需密封，境內不得拆封。</p>
+                  <p><strong class="text-sumi">新制：</strong>消耗品 50 萬日圓免稅上限全面廢除；取消免稅塑膠密封袋包裝強制規定。</p>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t subtle-border text-xs text-seiji font-medium">
+                💡 瓶罐藥妝可拆開分層平整收納於行李箱各處，大幅釋放箱體空間！
+              </div>
+            </div>
+
+            <!-- 8. 北海道三大機場調漲 -->
+            <div class="wabi-card p-5 rounded-xl border subtle-border flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between items-center text-xs mb-2">
+                  <span class="font-mono font-bold text-kohaku">08 / 機場費率</span>
+                  <span class="text-ainezumi">06月01日起</span>
+                </div>
+                <h4 class="font-serif text-base font-bold text-sumi mb-2">北海道三大主力機場設施費調漲</h4>
+                <div class="space-y-1.5 text-xs text-ainezumi">
+                  <p><strong class="text-sumi">原規範：</strong>機場旅客設施使用費（PFC）維持既有基礎費率。</p>
+                  <p><strong class="text-sumi">新制：</strong>新千歲、函館、旭川機場同步調漲機場設施服務費（05/31 前開票不受影響）。</p>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t subtle-border text-xs text-seiji font-medium">
+                💡 規劃北海道旅遊者，可提早於 5 月底前完成開票以鎖定舊費率。
+              </div>
+            </div>
+
+            <!-- 9. 鹿兒島新幹線補助 -->
+            <div class="wabi-card p-5 rounded-xl border subtle-border flex flex-col justify-between">
+              <div>
+                <div class="flex justify-between items-center text-xs mb-2">
+                  <span class="font-mono font-bold text-seiji">09 / 專案優惠</span>
+                  <span class="text-ainezumi">06月起專案展開</span>
+                </div>
+                <h4 class="font-serif text-base font-bold text-sumi mb-2">鹿兒島新幹線全額補助</h4>
+                <div class="space-y-1.5 text-xs text-ainezumi">
+                  <p><strong class="text-sumi">原票價：</strong>博多至鹿兒島中央新幹線指定席約 10,640 日圓。</p>
+                  <p><strong class="text-sumi">新制專案：</strong>針對台灣直飛或抵日旅客提供「博多→鹿兒島中央」單程全額交通補助（約 NT$2,400）。</p>
+                </div>
+              </div>
+              <div class="mt-4 pt-3 border-t subtle-border text-xs text-seiji font-medium">
+                💡 形成「福岡進、鹿兒島出」南九州縱斷遊之極大誘因；需預先線上登錄憑證。
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 分頁 3：神社神祇祈願 (Shrine Deities & Etiquette)                        -->
+    <!-- ========================================================================= -->
+    <div id="tab-shrines" class="tab-pane hidden">
+      <section class="py-12 md:py-20 border-b subtle-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+            <div class="max-w-3xl">
+              <div class="flex items-center gap-2 text-seiji font-mono text-xs uppercase tracking-wider mb-1">
+                <span>Section 03</span>
+                <span>•</span>
+                <span>Shrine & Deity Guide</span>
+              </div>
+              <h2 class="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-sumi mb-2">
+                日本神社神祇系譜與祈願場域分類指引
+              </h2>
+              <p class="text-ainezumi text-xs sm:text-sm">
+                日本神道教秉持「八百萬神」思維，各神祇守護領域界線分明。開啟自訂編輯即可為每座神社卡片上傳鳥居、御守或專屬御朱印珍藏照片。
+              </p>
+            </div>
+            <div class="text-xs text-ainezumi bg-white px-3 py-1.5 rounded-lg border subtle-border shrink-0">
+              ⛩️ 支援插入御朱印或神社實景照片
+            </div>
+          </div>
+
+          <!-- 願望篩選標籤 (互動切換) -->
+          <div class="flex flex-wrap items-center gap-2 mb-8" id="shrine-filters">
+            <button class="shrine-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-seiji text-white transition-all shadow-xs" data-category="all">
+              全部信仰體系 (10)
+            </button>
+            <button class="shrine-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white text-ainezumi hover:bg-seiji/10 transition-all border subtle-border" data-category="business">
+              💼 商業財富 / 事業加薪
+            </button>
+            <button class="shrine-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white text-ainezumi hover:bg-seiji/10 transition-all border subtle-border" data-category="love">
+              ❤️ 戀愛良緣 / 情感復合
+            </button>
+            <button class="shrine-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white text-ainezumi hover:bg-seiji/10 transition-all border subtle-border" data-category="study">
+              📚 學業考運 / 證照考試
+            </button>
+            <button class="shrine-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white text-ainezumi hover:bg-seiji/10 transition-all border subtle-border" data-category="health">
+              🛡 健康除厄 / 婦女安產
+            </button>
+            <button class="shrine-filter-btn px-4 py-1.5 rounded-full text-xs font-medium bg-white text-ainezumi hover:bg-seiji/10 transition-all border subtle-border" data-category="special">
+              ⛩ 遠行交通 / IT防火突破
+            </button>
+          </div>
+
+          <!-- 10 大神社系譜卡片矩陣 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="shrine-card-container">
+            <!-- 1. 稻荷神社 -->
+            <div class="shrine-card wabi-card p-5 rounded-2xl subtle-border group/shrine relative" data-categories="business" data-card-id="shrine-1">
+              <!-- 自訂照片槽位 -->
+              <div class="shrine-image-container mb-3 relative rounded-xl overflow-hidden bg-shironeri border subtle-border h-36 flex items-center justify-center">
+                <img id="img-shrine-1" src="https://images.unsplash.com/photo-1478436127897-769e00d2c715?auto=format&fit=crop&w=600&q=80" alt="伏見稻荷千本鳥居" class="w-full h-full object-cover">
+                <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+                  <button onclick="openImageModal('shrine-1', 'img-shrine-1', '稻荷神社/御朱印')" class="px-2.5 py-1 bg-white text-sumi rounded text-xs font-medium hover:bg-shironeri shadow">
+                    📷 更換/插入照片
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-start mb-2.5">
+                <div>
+                  <span class="text-[10px] font-mono text-jinzamomi uppercase tracking-wider block">Inari Shrine</span>
+                  <h3 class="font-serif text-lg font-bold text-sumi editable-text" data-key="title-shrine-1">稻荷神社</h3>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-jinzamomi/10 text-jinzamomi font-medium">千本鳥居</span>
+              </div>
+              <div class="space-y-1.5 text-xs">
+                <p><span class="text-ainezumi">主祀神祇：</span><strong class="text-sumi">宇迦之御魂神（倉稻魂命）</strong></p>
+                <p><span class="text-ainezumi">文化符號：</span>朱紅千本鳥居、銜稻穗或寶珠之狐狸神使</p>
+                <p><span class="text-ainezumi">專屬守護：</span><strong class="text-kohaku editable-text" data-key="protect-shrine-1">商業興隆、創業拓點、業績達標、升職加薪、客源貴人</strong></p>
+                <p class="pt-2 border-t subtle-border text-ainezumi editable-text" data-key="spot-shrine-1">代表名所：京都 伏見稻荷大社、東京 根津神社、愛知 豐川稻荷</p>
+              </div>
+            </div>
+
+            <!-- 2. 淺間神社 -->
+            <div class="shrine-card wabi-card p-5 rounded-2xl subtle-border group/shrine relative" data-categories="health" data-card-id="shrine-2">
+              <div class="shrine-image-container mb-3 relative rounded-xl overflow-hidden bg-shironeri border subtle-border h-36 flex items-center justify-center">
+                <img id="img-shrine-2" src="https://images.unsplash.com/photo-1578637387939-43c525550085?auto=format&fit=crop&w=600&q=80" alt="富士山新倉淺間神社" class="w-full h-full object-cover">
+                <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+                  <button onclick="openImageModal('shrine-2', 'img-shrine-2', '淺間神社/富士山')" class="px-2.5 py-1 bg-white text-sumi rounded text-xs font-medium hover:bg-shironeri shadow">
+                    📷 更換/插入照片
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-start mb-2.5">
+                <div>
+                  <span class="text-[10px] font-mono text-seiji uppercase tracking-wider block">Sengen Shrine</span>
+                  <h3 class="font-serif text-lg font-bold text-sumi editable-text" data-key="title-shrine-2">淺間神社</h3>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-seiji/10 text-seiji font-medium">富士山御神體</span>
+              </div>
+              <div class="space-y-1.5 text-xs">
+                <p><span class="text-ainezumi">主祀神祇：</span><strong class="text-sumi">木花咲耶姬命（櫻花與富士山女神）</strong></p>
+                <p><span class="text-ainezumi">文化符號：</span>富士山、櫻花紋章、火中安產信仰</p>
+                <p><span class="text-ainezumi">專屬守護：</span><strong class="text-seiji editable-text" data-key="protect-shrine-2">婦女安產、求子育兒、家庭和睦、女性專屬運勢提振</strong></p>
+                <p class="pt-2 border-t subtle-border text-ainezumi editable-text" data-key="spot-shrine-2">代表名所：靜岡 富士山本宮淺間大社、山梨 新倉富士淺間神社</p>
+              </div>
+            </div>
+
+            <!-- 3. 住吉神社 -->
+            <div class="shrine-card wabi-card p-5 rounded-2xl subtle-border group/shrine relative" data-categories="special" data-card-id="shrine-3">
+              <div class="shrine-image-container mb-3 relative rounded-xl overflow-hidden bg-shironeri border subtle-border h-36 flex items-center justify-center">
+                <img id="img-shrine-3" src="https://images.unsplash.com/photo-1528164344705-475426879c0d?auto=format&fit=crop&w=600&q=80" alt="住吉大社太鼓橋" class="w-full h-full object-cover">
+                <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+                  <button onclick="openImageModal('shrine-3', 'img-shrine-3', '住吉大社/太鼓橋')" class="px-2.5 py-1 bg-white text-sumi rounded text-xs font-medium hover:bg-shironeri shadow">
+                    📷 更換/插入照片
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-start mb-2.5">
+                <div>
+                  <span class="text-[10px] font-mono text-seiji uppercase tracking-wider block">Sumiyoshi Shrine</span>
+                  <h3 class="font-serif text-lg font-bold text-sumi editable-text" data-key="title-shrine-3">住吉神社</h3>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-seiji/10 text-seiji font-medium">航海守護</span>
+              </div>
+              <div class="space-y-1.5 text-xs">
+                <p><span class="text-ainezumi">主祀神祇：</span><strong class="text-sumi">住吉三神（底筒男、中筒男、表筒男命）</strong></p>
+                <p><span class="text-ainezumi">文化符號：</span>朱紅太鼓橋、潮汐掌控之神使</p>
+                <p><span class="text-ainezumi">專屬守護：</span><strong class="text-seiji editable-text" data-key="protect-shrine-3">海外遠行平安、國際商務拓荒、海陸空交通安全、喬遷順遂</strong></p>
+                <p class="pt-2 border-t subtle-border text-ainezumi editable-text" data-key="spot-shrine-3">代表名所：大阪 住吉大社、福岡 博多住吉神社</p>
+              </div>
+            </div>
+
+            <!-- 4. 貴船神社 -->
+            <div class="shrine-card wabi-card p-5 rounded-2xl subtle-border group/shrine relative" data-categories="love" data-card-id="shrine-4">
+              <div class="shrine-image-container mb-3 relative rounded-xl overflow-hidden bg-shironeri border subtle-border h-36 flex items-center justify-center">
+                <img id="img-shrine-4" src="https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=600&q=80" alt="貴船神社紅燈籠石階" class="w-full h-full object-cover">
+                <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+                  <button onclick="openImageModal('shrine-4', 'img-shrine-4', '貴船神社/水占卜')" class="px-2.5 py-1 bg-white text-sumi rounded text-xs font-medium hover:bg-shironeri shadow">
+                    📷 更換/插入照片
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-start mb-2.5">
+                <div>
+                  <span class="text-[10px] font-mono text-jinzamomi uppercase tracking-wider block">Kifune Shrine</span>
+                  <h3 class="font-serif text-lg font-bold text-sumi editable-text" data-key="title-shrine-4">貴船神社</h3>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-jinzamomi/10 text-jinzamomi font-medium">靈驗水占卜</span>
+              </div>
+              <div class="space-y-1.5 text-xs">
+                <p><span class="text-ainezumi">主祀神祇：</span><strong class="text-sumi">高龗神（司掌水源與降雨之龍神）</strong></p>
+                <p><span class="text-ainezumi">文化符號：</span>生生不息靈泉、水占齋庭、紅燈籠石階</p>
+                <p><span class="text-ainezumi">專屬守護：</span><strong class="text-jinzamomi editable-text" data-key="protect-shrine-4">男女戀愛良緣、情感復合破冰、心願成就</strong></p>
+                <p class="pt-2 border-t subtle-border text-ainezumi editable-text" data-key="spot-shrine-4">代表名所：京都 鞍馬貴船神社</p>
+              </div>
+            </div>
+
+            <!-- 5. 天神 / 天滿宮 (預設照片插槽) -->
+            <div class="shrine-card wabi-card p-5 rounded-2xl subtle-border group/shrine relative" data-categories="study" data-card-id="shrine-5">
+              <div class="shrine-image-container mb-3 relative rounded-xl overflow-hidden bg-shironeri border subtle-border h-36 flex items-center justify-center">
+                <div id="img-shrine-5-wrapper" class="w-full h-full flex flex-col items-center justify-center bg-shironeri text-ainezumi/60">
+                  <span class="text-2xl mb-1">⛩️</span>
+                  <span class="text-[11px] font-mono">太宰府天滿宮</span>
+                  <button onclick="openImageModal('shrine-5', 'img-shrine-5', '天滿宮照片')" class="mt-2 text-[10px] px-2 py-0.5 bg-seiji/10 text-seiji rounded border border-seiji/20 hover:bg-seiji/20">
+                    ＋ 插入專屬照片
+                  </button>
+                </div>
+                <img id="img-shrine-5" src="" alt="天滿宮" class="w-full h-full object-cover hidden">
+                <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+                  <button onclick="openImageModal('shrine-5', 'img-shrine-5', '天滿宮照片')" class="px-2.5 py-1 bg-white text-sumi rounded text-xs font-medium hover:bg-shironeri shadow">
+                    📷 更換/插入照片
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-start mb-2.5">
+                <div>
+                  <span class="text-[10px] font-mono text-kohaku uppercase tracking-wider block">Tenmangu Shrine</span>
+                  <h3 class="font-serif text-lg font-bold text-sumi editable-text" data-key="title-shrine-5">天神／天滿宮</h3>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-kohaku/10 text-kohaku font-medium">日本學問之神</span>
+              </div>
+              <div class="space-y-1.5 text-xs">
+                <p><span class="text-ainezumi">主祀神祇：</span><strong class="text-sumi">菅原道真公（天滿大自在天神）</strong></p>
+                <p><span class="text-ainezumi">文化符號：</span>梅花紋章、臥牛銅像、學問之筆</p>
+                <p><span class="text-ainezumi">專屬守護：</span><strong class="text-kohaku editable-text" data-key="protect-shrine-5">各級升學考試、國家證照檢定、公職競試、求職面試智慧</strong></p>
+                <p class="pt-2 border-t subtle-border text-ainezumi editable-text" data-key="spot-shrine-5">代表名所：福岡 太宰府天滿宮、京都 北野天滿宮、東京 湯島天滿宮</p>
+              </div>
+            </div>
+
+            <!-- 6. 祇園 / 八坂神社 -->
+            <div class="shrine-card wabi-card p-5 rounded-2xl subtle-border group/shrine relative" data-categories="health" data-card-id="shrine-6">
+              <div class="shrine-image-container mb-3 relative rounded-xl overflow-hidden bg-shironeri border subtle-border h-36 flex items-center justify-center">
+                <div id="img-shrine-6-wrapper" class="w-full h-full flex flex-col items-center justify-center bg-shironeri text-ainezumi/60">
+                  <span class="text-2xl mb-1">⛩️</span>
+                  <span class="text-[11px] font-mono">京都八坂神社</span>
+                  <button onclick="openImageModal('shrine-6', 'img-shrine-6', '八坂神社照片')" class="mt-2 text-[10px] px-2 py-0.5 bg-seiji/10 text-seiji rounded border border-seiji/20 hover:bg-seiji/20">
+                    ＋ 插入專屬照片
+                  </button>
+                </div>
+                <img id="img-shrine-6" src="" alt="八坂神社" class="w-full h-full object-cover hidden">
+                <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+                  <button onclick="openImageModal('shrine-6', 'img-shrine-6', '八坂神社照片')" class="px-2.5 py-1 bg-white text-sumi rounded text-xs font-medium hover:bg-shironeri shadow">
+                    📷 更換/插入照片
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-start mb-2.5">
+                <div>
+                  <span class="text-[10px] font-mono text-seiji uppercase tracking-wider block">Yasaka Shrine</span>
+                  <h3 class="font-serif text-lg font-bold text-sumi editable-text" data-key="title-shrine-6">祇園／八坂神社</h3>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-seiji/10 text-seiji font-medium">除瘟消災</span>
+              </div>
+              <div class="space-y-1.5 text-xs">
+                <p><span class="text-ainezumi">主祀神祇：</span><strong class="text-sumi">素戔嗚尊（須佐之男命）</strong></p>
+                <p><span class="text-ainezumi">文化符號：</span>斬八岐大蛇英雄、祇園祭本源、黃瓜紋章</p>
+                <p><span class="text-ainezumi">專屬守護：</span><strong class="text-seiji editable-text" data-key="protect-shrine-6">消除厄運、驅逐邪穢、無病息災、身心健康平安</strong></p>
+                <p class="pt-2 border-t subtle-border text-ainezumi editable-text" data-key="spot-shrine-6">代表名所：京都 八坂神社（祇園社總本社）</p>
+              </div>
+            </div>
+
+            <!-- 7. 惠比壽神社 -->
+            <div class="shrine-card wabi-card p-5 rounded-2xl subtle-border group/shrine relative" data-categories="business" data-card-id="shrine-7">
+              <div class="shrine-image-container mb-3 relative rounded-xl overflow-hidden bg-shironeri border subtle-border h-36 flex items-center justify-center">
+                <div id="img-shrine-7-wrapper" class="w-full h-full flex flex-col items-center justify-center bg-shironeri text-ainezumi/60">
+                  <span class="text-2xl mb-1">🐟</span>
+                  <span class="text-[11px] font-mono">惠比壽神社</span>
+                  <button onclick="openImageModal('shrine-7', 'img-shrine-7', '惠比壽神社照片')" class="mt-2 text-[10px] px-2 py-0.5 bg-seiji/10 text-seiji rounded border border-seiji/20 hover:bg-seiji/20">
+                    ＋ 插入專屬照片
+                  </button>
+                </div>
+                <img id="img-shrine-7" src="" alt="惠比壽神社" class="w-full h-full object-cover hidden">
+                <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+                  <button onclick="openImageModal('shrine-7', 'img-shrine-7', '惠比壽神社照片')" class="px-2.5 py-1 bg-white text-sumi rounded text-xs font-medium hover:bg-shironeri shadow">
+                    📷 更換/插入照片
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-start mb-2.5">
+                <div>
+                  <span class="text-[10px] font-mono text-kohaku uppercase tracking-wider block">Ebisu Shrine</span>
+                  <h3 class="font-serif text-lg font-bold text-sumi editable-text" data-key="title-shrine-7">惠比壽神社</h3>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-kohaku/10 text-kohaku font-medium">接地氣財神</span>
+              </div>
+              <div class="space-y-1.5 text-xs">
+                <p><span class="text-ainezumi">主祀神祇：</span><strong class="text-sumi">惠比壽神（事代主神 / 蛭子）</strong></p>
+                <p><span class="text-ainezumi">文化符號：</span>七福神唯一本土神、手持釣竿、懷抱大鯛魚</p>
+                <p><span class="text-ainezumi">專屬守護：</span><strong class="text-kohaku editable-text" data-key="protect-shrine-7">漁業豐收、市場商賈興旺、店鋪門庭若市、福氣招徠</strong></p>
+                <p class="pt-2 border-t subtle-border text-ainezumi editable-text" data-key="spot-shrine-7">代表名所：兵庫 西宮神社、京都 惠美須神社、大阪 今宮戎神社</p>
+              </div>
+            </div>
+
+            <!-- 8. 金毘羅宮 -->
+            <div class="shrine-card wabi-card p-5 rounded-2xl subtle-border group/shrine relative" data-categories="special" data-card-id="shrine-8">
+              <div class="shrine-image-container mb-3 relative rounded-xl overflow-hidden bg-shironeri border subtle-border h-36 flex items-center justify-center">
+                <div id="img-shrine-8-wrapper" class="w-full h-full flex flex-col items-center justify-center bg-shironeri text-ainezumi/60">
+                  <span class="text-2xl mb-1">⛩️</span>
+                  <span class="text-[11px] font-mono">香川金刀比羅宮</span>
+                  <button onclick="openImageModal('shrine-8', 'img-shrine-8', '金刀比羅宮照片')" class="mt-2 text-[10px] px-2 py-0.5 bg-seiji/10 text-seiji rounded border border-seiji/20 hover:bg-seiji/20">
+                    ＋ 插入專屬照片
+                  </button>
+                </div>
+                <img id="img-shrine-8" src="" alt="金毘羅宮" class="w-full h-full object-cover hidden">
+                <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+                  <button onclick="openImageModal('shrine-8', 'img-shrine-8', '金刀比羅宮照片')" class="px-2.5 py-1 bg-white text-sumi rounded text-xs font-medium hover:bg-shironeri shadow">
+                    📷 更換/插入照片
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-start mb-2.5">
+                <div>
+                  <span class="text-[10px] font-mono text-kohaku uppercase tracking-wider block">Konpira Shrine</span>
+                  <h3 class="font-serif text-lg font-bold text-sumi editable-text" data-key="title-shrine-8">金毘羅宮</h3>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-kohaku/10 text-kohaku font-medium">千級石階試煉</span>
+              </div>
+              <div class="space-y-1.5 text-xs">
+                <p><span class="text-ainezumi">主祀神祇：</span><strong class="text-sumi">大物主神（崇德天皇合祀）</strong></p>
+                <p><span class="text-ainezumi">文化符號：</span>金字黃色旗幟、神佛習合、漫長千級石階</p>
+                <p><span class="text-ainezumi">專屬守護：</span><strong class="text-sumi editable-text" data-key="protect-shrine-8">突破人生重大瓶頸難關、遠洋航行安穩、事業轉型跨越</strong></p>
+                <p class="pt-2 border-t subtle-border text-ainezumi editable-text" data-key="spot-shrine-8">代表名所：香川 琴平金刀比羅宮、東京 虎之門金刀比羅宮</p>
+              </div>
+            </div>
+
+            <!-- 9. 秋葉神社 -->
+            <div class="shrine-card wabi-card p-5 rounded-2xl subtle-border group/shrine relative" data-categories="special" data-card-id="shrine-9">
+              <div class="shrine-image-container mb-3 relative rounded-xl overflow-hidden bg-shironeri border subtle-border h-36 flex items-center justify-center">
+                <div id="img-shrine-9-wrapper" class="w-full h-full flex flex-col items-center justify-center bg-shironeri text-ainezumi/60">
+                  <span class="text-2xl mb-1">🔥</span>
+                  <span class="text-[11px] font-mono">秋葉山本宮</span>
+                  <button onclick="openImageModal('shrine-9', 'img-shrine-9', '秋葉神社照片')" class="mt-2 text-[10px] px-2 py-0.5 bg-seiji/10 text-seiji rounded border border-seiji/20 hover:bg-seiji/20">
+                    ＋ 插入專屬照片
+                  </button>
+                </div>
+                <img id="img-shrine-9" src="" alt="秋葉神社" class="w-full h-full object-cover hidden">
+                <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+                  <button onclick="openImageModal('shrine-9', 'img-shrine-9', '秋葉神社照片')" class="px-2.5 py-1 bg-white text-sumi rounded text-xs font-medium hover:bg-shironeri shadow">
+                    📷 更換/插入照片
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-start mb-2.5">
+                <div>
+                  <span class="text-[10px] font-mono text-jinzamomi uppercase tracking-wider block">Akiha Shrine</span>
+                  <h3 class="font-serif text-lg font-bold text-sumi editable-text" data-key="title-shrine-9">秋葉神社</h3>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-jinzamomi/10 text-jinzamomi font-medium">火防總本宮</span>
+              </div>
+              <div class="space-y-1.5 text-xs">
+                <p><span class="text-ainezumi">主祀神祇：</span><strong class="text-sumi">火之迦具土神（Hinokagutsuchi）</strong></p>
+                <p><span class="text-ainezumi">文化符號：</span>掌管火焰之力（秋葉原地名源起）</p>
+                <p><span class="text-ainezumi">專屬守護：</span><strong class="text-seiji editable-text" data-key="protect-shrine-9">家宅防火災、工廠設備安全、機械電子運作順暢、IT與資安</strong></p>
+                <p class="pt-2 border-t subtle-border text-ainezumi editable-text" data-key="spot-shrine-9">代表名所：靜岡 秋葉山本宮秋葉神社、東京 秋葉神社</p>
+              </div>
+            </div>
+
+            <!-- 10. 嚴島神社 -->
+            <div class="shrine-card wabi-card p-5 rounded-2xl subtle-border group/shrine relative" data-categories="love business" data-card-id="shrine-10">
+              <div class="shrine-image-container mb-3 relative rounded-xl overflow-hidden bg-shironeri border subtle-border h-36 flex items-center justify-center">
+                <img id="img-shrine-10" src="https://images.unsplash.com/photo-1590559899731-a372a1464e29?auto=format&fit=crop&w=600&q=80" alt="嚴島海上大鳥居" class="w-full h-full object-cover">
+                <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+                  <button onclick="openImageModal('shrine-10', 'img-shrine-10', '嚴島神社照片')" class="px-2.5 py-1 bg-white text-sumi rounded text-xs font-medium hover:bg-shironeri shadow">
+                    📷 更換/插入照片
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex justify-between items-start mb-2.5">
+                <div>
+                  <span class="text-[10px] font-mono text-seiji uppercase tracking-wider block">Itsukushima Shrine</span>
+                  <h3 class="font-serif text-lg font-bold text-sumi editable-text" data-key="title-shrine-10">嚴島神社</h3>
+                </div>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-seiji/10 text-seiji font-medium">海上大鳥居</span>
+              </div>
+              <div class="space-y-1.5 text-xs">
+                <p><span class="text-ainezumi">主祀神祇：</span><strong class="text-sumi">市杵島姬命（與辯才天習合之水神）</strong></p>
+                <p><span class="text-ainezumi">文化符號：</span>海上朱紅大鳥居、寢殿造水上迴廊</p>
+                <p><span class="text-ainezumi">專屬守護：</span><strong class="text-seiji editable-text" data-key="protect-shrine-10">藝術創作靈感、音樂展演精進、女性魅力美貌、財富廣進</strong></p>
+                <p class="pt-2 border-t subtle-border text-ainezumi editable-text" data-key="spot-shrine-10">代表名所：廣島 宮島嚴島神社（世界文化遺產）</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 參拜禮軌標準流程指南 (鳥居 -> 手水舍 -> 拜殿) -->
+          <div class="mt-12 bg-white rounded-2xl p-6 md:p-8 subtle-border">
+            <h3 class="font-serif text-lg font-bold text-sumi mb-6 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-seiji text-white text-xs flex items-center justify-center font-bold">⛩️</span>
+              神道參拜完整禮軌 SOP（不可不知的三大細節）
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+              <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-seiji/20 text-seiji flex items-center justify-center font-mono font-bold">1</span>
+                  <strong class="text-sumi text-sm">穿越鳥居前</strong>
+                </div>
+                <p class="text-ainezumi leading-relaxed">
+                  鳥居為神域與凡世之界線。進入前先輕微一鞠躬；通道正中央為「神明走的通道（正中）」，<strong>必須靠左右兩側行走</strong>，不可直走中央。
+                </p>
+              </div>
+
+              <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-seiji/20 text-seiji flex items-center justify-center font-mono font-bold">2</span>
+                  <strong class="text-sumi text-sm">手水舍五步驟</strong>
+                </div>
+                <p class="text-ainezumi leading-relaxed">
+                  一勺水完成：①右手持勺洗左手 ➔ ②左手持勺洗右手 ➔ ③右手倒水於左手掌漱口（勿以勺就口） ➔ ④再次洗左手 ➔ ⑤豎立水勺以殘水洗淨勺柄。
+                </p>
+              </div>
+
+              <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-seiji/20 text-seiji flex items-center justify-center font-mono font-bold">3</span>
+                  <strong class="text-sumi text-sm">二禮二拍手一禮</strong>
+                </div>
+                <p class="text-ainezumi leading-relaxed">
+                  投入 5 日圓（象徵御緣 Go-en）；深深鞠躬兩次 ➔ 拍手兩次（<strong>拍手時右手微退於左手指節下方</strong>）➔ 雙手合十靜心祈願 ➔ 最後再次深鞠躬一禮。
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 分頁 4：在地生活避坑 (Lifestyle & De-myth & Flights)                      -->
+    <!-- ========================================================================= -->
+    <div id="tab-lifestyle" class="tab-pane hidden">
+      <section class="py-12 md:py-20 border-b subtle-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="max-w-3xl mb-10">
+            <div class="flex items-center gap-2 text-seiji font-mono text-xs uppercase tracking-wider mb-1">
+              <span>Section 04</span>
+              <span>•</span>
+              <span>Etiquette & De-myth</span>
+            </div>
+            <h2 class="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-sumi mb-3">
+              在地生活守則與反盲從理性決策對照
+            </h2>
+            <p class="text-ainezumi text-sm sm:text-base">
+              遵守日本「不給他人添麻煩（Meiwaku）」文化；破除網路演算法催生的排隊迷思，大幅提升旅行時間價值。
+            </p>
+          </div>
+
+          <!-- 左右並行：常理 VS 避坑對照 -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <!-- 左欄：10 個行前必備常理 -->
+            <div class="p-6 md:p-8 rounded-2xl bg-white subtle-border">
+              <h3 class="font-serif text-lg font-bold text-sumi mb-6 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-seiji"></span>
+                去日本前一定要知道的在地生活常理
+              </h3>
+              <ul class="space-y-4 text-xs">
+                <li class="flex items-start gap-3">
+                  <span class="text-base shrink-0">🗑️</span>
+                  <div>
+                    <strong class="text-sumi block mb-0.5">街頭近乎沒有垃圾桶</strong>
+                    <p class="text-ainezumi">並非不體貼，而是垃圾各自內部化處理。外食建議就地食用完交還店家，隨身備塑膠袋帶回飯店丟棄。</p>
+                  </div>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-base shrink-0">💴</span>
+                  <div>
+                    <strong class="text-sumi block mb-0.5">實體現金仍為必備儲備</strong>
+                    <p class="text-ainezumi">老字號拉麵點餐機、傳統神社御守、築地黑門市場小攤仍堅守純現金。每人隨身常備 3 至 5 萬日圓最安全。</p>
+                  </div>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-base shrink-0">🚆</span>
+                  <div>
+                    <strong class="text-sumi block mb-0.5">電車以秒為單位運作</strong>
+                    <p class="text-ainezumi">錯過一班易造成轉乘骨牌延誤。務必提前 5 至 10 分鐘抵達月台，注意各級列車（各停/急行/特急）停靠站。</p>
+                  </div>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-base shrink-0">🛗</span>
+                  <div>
+                    <strong class="text-sumi block mb-0.5">電扶梯靠側南北有別</strong>
+                    <p class="text-ainezumi">東京關東習慣站左側、讓右側；大阪神戶等關西則站右側、讓左側。大件行李箱請直接搭乘升降電梯。</p>
+                  </div>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-base shrink-0">🤫</span>
+                  <div>
+                    <strong class="text-sumi block mb-0.5">車廂維護寧靜氛圍</strong>
+                    <p class="text-ainezumi">上車手機一律切換為靜音模式（マナーモード）。同行者交談輕聲細語，嚴禁講電話或開啟視訊擴音。</p>
+                  </div>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-base shrink-0">🏪</span>
+                  <div>
+                    <strong class="text-sumi block mb-0.5">三大超商定位各有所長</strong>
+                    <p class="text-ainezumi">熱食炸物鎖定全家（Famichiki）；現打果昔優格選 7-11；精緻甜點、炸雞球與無印良品文具選 Lawson。</p>
+                  </div>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-base shrink-0">🛍️</span>
+                  <div>
+                    <strong class="text-sumi block mb-0.5">塑膠袋全面收費</strong>
+                    <p class="text-ainezumi">超商超市塑膠袋均需付費自購，隨身包包內隨時備好 1-2 個便攜輕量折疊環保袋更從容。</p>
+                  </div>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="text-base shrink-0">💊</span>
+                  <div>
+                    <strong class="text-sumi block mb-0.5">藥妝店比價切忌衝動</strong>
+                    <p class="text-ainezumi">同款合利他命或眼藥水，相鄰松本清與 Sundrug 價差可達 15%。別在第一間門市一次購足，多看兩家更划算。</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- 右欄：8 個打破網路迷思的理性選擇 -->
+            <div class="p-6 md:p-8 rounded-2xl bg-white subtle-border">
+              <h3 class="font-serif text-lg font-bold text-sumi mb-6 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-jinzamomi"></span>
+                拒絕無效跟風！自由行理性決策建議
+              </h3>
+              <ul class="space-y-4 text-xs">
+                <li class="p-3 rounded-xl bg-shironeri border subtle-border">
+                  <div class="flex items-center gap-2 text-jinzamomi font-bold mb-1">
+                    <span>✕ 迷思：</span> 盲目排隊 2 小時吃 IG / TikTok 名店
+                  </div>
+                  <p class="text-ainezumi"><strong class="text-seiji">✓ 實務方針：</strong> 多數為行銷堆疊的外國客店；改用日本本土權威 <strong>Tabelog（食ベログ）</strong>，鎖定 3.5 分以上周邊餐廳，省時且美味。</p>
+                </li>
+
+                <li class="p-3 rounded-xl bg-shironeri border subtle-border">
+                  <div class="flex items-center gap-2 text-jinzamomi font-bold mb-1">
+                    <span>✕ 迷思：</span> 堅持死守地鐵，排斥搭計程車
+                  </div>
+                  <p class="text-ainezumi"><strong class="text-seiji">✓ 實務方針：</strong> 日本計程車起跳雖高，但 2-3 公里短程 3-4 人共乘分攤下來每人與地鐵票差微小，鐵腿時果斷搭車換取體力！</p>
+                </li>
+
+                <li class="p-3 rounded-xl bg-shironeri border subtle-border">
+                  <div class="flex items-center gap-2 text-jinzamomi font-bold mb-1">
+                    <span>✕ 迷思：</span> 耗費整晚迷航唐吉訶德（Donki）
+                  </div>
+                  <p class="text-ainezumi"><strong class="text-seiji">✓ 實務方針：</strong> 貨架擁擠且免稅結帳常耗 40 分鐘。藥妝直奔松本清/Sundrug，美妝去 @cosme，電器去 Bic Camera，分類採買效率倍增。</p>
+                </li>
+
+                <li class="p-3 rounded-xl bg-shironeri border subtle-border">
+                  <div class="flex items-center gap-2 text-jinzamomi font-bold mb-1">
+                    <span>✕ 迷思：</span> 門票與車票全數依賴第三方 OTA 平台
+                  </div>
+                  <p class="text-ainezumi"><strong class="text-seiji">✓ 實務方針：</strong> SHIBUYA SKY、哈利波特影城、新幹線特急直接於官網預約，通常票價更透明且遇颱風等異動退改更具彈性保障。</p>
+                </li>
+
+                <li class="p-3 rounded-xl bg-shironeri border subtle-border">
+                  <div class="flex items-center gap-2 text-jinzamomi font-bold mb-1">
+                    <span>✕ 迷思：</span> 帶 10 天份衣物把行李箱塞爆
+                  </div>
+                  <p class="text-ainezumi"><strong class="text-seiji">✓ 實務方針：</strong> 日本星級與商務飯店普遍配備投幣式洗烘衣機（Coin Laundry），攜帶 3 天份換洗衣物循環即可，箱體預留空間採購。</p>
+                </li>
+
+                <li class="p-3 rounded-xl bg-shironeri border subtle-border">
+                  <div class="flex items-center gap-2 text-jinzamomi font-bold mb-1">
+                    <span>✕ 迷思：</span> Visit Japan Web 列印紙本通關
+                  </div>
+                  <p class="text-ainezumi"><strong class="text-seiji">✓ 實務方針：</strong> 登機前線上填寫好並將 QR Code 截圖存入手機相簿離線備用，成田/羽田人臉查驗直接掃描即可通關。</p>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 機票採購博弈週期與策略 -->
+          <div class="wabi-card rounded-2xl p-6 md:p-8 subtle-border">
+            <h3 class="font-serif text-lg font-bold text-sumi mb-4 flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-seiji"></span>
+              機票採購博弈週期與出發時機策略
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs">
+              <div class="p-4 rounded-xl bg-shironeri border subtle-border">
+                <div class="flex justify-between items-center mb-1">
+                  <strong class="text-sumi text-sm">春節大旺季</strong>
+                  <span class="text-jinzamomi font-mono font-bold">2.5～4 倍溢價</span>
+                </div>
+                <p class="text-ainezumi leading-relaxed">出發前 10–12 個月剛開賣即為最低點；無清倉可能，越晚買只會越貴，建議一旦決定立即官網開票。</p>
+              </div>
+
+              <div class="p-4 rounded-xl bg-shironeri border subtle-border">
+                <div class="flex justify-between items-center mb-1">
+                  <strong class="text-sumi text-sm">暑假與櫻花季</strong>
+                  <span class="text-kohaku font-mono font-bold">1.5～2.5 倍溢價</span>
+                </div>
+                <p class="text-ainezumi leading-relaxed">建議提早 8 個月至 1 年鎖定；改選「午去早回」或二線機場（如茨城/佐賀）常能省下萬元價差。</p>
+              </div>
+
+              <div class="p-4 rounded-xl bg-shironeri border subtle-border">
+                <div class="flex justify-between items-center mb-1">
+                  <strong class="text-sumi text-sm">兩大線上旅展檔期</strong>
+                  <span class="text-seiji font-mono font-bold">5-6月 ＆ 10-11月</span>
+                </div>
+                <p class="text-ainezumi leading-relaxed">5–6 月 TTE 鎖定下半年秋冬出發；10–11 月 ITF 提前佈局隔年上半年與春櫻，官方網站買退改最安全。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 分頁 5：空地銜接 SOP 與行李清單 (Logistics & Packing & Photo Notes)       -->
+    <!-- ========================================================================= -->
+    <div id="tab-logistics" class="tab-pane hidden">
+      <section class="py-12 md:py-20 border-b subtle-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="max-w-3xl mb-10">
+            <div class="flex items-center gap-2 text-seiji font-mono text-xs uppercase tracking-wider mb-1">
+              <span>Section 05</span>
+              <span>•</span>
+              <span>Logistics & SOP</span>
+            </div>
+            <h2 class="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-sumi mb-3">
+              桃園出發 ⇄ 成田入境與地面銜接 SOP
+            </h2>
+            <p class="text-ainezumi text-sm sm:text-base">
+              緊密銜接航廈報到、行李查驗、邊境數位通關、京成 Skyliner 直達市區與 Check-in 實用句式。
+            </p>
+          </div>
+
+          <!-- 5 步驟流程軸 -->
+          <div class="space-y-4 mb-16">
+            <div class="wabi-card p-5 rounded-xl subtle-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div class="flex items-start gap-4">
+                <span class="w-8 h-8 rounded-full bg-seiji text-white text-xs font-mono font-bold flex items-center justify-center shrink-0">1</span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 class="font-serif text-base font-bold text-sumi">台灣端出境與航空報到（桃園機場 T1/T2）</h4>
+                    <span class="text-[11px] px-2 py-0.5 rounded bg-seiji/10 text-seiji font-medium">起飛前 3 小時抵達</span>
+                  </div>
+                  <p class="text-xs text-ainezumi mt-1">辦理登機證與托運；安檢時筆電與平板取出；100ml 內液體裝入 1 公升透明袋。<strong class="text-jinzamomi">行動電源（<160Wh，限2顆）嚴禁托運，必須隨身手提。</strong></p>
+                </div>
+              </div>
+            </div>
+
+            <div class="wabi-card p-5 rounded-xl subtle-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div class="flex items-start gap-4">
+                <span class="w-8 h-8 rounded-full bg-seiji text-white text-xs font-mono font-bold flex items-center justify-center shrink-0">2</span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 class="font-serif text-base font-bold text-sumi">邊境數位檢驗與入境審查（成田 T1/T2 入境大廳）</h4>
+                    <span class="text-[11px] px-2 py-0.5 rounded bg-seiji/10 text-seiji font-medium">人臉辨識閘門</span>
+                  </div>
+                  <p class="text-xs text-ainezumi mt-1">下機依 Arrival 指標前往人臉辨識閘門，出示護照與手機 VJW 入境審查 QR Code 截圖。海關回答小抄：「観光です（觀光）」「5日間の滞在です（停留五天）」。</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="wabi-card p-5 rounded-xl subtle-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div class="flex items-start gap-4">
+                <span class="w-8 h-8 rounded-full bg-seiji text-white text-xs font-mono font-bold flex items-center justify-center shrink-0">3</span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 class="font-serif text-base font-bold text-sumi">海關電子申報與行李提取</h4>
+                    <span class="text-[11px] px-2 py-0.5 rounded bg-seiji/10 text-seiji font-medium">行李轉盤至出口</span>
+                  </div>
+                  <p class="text-xs text-ainezumi mt-1">提領行李後，於電子申報閘門刷護照與 VJW 海關 QR Code 通過。攜帶等值超過 100 萬日圓現鈔需依法申報；遇抽問保持禮貌並出示飯店訂房確認單。</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="wabi-card p-5 rounded-xl subtle-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div class="flex items-start gap-4">
+                <span class="w-8 h-8 rounded-full bg-seiji text-white text-xs font-mono font-bold flex items-center justify-center shrink-0">4</span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 class="font-serif text-base font-bold text-sumi">機場直達市區特急轉運（京成電鐵 Skyliner）</h4>
+                    <span class="text-[11px] px-2 py-0.5 rounded bg-seiji/10 text-seiji font-medium">B1 月台搭乘</span>
+                  </div>
+                  <p class="text-xs text-ainezumi mt-1">直達日暮里（36分）或上野（41分），全車指定席，配備大型行李架與充電孔。建議線上購買 Skyliner + Tokyo Subway Ticket 地鐵套票，機台掃碼換票。</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="wabi-card p-5 rounded-xl subtle-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div class="flex items-start gap-4">
+                <span class="w-8 h-8 rounded-full bg-seiji text-white text-xs font-mono font-bold flex items-center justify-center shrink-0">5</span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h4 class="font-serif text-base font-bold text-sumi">飯店辦理入住手續（Check-in）</h4>
+                    <span class="text-[11px] px-2 py-0.5 rounded bg-seiji/10 text-seiji font-medium">15:00 後前台</span>
+                  </div>
+                  <p class="text-xs text-ainezumi mt-1">出示全員護照與訂單。日語小抄：「予約してます（我有預約）」「チェックインお願いします（麻煩辦理入住）」。留意現場是否需以現鈔或刷卡補繳地方住宿稅。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 智慧行李整備互動檢核表 -->
+          <div id="checklist-anchor" class="bg-white rounded-3xl p-6 md:p-10 subtle-border mb-16">
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 pb-6 border-b subtle-border">
+              <div>
+                <span class="text-xs font-mono text-seiji uppercase tracking-wider block mb-1">Checklist Module</span>
+                <h3 class="font-serif text-2xl font-bold text-sumi">出國行李互動檢核清單</h3>
+                <p class="text-xs text-ainezumi mt-1">點擊打勾即時記錄，具備離線自動保存（LocalStorage）功能，出發前逐項盤點無遺漏。</p>
+              </div>
+              <!-- 進度條 -->
+              <div class="w-full md:w-64">
+                <div class="flex justify-between text-xs text-ainezumi font-medium mb-1.5">
+                  <span>整備進度</span>
+                  <span id="checklist-progress-text" class="text-seiji font-mono font-bold">0% (0/16)</span>
+                </div>
+                <div class="w-full h-2.5 bg-shironeri rounded-full overflow-hidden subtle-border">
+                  <div id="checklist-progress-bar" class="h-full bg-seiji transition-all duration-300 rounded-full" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <!-- 1. 必備證件與金融 -->
+              <div class="space-y-3">
+                <h4 class="font-serif text-sm font-bold text-sumi flex items-center gap-1.5 border-b subtle-border pb-2">
+                  <span>💳</span> 一、證件與金融
+                </h4>
+                <div class="space-y-2 text-xs">
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-shironeri cursor-pointer transition-colors">
+                    <input type="checkbox" class="checklist-item mt-0.5 rounded text-seiji focus:ring-seiji" data-id="doc-1">
+                    <div>
+                      <span class="font-medium text-sumi block">護照正本</span>
+                      <span class="text-[11px] text-ainezumi">效期須在 6 個月以上</span>
+                    </div>
+                  </label>
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-shironeri cursor-pointer transition-colors">
+                    <input type="checkbox" class="checklist-item mt-0.5 rounded text-seiji focus:ring-seiji" data-id="doc-2">
+                    <div>
+                      <span class="font-medium text-sumi block">台灣身分證</span>
+                      <span class="text-[11px] text-ainezumi">備於皮夾，遺失護照時備查</span>
+                    </div>
+                  </label>
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-shironeri cursor-pointer transition-colors">
+                    <input type="checkbox" class="checklist-item mt-0.5 rounded text-seiji focus:ring-seiji" data-id="doc-3">
+                    <div>
+                      <span class="font-medium text-sumi block">機票截圖與訂單</span>
+                      <span class="text-[11px] text-ainezumi">手機存離線檔案夾</span>
+                    </div>
+                  </label>
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-shironeri cursor-pointer transition-colors">
+                    <input type="checkbox" class="checklist-item mt-0.5 rounded text-seiji focus:ring-seiji" data-id="doc-4">
+                    <div>
+                      <span class="font-medium text-sumi block">海外保險英文單</span>
+                      <span class="text-[11px] text-ainezumi">含醫療與班機延誤實支實付</span>
+                    </div>
+                  </label>
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-shironeri cursor-pointer transition-colors">
+                    <input type="checkbox" class="checklist-item mt-0.5 rounded text-seiji focus:ring-seiji" data-id="doc-5">
+                    <div>
+                      <span class="font-medium text-sumi block">實體日幣現鈔</span>
+                      <span class="text-[11px] text-ainezumi">每人 3-5 萬日圓備用</span>
+                    </div>
+                  </label>
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-shironeri cursor-pointer transition-colors">
+                    <input type="checkbox" class="checklist-item mt-0.5 rounded text-seiji focus:ring-seiji" data-id="doc-6">
+                    <div>
+                      <span class="font-medium text-sumi block">Visit Japan Web 截圖</span>
+                      <span class="text-[11px] text-ainezumi">完成審查取得 QR Code</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- 2. 生活與服飾裝備 -->
+              <div class="space-y-3">
+                <h4 class="font-serif text-sm font-bold text-sumi flex items-center gap-1.5 border-b subtle-border pb-2">
+                  <span>👕</span> 二、生活與服飾
+                </h4>
+                <div class="space-y-2 text-xs">
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-shironeri cursor-pointer transition-colors">
+                    <input type="checkbox" class="checklist-item mt-0.5 rounded text-seiji focus:ring-seiji" data-id="life-1">
+                    <div>
+                      <span class="font-medium text-sumi block">3 天份換洗衣物</span>
+                      <span class="text-[11px] text-ainezumi">利用飯店洗烘衣機循環</span>
+                    </div>
+                  </label>
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-shironeri cursor-pointer transition-colors">
+                    <input type="checkbox" class="checklist-item mt-0.5 rounded text-seiji focus:ring-seiji" data-id="life-2">
+                    <div>
+                      <span class="font-medium text-sumi block">磨合耐走球鞋</span>
+                      <span class="text-[11px] text-ainezumi">日行 1.5 萬步必備好鞋</span>
+                    </div>
+                  </label>
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-shironeri cursor-pointer transition-colors">
+                    <input type="checkbox" class="checklist-item mt-0.5 rounded text-seiji focus:ring-seiji" data-id="life-3">
+                    <div>
+                      <span class="font-medium text-sumi block">便攜輕量折傘</span>
+                      <span class="text-[11px] text-ainezumi">晴雨兩用防風款</span>
+                    </div>
+                  </label>
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-shironeri cursor-pointer transition-colors">
+                    <input type="checkbox" class="checklist-item mt-0.5 rounded text-seiji focus:ring-seiji" data-id="life-4">
+                    <div>
+                      <span class="font-medium text-sumi block">自備環保購物袋</span>
+                      <span class="text-[11px] text-ainezumi">超商採買省塑膠袋費</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- 3. 個人藥品與衛生用品 -->
+              <div class="space-y-3">
+                <h4 class="font-serif text-sm font-bold text-sumi flex items-center gap-1.5 border-b subtle-border pb-2">
+                  <span>🧴</span> 三、藥品與衛生
+                </h4>
+                <div class="space-y-2 text-xs">
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-shironeri cursor-pointer transition-colors">
+                    <input type="checkbox" class="checklist-item mt-0.5 rounded text-seiji focus:ring-seiji" data-id="med-1">
+                    <div>
+                      <span class="font-medium text-sumi block">個人處方慢性藥</span>
+                      <span class="text-[11px] text-ainezumi">止痛藥、胃藥、感冒藥</span>
+                    </div>
+                  </label>
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-shironeri cursor-pointer transition-colors">
+                    <input type="checkbox" class="checklist-item mt-0.5 rounded text-seiji focus:ring-seiji" data-id="med-2">
+                    <div>
+                      <span class="font-medium text-sumi block">保濕乳液與護唇膏</span>
+                      <span class="text-[11px] text-ainezumi">應對日本乾冷氣候脫皮</span>
+                    </div>
+                  </label>
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-shironeri cursor-pointer transition-colors">
+                    <input type="checkbox" class="checklist-item mt-0.5 rounded text-seiji focus:ring-seiji" data-id="med-3">
+                    <div>
+                      <span class="font-medium text-sumi block">個人盥洗環保組</span>
+                      <span class="text-[11px] text-ainezumi">牙刷牙膏（部分飯店不附）</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- 4. 科技通訊與數位工具 -->
+              <div class="space-y-3">
+                <h4 class="font-serif text-sm font-bold text-sumi flex items-center gap-1.5 border-b subtle-border pb-2">
+                  <span>🔋</span> 四、科技與通訊
+                </h4>
+                <div class="space-y-2 text-xs">
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-shironeri cursor-pointer transition-colors">
+                    <input type="checkbox" class="checklist-item mt-0.5 rounded text-seiji focus:ring-seiji" data-id="tech-1">
+                    <div>
+                      <span class="font-medium text-sumi block">合規行動電源</span>
+                      <span class="text-[11px] text-jinzamomi font-semibold"><160Wh，手提，禁機上充</span>
+                    </div>
+                  </label>
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-shironeri cursor-pointer transition-colors">
+                    <input type="checkbox" class="checklist-item mt-0.5 rounded text-seiji focus:ring-seiji" data-id="tech-2">
+                    <div>
+                      <span class="font-medium text-sumi block">日本雙平腳插頭</span>
+                      <span class="text-[11px] text-ainezumi">標準 100V 扁平雙孔</span>
+                    </div>
+                  </label>
+                  <label class="flex items-start gap-2.5 p-2 rounded-lg hover:bg-shironeri cursor-pointer transition-colors">
+                    <input type="checkbox" class="checklist-item mt-0.5 rounded text-seiji focus:ring-seiji" data-id="tech-3">
+                    <div>
+                      <span class="font-medium text-sumi block">日本上網 eSIM / 卡</span>
+                      <span class="text-[11px] text-ainezumi">出發前完成安裝設定</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t subtle-border flex justify-end">
+              <button onclick="promptResetChecklist()" class="text-xs text-ainezumi hover:text-jinzamomi transition-colors underline">
+                重設清單勾選狀態
+              </button>
+            </div>
+          </div>
+
+          <!-- 專屬自訂相片筆記區 (可在開啟編輯後點擊＋自由插入新照片卡片) -->
+          <div class="wabi-card rounded-3xl p-6 md:p-8 subtle-border">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b subtle-border">
+              <div>
+                <span class="text-xs font-mono text-seiji uppercase tracking-wider block mb-1">Custom Photo Notes</span>
+                <h3 class="font-serif text-xl font-bold text-sumi">個人自訂旅程圖文相簿筆記</h3>
+                <p class="text-xs text-ainezumi mt-0.5">點擊頂部「開啟自訂編輯」後，可自由在此新增飯店門票憑證、私房景點截圖或打卡照片。</p>
+              </div>
+              <!-- 新增卡片按鈕 (編輯模式下凸顯) -->
+              <button onclick="addCustomPhotoCard()" class="add-image-slot hidden px-3.5 py-2 bg-seiji text-white rounded-xl text-xs font-medium hover:bg-seiji-dark transition-all items-center gap-1.5 shadow-sm">
+                <span>＋</span> 新增自訂圖片卡片
+              </button>
+            </div>
+
+            <!-- 動態卡片容器 -->
+            <div id="custom-notes-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              <!-- 初始預設卡片 1 -->
+              <div class="wabi-card p-4 rounded-xl border subtle-border bg-shironeri/40 relative group/note" id="note-card-1">
+                <div class="image-container mb-3 relative rounded-lg overflow-hidden bg-white border subtle-border aspect-video flex items-center justify-center">
+                  <img id="img-note-1" src="https://images.unsplash.com/photo-1536098561742-ca998e48cbcc?auto=format&fit=crop&w=600&q=80" alt="富士山景" class="w-full h-full object-cover">
+                  <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+                    <button onclick="openImageModal('note-card-1', 'img-note-1', '富士山河口湖')" class="px-2.5 py-1 bg-white text-sumi rounded text-xs font-medium hover:bg-shironeri shadow">
+                      📷 更換照片
+                    </button>
+                  </div>
+                </div>
+                <h4 class="font-serif text-sm font-bold text-sumi editable-text" data-key="title-note-1">河口湖富士山景觀</h4>
+                <p class="text-xs text-ainezumi mt-1 editable-text" data-key="desc-note-1">預計第 3 日清晨搭乘富士回遊號直達，拍攝下吉田商店街與新倉山淺間公園。</p>
+              </div>
+
+              <!-- 初始預設卡片 2 -->
+              <div class="wabi-card p-4 rounded-xl border subtle-border bg-shironeri/40 relative group/note" id="note-card-2">
+                <div class="image-container mb-3 relative rounded-lg overflow-hidden bg-white border subtle-border aspect-video flex items-center justify-center">
+                  <img id="img-note-2" src="https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=600&q=80" alt="澀谷街頭" class="w-full h-full object-cover">
+                  <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+                    <button onclick="openImageModal('note-card-2', 'img-note-2', 'SHIBUYA SKY 日落')" class="px-2.5 py-1 bg-white text-sumi rounded text-xs font-medium hover:bg-shironeri shadow">
+                      📷 更換照片
+                    </button>
+                  </div>
+                </div>
+                <h4 class="font-serif text-sm font-bold text-sumi editable-text" data-key="title-note-2">SHIBUYA SKY 日落時段</h4>
+                <p class="text-xs text-ainezumi mt-1 editable-text" data-key="desc-note-2">出發前 4 週於官方網站搶訂 17:00 入場券，俯瞰東京十字路口天際線。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ==================== 圖片上傳 / 網址編輯專用 Modal 視窗 ==================== -->
+  <div id="image-modal" class="fixed inset-0 z-50 bg-sumi/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="wabi-card max-w-md w-full rounded-2xl p-6 subtle-border shadow-2xl relative">
+      <button onclick="closeImageModal()" class="absolute right-4 top-4 text-ainezumi hover:text-sumi text-xl">✕</button>
+      
+      <div class="mb-4">
+        <span class="text-xs font-mono text-seiji uppercase tracking-wider block mb-1">Custom Image Uploader</span>
+        <h3 class="font-serif text-lg font-bold text-sumi" id="image-modal-title">自訂 / 插入照片</h3>
+        <p class="text-xs text-ainezumi mt-0.5">可由手機/電腦上傳本機照片（自動壓縮優化），或填入網路圖片公開網址。</p>
+      </div>
+
+      <!-- 預覽容器 -->
+      <div class="mb-4 rounded-xl overflow-hidden bg-shironeri border subtle-border aspect-video flex items-center justify-center relative">
+        <img id="image-modal-preview" src="" alt="預覽圖" class="w-full h-full object-cover hidden">
+        <div id="image-modal-empty-preview" class="text-xs text-ainezumi/60 flex flex-col items-center gap-1.5 p-4 text-center">
+          <svg class="w-8 h-8 opacity-40 text-seiji" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          <span>尚未選取或輸入照片</span>
+        </div>
+      </div>
+
+      <!-- 輸入選項 1：檔案上傳 -->
+      <div class="space-y-3 text-xs mb-6">
+        <div>
+          <label class="block font-medium text-sumi mb-1">方式 A：從本機選取照片 (自動壓縮)</label>
+          <input type="file" id="modal-file-input" accept="image/*" class="w-full p-2 rounded-lg bg-shironeri border subtle-border text-ainezumi file:mr-2 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:bg-seiji file:text-white hover:file:bg-seiji-dark cursor-pointer">
+        </div>
+
+        <div class="flex items-center gap-2 my-2">
+          <div class="h-px bg-seiji/20 flex-1"></div>
+          <span class="text-[11px] text-ainezumi">或</span>
+          <div class="h-px bg-seiji/20 flex-1"></div>
+        </div>
+
+        <!-- 輸入選項 2：圖片網址 -->
+        <div>
+          <label class="block font-medium text-sumi mb-1">方式 B：輸入公開圖片網址 (URL)</label>
+          <input type="url" id="modal-url-input" placeholder="https://images.unsplash.com/..." class="w-full p-2.5 rounded-lg bg-shironeri border subtle-border text-sumi focus:outline-none focus:border-seiji">
+        </div>
+      </div>
+
+      <!-- 操作按鈕列 -->
+      <div class="flex items-center justify-between gap-3">
+        <button onclick="removeCurrentImage()" class="px-3 py-2 text-jinzamomi hover:bg-jinzamomi/10 rounded-lg text-xs font-medium transition-colors">
+          移除此圖
+        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="closeImageModal()" class="px-3 py-2 text-ainezumi hover:bg-shironeri rounded-lg text-xs font-medium">
+            取消
+          </button>
+          <button onclick="applyImageModal()" class="px-4 py-2 bg-seiji text-white rounded-lg text-xs font-medium hover:bg-seiji-dark transition-colors shadow">
+            確認儲存
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 月份詳情互動 Modal 視窗 ==================== -->
+  <div id="month-modal" class="fixed inset-0 z-50 bg-sumi/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="wabi-card max-w-lg w-full rounded-2xl p-6 md:p-8 subtle-border shadow-2xl relative">
+      <button onclick="closeMonthModal()" class="absolute right-4 top-4 text-ainezumi hover:text-sumi text-xl">✕</button>
+      <div id="modal-content">
+        <!-- 動態注入內容 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 自訂和風確認對話框 (取代原生 confirm) ==================== -->
+  <div id="confirm-modal" class="fixed inset-0 z-50 bg-sumi/40 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="wabi-card max-w-sm w-full rounded-2xl p-6 subtle-border shadow-2xl text-center">
+      <div class="w-10 h-10 rounded-full bg-kohaku/15 text-kohaku flex items-center justify-center text-lg mx-auto mb-3">!</div>
+      <h3 class="font-serif text-base font-bold text-sumi mb-2" id="confirm-modal-title">確認操作</h3>
+      <p class="text-xs text-ainezumi mb-6" id="confirm-modal-desc">確定要執行此變更嗎？</p>
+      <div class="flex items-center justify-center gap-3">
+        <button onclick="closeConfirmModal(false)" class="px-4 py-1.5 rounded-lg border subtle-border text-xs text-ainezumi hover:bg-shironeri">取消</button>
+        <button onclick="closeConfirmModal(true)" class="px-4 py-1.5 rounded-lg bg-seiji text-white text-xs font-medium hover:bg-seiji-dark shadow-xs" id="confirm-modal-ok-btn">確定執行</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 自訂輕量 Toast 提示框 (取代原生 alert) ==================== -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300 bg-sumi text-white text-xs px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2">
+    <span id="toast-icon">✓</span>
+    <span id="toast-msg">操作成功</span>
+  </div>
+
+  <!-- ==================== 頁尾資訊區 (Footer) ==================== -->
+  <footer class="py-10 border-t subtle-border bg-white text-ainezumi text-xs mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <span class="w-6 h-6 rounded-full bg-seiji text-white text-[11px] flex items-center justify-center font-serif font-bold">
+          日
+        </span>
+        <span class="font-serif font-semibold text-sumi">2027 日本旅程視覺化指南系統</span>
+        <span class="text-[10px] text-ainezumi">｜ 分頁架構與自訂圖文版</span>
+      </div>
+
+      <!-- 分頁快速連結 -->
+      <div class="flex flex-wrap items-center gap-4 text-xs">
+        <a href="javascript:void(0)" onclick="switchTab('overview')" class="hover:text-seiji transition-colors">行程全域</a>
+        <a href="javascript:void(0)" onclick="switchTab('regulations')" class="hover:text-seiji transition-colors">邊境新制</a>
+        <a href="javascript:void(0)" onclick="switchTab('shrines')" class="hover:text-seiji transition-colors">神社祈願</a>
+        <a href="javascript:void(0)" onclick="switchTab('lifestyle')" class="hover:text-seiji transition-colors">生活避坑</a>
+        <a href="javascript:void(0)" onclick="switchTab('logistics')" class="hover:text-seiji transition-colors">空地與行李</a>
+      </div>
+
+      <p class="text-[11px] text-ainezumi/80">
+        © 2027 Japan Travel Platform. Designed with Wabi-Sabi Aesthetics.
+      </p>
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- JavaScript 核心邏輯控制器                                               -->
+  <!-- ========================================================================= -->
+  <script>
+    // ----------------------------------------------------
+    // 0. 輕量通知 Toast 系統 (安全替代 alert)
+    // ----------------------------------------------------
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      const toastIcon = document.getElementById('toast-icon');
+
+      toastMsg.textContent = message;
+      toastIcon.textContent = type === 'success' ? '✓' : type === 'warn' ? '⚠️' : 'ℹ️';
+
+      toast.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
+      }, 2600);
+    }
+
+    // ----------------------------------------------------
+    // 1. 分頁式架構切換邏輯 (Tab Switching)
+    // ----------------------------------------------------
+    let currentTab = 'overview';
+
+    function switchTab(tabId) {
+      currentTab = tabId;
+
+      // 隱藏所有分頁
+      document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.add('hidden');
+      });
+
+      // 顯示目標分頁
+      const activePane = document.getElementById(`tab-${tabId}`);
+      if (activePane) {
+        activePane.classList.remove('hidden');
+      }
+
+      // 更新按鈕樣式
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (btn.getAttribute('data-tab') === tabId) {
+          btn.classList.add('bg-seiji', 'text-white', 'shadow-xs');
+          btn.classList.remove('text-ainezumi', 'hover:bg-seiji/10');
+        } else {
+          btn.classList.remove('bg-seiji', 'text-white', 'shadow-xs');
+          btn.classList.add('text-ainezumi', 'hover:bg-seiji/10');
+        }
+      });
+
+      // 平滑捲動至頂部
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function scrollToElement(id) {
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+    }
+
+    // ----------------------------------------------------
+    // 2. 月份風險詳細資訊字典
+    // ----------------------------------------------------
+    const monthData = {
+      1: { title: "01 月 ｜ 年末年始（跨年）", risk: "極高（封閉型擁擠）", desc: "全國返鄉高峰，新幹線全車指定席極度難求；百貨、神社周邊餐廳與一般店家大規模休業。", advice: "避免安排長途城市跨區移動；行程鎖定大型國際連鎖飯店與市區初詣參拜，預先儲備餐飲方案。" },
+      2: { title: "02 月 ｜ 冬雪彩燈與大減價", risk: "低至中度（乾冷少雪）", desc: "都會區少雪乾冷，多數商場進行冬季最終折扣出清；降雪集中於日本海側與東北北海道。", advice: "溫泉旅館與滑雪勝地建議提前 3 個月預訂；白川鄉點燈則需提早半年抽籤登記。" },
+      3: { title: "03 月 ｜ 春櫻盛開期（吉野櫻）", risk: "極致常規大旺季", desc: "氣候舒適溫和（12–18°C），早晚微涼。染井吉野櫻滿開、夜櫻點燈與傳統春季祭典全面展開。", advice: "機票與主要市區飯店須提前 6 個月完成預約鎖定，避免房價翻倍且無房可住。" },
+      4: { title: "04-05 月 ｜ 黃金週（GW: 4/29-5/5）", risk: "極高（全境負載過載）", desc: "日本本土最大型連續假期，出遊潮全面爆發；飯店房價飆至全年最高峰，主題樂園排隊耗時極長。", advice: "避開一線大城市與熱門主題樂園；可轉往二線近郊深度漫遊，住宿必須提前 6 個月以上預訂。" },
+      5: { title: "05 月 ｜ 初夏綠意（GW後）", risk: "平穩宜人推薦期", desc: "GW 連休結束後氣候穩定溫和，雨量少，新綠景觀優美，為自由行性價比極高之黃金旅遊檔期。", advice: "適合安排戶外長途健行、富士五湖騎行與京都古剎庭園散步。" },
+      6: { title: "06 月 ｜ 梅雨潮濕期", risk: "中度（氣候干擾）", desc: "6月中旬至7月上旬全境持續性濕熱多雨，戶外拍照能見度低，山區步道濕滑且有土石坍方隱患。", advice: "重心轉移至地下街商場、室內美術館、博物館及巨型水族館等不受天候影響之場所。" },
+      7: { title: "07 月 ｜ 盛夏極端高溫期", risk: "中高（體感負擔沈重）", desc: "市區氣溫常態性突破 35°C 以上，紫外線強烈，日間戶外步行體能消耗極端迅速，易引發中暑。", advice: "採「晨間戶外、午後室內、夜間祭典」三段式排程，中午 11:00 至 15:00 嚴格安排於室內避暑。" },
+      8: { title: "08 月 ｜ 盂蘭盆節（8/11-8/16）", risk: "高（酷暑與客流交織）", desc: "家族出遊潮與返鄉潮重疊，主要文化名勝與水族館排隊時間倍增；高溫疊加人潮易導致熱衰竭。", advice: "行程以高海拔避暑地（如長野、信州、輕井澤）或全冷氣展館為主，減少戶外曝曬。" },
+      9: { title: "09 月 ｜ 秋季颱風多發期", risk: "中度（不可抗力風險）", desc: "太平洋熱帶低氣壓頻繁登陸，易導致海空班機延誤取消，JR 新幹線與地方鐵道預警性停駛。", advice: "規劃保留前後半日交通緩衝期；務必投保足額旅遊不便險；避免規劃偏遠跳島或渡輪行程。" },
+      10: { title: "10 月 ｜ 金秋少雨氣候最宜人", risk: "平穩極佳推薦期", desc: "晴朗乾燥少雨，平均氣溫 14–20°C，為全日本氣候體感最為舒適之時節，各景點漫步輕鬆自在。", advice: "秋高氣爽，為品嚐秋季旬之味、清酒巡禮與市區建築漫遊之絕佳時機。" },
+      11: { title: "11 月 ｜ 賞楓盛期（紅葉夜祭）", risk: "京都極度擁擠", desc: "紅葉名所漫山層林盡染，名剎夜間拜觀人潮洶湧。氣候轉涼乾爽。", advice: "京都與熱門紅葉景區住宿需提前 4 至 5 個月佈局；利用清晨 7:00 前前往名所避開人潮。" },
+      12: { title: "12 月 ｜ 年末大寒與冬至跨年", risk: "下旬極高", desc: "都會區冬季彩燈璀璨；12/28 之後逐漸進入返鄉潮，車站商店開始提早打烊。", advice: "聖誕節前後適合都會購物體驗；跨年夜可至神社體驗「除夜の鐘（除夕鐘聲）」。" }
+    };
+
+    function showMonthModal(monthNum) {
+      const data = monthData[monthNum];
+      if (!data) return;
+      const content = `
+        <div class="mb-4">
+          <span class="text-xs font-mono text-seiji uppercase tracking-wider block mb-1">Risk Analysis</span>
+          <h3 class="font-serif text-xl font-bold text-sumi">${data.title}</h3>
+          <span class="inline-block mt-2 px-2.5 py-0.5 rounded text-xs font-bold ${data.risk.includes('極高') ? 'bg-jinzamomi/20 text-jinzamomi' : data.risk.includes('高') ? 'bg-kohaku/20 text-kohaku' : 'bg-seiji/20 text-seiji'}">
+            ${data.risk}
+          </span>
+        </div>
+        <div class="space-y-3 text-xs mb-6 text-ainezumi">
+          <div>
+            <strong class="text-sumi block mb-1">⚠️️ 關鍵風險指標與運作阻礙：</strong>
+            <p class="leading-relaxed">${data.desc}</p>
+          </div>
+          <div>
+            <strong class="text-sumi block mb-1">🎯 行程調整與決策方針：</strong>
+            <p class="leading-relaxed">${data.advice}</p>
+          </div>
+        </div>
+        <button onclick="closeMonthModal()" class="w-full py-2 bg-seiji text-white rounded-lg text-xs font-medium hover:bg-seiji-dark transition-colors">
+          關閉說明
+        </button>
+      `;
+      document.getElementById('modal-content').innerHTML = content;
+      document.getElementById('month-modal').classList.remove('hidden');
+    }
+
+    function closeMonthModal() {
+      document.getElementById('month-modal').classList.add('hidden');
+    }
+
+    document.getElementById('month-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'month-modal') closeMonthModal();
+    });
+
+    // ----------------------------------------------------
+    // 3. 神社願望分類篩選器
+    // ----------------------------------------------------
+    const filterButtons = document.querySelectorAll('.shrine-filter-btn');
+    const shrineCards = document.querySelectorAll('.shrine-card');
+
+    filterButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterButtons.forEach(b => {
+          b.classList.remove('bg-seiji', 'text-white', 'shadow-xs');
+          b.classList.add('bg-white', 'text-ainezumi');
+        });
+        btn.classList.add('bg-seiji', 'text-white', 'shadow-xs');
+        btn.classList.remove('bg-white', 'text-ainezumi');
+
+        const filter = btn.getAttribute('data-category');
+        shrineCards.forEach(card => {
+          const categories = card.getAttribute('data-categories') || '';
+          if (filter === 'all' || categories.includes(filter)) {
+            card.classList.remove('hidden');
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+      });
+    });
+
+    // ----------------------------------------------------
+    // 4. 行李檢核清單與 LocalStorage 同步
+    // ----------------------------------------------------
+    const checklistStorageKey = 'japan_2027_packing_checklist_tabbed';
+    const checkboxes = document.querySelectorAll('.checklist-item');
+    const progressBar = document.getElementById('checklist-progress-bar');
+    const progressText = document.getElementById('checklist-progress-text');
+    const navCounter = document.getElementById('nav-checklist-counter');
+
+    function updateChecklistProgress() {
+      const total = checkboxes.length;
+      let checkedCount = 0;
+      const savedState = {};
+
+      checkboxes.forEach(cb => {
+        const id = cb.getAttribute('data-id');
+        if (cb.checked) {
+          checkedCount++;
+          savedState[id] = true;
+          cb.closest('label').classList.add('opacity-50', 'line-through');
+        } else {
+          savedState[id] = false;
+          cb.closest('label').classList.remove('opacity-50', 'line-through');
+        }
+      });
+
+      const percentage = Math.round((checkedCount / total) * 100);
+      progressBar.style.width = `${percentage}%`;
+      progressText.textContent = `${percentage}% (${checkedCount}/${total})`;
+      navCounter.textContent = `${checkedCount}/${total}`;
+
+      localStorage.setItem(checklistStorageKey, JSON.stringify(savedState));
+    }
+
+    function loadChecklistState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(checklistStorageKey));
+        if (saved) {
+          checkboxes.forEach(cb => {
+            const id = cb.getAttribute('data-id');
+            if (saved[id]) {
+              cb.checked = true;
+            }
+          });
+        }
+      } catch (e) {
+        console.error("無法讀取行李清單 LocalStorage", e);
+      }
+      updateChecklistProgress();
+    }
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updateChecklistProgress));
+
+    // ----------------------------------------------------
+    // 5. 自訂和風確認對話框邏輯
+    // ----------------------------------------------------
+    let currentConfirmCallback = null;
+
+    function openConfirmModal(title, desc, callback) {
+      document.getElementById('confirm-modal-title').textContent = title;
+      document.getElementById('confirm-modal-desc').textContent = desc;
+      currentConfirmCallback = callback;
+      document.getElementById('confirm-modal').classList.remove('hidden');
+    }
+
+    function closeConfirmModal(result) {
+      document.getElementById('confirm-modal').classList.add('hidden');
+      if (result && typeof currentConfirmCallback === 'function') {
+        currentConfirmCallback();
+      }
+      currentConfirmCallback = null;
+    }
+
+    function promptResetChecklist() {
+      openConfirmModal('重設行李清單', '確定要清空所有已勾選的行李項目嗎？', () => {
+        checkboxes.forEach(cb => cb.checked = false);
+        updateChecklistProgress();
+        showToast('已清空行李勾選記錄');
+      });
+    }
+
+    function promptResetCustomData() {
+      openConfirmModal('還原所有自訂圖文', '確定要清除所有已更換的照片與編輯的文字，恢復預設值嗎？', () => {
+        localStorage.removeItem(customDataKey);
+        location.reload();
+      });
+    }
+
+    // ----------------------------------------------------
+    // 6. 自訂圖文編輯模式 (Edit Mode) 與 LocalStorage 持久化
+    // ----------------------------------------------------
+    let isEditingMode = false;
+    const customDataKey = 'japan_2027_custom_content_tabbed_v2';
+    let customData = {
+      images: {},
+      texts: {},
+      extraCards: []
+    };
+
+    const toggleEditBtn = document.getElementById('toggle-edit-mode-btn');
+    const editModeText = document.getElementById('edit-mode-text');
+    const editModeIcon = document.getElementById('edit-mode-icon');
+    const editingBanner = document.getElementById('editing-indicator-banner');
+
+    function toggleEditMode() {
+      isEditingMode = !isEditingMode;
+      document.body.classList.toggle('is-editing', isEditingMode);
+
+      if (isEditingMode) {
+        editModeText.textContent = "完成自訂編輯";
+        editModeIcon.textContent = "✓";
+        toggleEditBtn.classList.remove('bg-white', 'text-sumi');
+        toggleEditBtn.classList.add('bg-seiji', 'text-white', 'border-seiji');
+        editingBanner.classList.remove('hidden');
+
+        document.querySelectorAll('.editable-text').forEach(el => {
+          el.setAttribute('contenteditable', 'true');
+        });
+
+        showToast('已開啟編輯模式：可點選更換照片或點擊虛線文字修改', 'info');
+      } else {
+        editModeText.textContent = "開啟自訂編輯";
+        editModeIcon.textContent = "✏️";
+        toggleEditBtn.classList.add('bg-white', 'text-sumi');
+        toggleEditBtn.classList.remove('bg-seiji', 'text-white', 'border-seiji');
+        editingBanner.classList.add('hidden');
+
+        document.querySelectorAll('.editable-text').forEach(el => {
+          el.removeAttribute('contenteditable');
+        });
+
+        saveCustomData();
+        showToast('已退出編輯模式並完成保存');
+      }
+    }
+
+    // 監聽文字失焦並自動儲存
+    document.addEventListener('focusout', (e) => {
+      if (e.target && e.target.classList && e.target.classList.contains('editable-text')) {
+        const key = e.target.getAttribute('data-key');
+        if (key) {
+          customData.texts[key] = e.target.innerHTML.trim();
+          saveCustomData();
+        }
+      }
+    });
+
+    function saveCustomData() {
+      try {
+        localStorage.setItem(customDataKey, JSON.stringify(customData));
+      } catch (e) {
+        console.warn("LocalStorage 儲存警示 (可能圖片數據過大):", e);
+      }
+    }
+
+    function loadCustomData() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(customDataKey));
+        if (saved) {
+          customData = saved;
+
+          // 載入自訂圖片
+          if (customData.images) {
+            Object.keys(customData.images).forEach(imgId => {
+              const url = customData.images[imgId];
+              const imgElement = document.getElementById(imgId);
+              if (imgElement && url) {
+                imgElement.src = url;
+                imgElement.classList.remove('hidden');
+                const wrapper = document.getElementById(imgId + '-wrapper');
+                if (wrapper) wrapper.classList.add('hidden');
+              }
+            });
+          }
+
+          // 載入自訂文字
+          if (customData.texts) {
+            Object.keys(customData.texts).forEach(key => {
+              const text = customData.texts[key];
+              const textElement = document.querySelector(`[data-key="${key}"]`);
+              if (textElement && text) {
+                textElement.innerHTML = text;
+              }
+            });
+          }
+
+          // 載入動態新增之相片筆記卡片
+          if (customData.extraCards && customData.extraCards.length > 0) {
+            customData.extraCards.forEach(card => {
+              renderExtraCard(card);
+            });
+          }
+        }
+      } catch (e) {
+        console.error("載入自訂資料失敗", e);
+      }
+    }
+
+    // ----------------------------------------------------
+    // 7. 圖片上傳與網址替換專用 Modal 邏輯
+    // ----------------------------------------------------
+    let currentTargetImgId = null;
+    let pendingImageData = null;
+
+    const imageModal = document.getElementById('image-modal');
+    const imageModalTitle = document.getElementById('image-modal-title');
+    const modalFileInput = document.getElementById('modal-file-input');
+    const modalUrlInput = document.getElementById('modal-url-input');
+    const modalPreview = document.getElementById('image-modal-preview');
+    const modalEmptyPreview = document.getElementById('image-modal-empty-preview');
+
+    function openImageModal(cardId, imgElementId, contextName = '照片') {
+      currentTargetImgId = imgElementId;
+      pendingImageData = null;
+      modalFileInput.value = '';
+      modalUrlInput.value = '';
+      imageModalTitle.textContent = `自訂 / 插入${contextName}`;
+
+      const targetImg = document.getElementById(imgElementId);
+      const currentSrc = targetImg && !targetImg.classList.contains('hidden') ? targetImg.src : '';
+
+      if (currentSrc) {
+        modalPreview.src = currentSrc;
+        modalPreview.classList.remove('hidden');
+        modalEmptyPreview.classList.add('hidden');
+        if (!currentSrc.startsWith('data:')) {
+          modalUrlInput.value = currentSrc;
+        }
+      } else {
+        modalPreview.src = '';
+        modalPreview.classList.add('hidden');
+        modalEmptyPreview.classList.remove('hidden');
+      }
+
+      imageModal.classList.remove('hidden');
+    }
+
+    function closeImageModal() {
+      imageModal.classList.add('hidden');
+      currentTargetImgId = null;
+      pendingImageData = null;
+    }
+
+    // 處理本地照片上傳並以 HTML5 Canvas 智慧壓縮至 800px 以內 (防止 LocalStorage 空間不足)
+    modalFileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const tempImg = new Image();
+        tempImg.onload = function() {
+          const maxDim = 800;
+          let w = tempImg.width;
+          let h = tempImg.height;
+
+          if (w > h && w > maxDim) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else if (h > maxDim) {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(tempImg, 0, 0, w, h);
+
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          pendingImageData = compressedDataUrl;
+          modalPreview.src = compressedDataUrl;
+          modalPreview.classList.remove('hidden');
+          modalEmptyPreview.classList.add('hidden');
+          modalUrlInput.value = '';
+        };
+        tempImg.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // 處理圖片網址即時預覽
+    modalUrlInput.addEventListener('input', function(e) {
+      const url = e.target.value.trim();
+      if (url) {
+        pendingImageData = url;
+        modalPreview.src = url;
+        modalPreview.classList.remove('hidden');
+        modalEmptyPreview.classList.add('hidden');
+      } else {
+        pendingImageData = null;
+        modalPreview.classList.add('hidden');
+        modalEmptyPreview.classList.remove('hidden');
+      }
+    });
+
+    function applyImageModal() {
+      if (!currentTargetImgId) return;
+
+      const targetImg = document.getElementById(currentTargetImgId);
+      const wrapper = document.getElementById(currentTargetImgId + '-wrapper');
+
+      if (pendingImageData) {
+        targetImg.src = pendingImageData;
+        targetImg.classList.remove('hidden');
+        if (wrapper) wrapper.classList.add('hidden');
+
+        customData.images[currentTargetImgId] = pendingImageData;
+        saveCustomData();
+        showToast('已成功插入並更新照片');
+      }
+      closeImageModal();
+    }
+
+    function removeCurrentImage() {
+      if (!currentTargetImgId) return;
+      const targetImg = document.getElementById(currentTargetImgId);
+      const wrapper = document.getElementById(currentTargetImgId + '-wrapper');
+
+      targetImg.src = '';
+      targetImg.classList.add('hidden');
+      if (wrapper) wrapper.classList.remove('hidden');
+
+      delete customData.images[currentTargetImgId];
+      saveCustomData();
+      closeImageModal();
+      showToast('已移除當前照片');
+    }
+
+    imageModal.addEventListener('click', (e) => {
+      if (e.target.id === 'image-modal') closeImageModal();
+    });
+
+    // ----------------------------------------------------
+    // 8. 動態新增自訂相片筆記卡片功能
+    // ----------------------------------------------------
+    function addCustomPhotoCard() {
+      const newId = 'custom-note-' + Date.now();
+      const newCardData = {
+        cardId: newId,
+        imgId: 'img-' + newId,
+        titleKey: 'title-' + newId,
+        descKey: 'desc-' + newId,
+        title: '自訂旅程點滴 / 預約單',
+        desc: '點擊此處編輯行程備忘或注意事項...',
+        imgUrl: 'https://images.unsplash.com/photo-1492571350019-22de08371fd3?auto=format&fit=crop&w=600&q=80'
+      };
+
+      if (!customData.extraCards) customData.extraCards = [];
+      customData.extraCards.push(newCardData);
+      renderExtraCard(newCardData);
+      saveCustomData();
+      showToast('已新增一張相片筆記卡片，可點擊更換照片或文字');
+    }
+
+    function renderExtraCard(card) {
+      const grid = document.getElementById('custom-notes-grid');
+      const cardEl = document.createElement('div');
+      cardEl.className = 'wabi-card p-4 rounded-xl border subtle-border bg-shironeri/40 relative group/note';
+      cardEl.id = card.cardId;
+
+      cardEl.innerHTML = `
+        <div class="image-container mb-3 relative rounded-lg overflow-hidden bg-white border subtle-border aspect-video flex items-center justify-center">
+          <img id="${card.imgId}" src="${customData.images[card.imgId] || card.imgUrl}" alt="自訂相片" class="w-full h-full object-cover">
+          <div class="image-edit-overlay absolute inset-0 bg-sumi/45 backdrop-blur-[2px] hidden items-center justify-center transition-all">
+            <button onclick="openImageModal('${card.cardId}', '${card.imgId}', '自訂照片')" class="px-2.5 py-1 bg-white text-sumi rounded text-xs font-medium hover:bg-shironeri shadow">
+              📷 更換照片
+            </button>
+          </div>
+        </div>
+        <h4 class="font-serif text-sm font-bold text-sumi editable-text" data-key="${card.titleKey}">${customData.texts[card.titleKey] || card.title}</h4>
+        <p class="text-xs text-ainezumi mt-1 editable-text" data-key="${card.descKey}">${customData.texts[card.descKey] || card.desc}</p>
+        <button onclick="deleteExtraCard('${card.cardId}')" class="image-edit-overlay hidden mt-2 text-[10px] text-jinzamomi underline">刪除此卡片</button>
+      `;
+
+      grid.appendChild(cardEl);
+
+      if (isEditingMode) {
+        cardEl.querySelectorAll('.editable-text').forEach(el => el.setAttribute('contenteditable', 'true'));
+      }
+    }
+
+    function deleteExtraCard(cardId) {
+      openConfirmModal('刪除相片卡片', '確定要移除這張自訂相片卡片嗎？', () => {
+        const el = document.getElementById(cardId);
+        if (el) el.remove();
+        if (customData.extraCards) {
+          customData.extraCards = customData.extraCards.filter(c => c.cardId !== cardId);
+          saveCustomData();
+        }
+        showToast('已刪除該卡片');
+      });
+    }
+
+    // ----------------------------------------------------
+    // 9. 頁面初始化
+    // ----------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      switchTab('overview');
+      loadChecklistState();
+      loadCustomData();
+    });
+  </script>
+</body>
+</html>
