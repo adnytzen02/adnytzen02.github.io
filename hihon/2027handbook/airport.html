@@ -9,6 +9,11 @@
 <meta property="og:description" content="從報到、安檢到入境、領行李的 9 個步驟，加上關西・成田・中部・福岡進市區方式。">
 <meta property="og:type" content="article">
 <meta name="theme-color" content="#0f1f38">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="赴日手冊">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%E2%9B%A9%3C/text%3E%3C/svg%3E">
 <script>document.documentElement.classList.add("js")</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,11 +24,11 @@
 <body>
 <div class="progress" id="progress" aria-hidden="true"></div>
 <a class="skip-link" href="#main">跳到主要內容</a>
-<header class="site-header"><div class="site-header__inner"><a class="brand" href="index.html"><span aria-hidden="true">⛩</span> 赴日旅遊手冊</a><nav aria-label="主選單"><ul><li><a href="index.html">首頁</a></li><li><a href="rules.html">新制總整理</a></li><li><a href="airport.html" aria-current="page">機場流程</a></li><li><a href="zoo.html">水族館動物園</a></li><li><a href="anime.html">動漫街</a></li><li><a href="shrine.html">神社參拜</a></li></ul></nav></div></header>
+<header class="site-header"><div class="site-header__inner"><a class="brand" href="index.html"><span aria-hidden="true">⛩</span> 赴日旅遊手冊</a><nav aria-label="主選單"><ul><li><a href="index.html">首頁</a></li><li><a href="rules.html">新制總整理</a></li><li><a href="airport.html" aria-current="page">機場流程</a></li><li><a href="zoo.html">水族館動物園</a></li><li><a href="anime.html">動漫街</a></li><li><a href="shrine.html">神社參拜</a></li><li><a href="tools.html">工具</a></li><li><a href="trip.html">我的行程 <span class="nav-count" data-fav-count hidden></span></a></li></ul></nav><button class="search-btn" type="button" aria-haspopup="dialog" data-search-open><span aria-hidden="true">🔍</span><span class="search-btn__label">搜尋</span></button></div></header>
 <section class="hero hero--page"><div class="hero__inner"><span class="eyebrow">第 1 章</span><h1>機場流程與四大機場交通指南</h1><p class="hero__lead">從抵達機場到入境提領行李，一步一步照著做。最後附上日本四大機場進市區的最佳方式。</p><div class="hero__meta"><span>📅 資料整理：2026 年 10 月</span></div></div></section>
 <main id="main" class="layout">
 <nav class="toc" aria-label="本頁目錄"><details class="toc__details" open><summary>本頁目錄</summary><ol>
-<li>
+<li class="toc__group is-open"><a href="#chapter-start">第 1 章 機場流程完整導覽指南</a>
 <ol class="toc__sub">
 <li><a href="#流程總覽">流程總覽</a></li>
 <li><a href="#第一部分-出發階段">第一部分 出發階段</a></li>
@@ -32,7 +37,7 @@
 <li><a href="#出發前檢查清單">出發前檢查清單</a></li>
 </ol>
 </li>
-<li><a href="#1-1-日本四大機場交通導覽指南">1-1 日本四大機場交通導覽指南</a>
+<li class="toc__group"><a href="#1-1-日本四大機場交通導覽指南">1-1 日本四大機場交通導覽指南</a>
 <ol class="toc__sub">
 <li><a href="#快速比較">快速比較</a></li>
 <li><a href="#一-關西機場-KIX">一、關西機場（KIX）</a></li>
@@ -158,6 +163,9 @@
 </main>
 <footer><p>© 2026 赴日旅遊手冊｜資料整理至 2026 年 10 月，僅供旅遊規劃參考。</p><p>營業時間、票價與各項規定可能調整，出發前請以官方公告為準。</p></footer>
 <a class="to-top" href="#top" aria-label="回到頁首" hidden>↑</a>
+<dialog id="search-dialog" class="search" aria-labelledby="search-title"><div class="search__head"><h2 id="search-title">搜尋全站內容</h2><button type="button" class="search__close" data-search-close aria-label="關閉搜尋">✕</button></div><label class="sr-only" for="search-input">輸入關鍵字</label><input id="search-input" type="search" placeholder="例如：退稅、京都、行動電源、御朱印" autocomplete="off" enterkeyhint="search"><p class="search__hint" id="search-status" role="status" aria-live="polite">輸入關鍵字開始搜尋。可用空白分隔多個詞，快速鍵：/</p><ol class="search__results" id="search-results"></ol></dialog>
 <script src="script.js" defer></script>
+<script src="search.js" defer></script>
+<script src="favorites.js" defer></script>
 </body>
 </html>
