@@ -565,3 +565,37 @@ button.btn.btn--ghost { border: 1px solid var(--navy); }
   .tax-row > .field:nth-of-type(n) { grid-column: auto; }
   .tax-row > .field:nth-of-type(1) { grid-column: 1 / -1; }
 }
+
+/* ===== 圖片 Hero（首頁、新制總整理）：插圖在右、文字在左 ===== */
+.hero--image { min-height: min(68vh, 560px); background: url("hero.jpg") center right / cover no-repeat, var(--navy-deep); }
+.hero--image::before { display: block; background: linear-gradient(90deg, rgba(15,31,56,.96) 0%, rgba(15,31,56,.78) 38%, rgba(15,31,56,0) 70%); }
+.hero--image .hero__inner { padding: 72px 24px; }
+@media (max-width: 640px) {
+  .hero--image { min-height: 72vh; background-position: 72% center; }
+  .hero--image::before { background: linear-gradient(180deg, rgba(15,31,56,.55) 0%, rgba(15,31,56,.92) 70%); }
+}
+
+/* ===== 手機版漢堡選單（需 JS；沒有 JS 時維持可橫向捲動的導覽列） ===== */
+.nav-toggle { display: none; flex: none; width: 44px; height: 44px; margin: 4px 0; border: 1px solid rgba(255,255,255,.3); border-radius: 12px; background: rgba(255,255,255,.12); cursor: pointer; place-items: center; }
+.nav-toggle:hover { background: rgba(255,255,255,.22); }
+.nav-toggle__bars, .nav-toggle__bars::before, .nav-toggle__bars::after { display: block; width: 20px; height: 2px; background: #fff; border-radius: 2px; transition: transform .25s, background .25s; }
+.nav-toggle__bars { position: relative; }
+.nav-toggle__bars::before, .nav-toggle__bars::after { content: ""; position: absolute; left: 0; }
+.nav-toggle__bars::before { top: -6px; }
+.nav-toggle__bars::after { top: 6px; }
+.nav-toggle[aria-expanded="true"] .nav-toggle__bars { background: transparent; }
+.nav-toggle[aria-expanded="true"] .nav-toggle__bars::before { transform: translateY(6px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] .nav-toggle__bars::after { transform: translateY(-6px) rotate(-45deg); }
+
+@media (max-width: 960px) {
+  .js .nav-toggle { display: grid; }
+  .js .site-header__inner { gap: 8px; }
+  .js .site-header .search-btn { margin-left: auto; }
+  .js .site-header nav { display: none; position: absolute; left: 0; right: 0; top: 100%; flex: none; overflow: visible; max-height: calc(100vh - 64px); overflow-y: auto; background: var(--navy-deep); border-top: 1px solid rgba(255,255,255,.15); box-shadow: 0 18px 30px -12px rgba(0,0,0,.5); }
+  .js .site-header nav.is-open { display: block; }
+  .js .site-header ul { flex-direction: column; gap: 0; padding: 6px 0 12px; }
+  .js .site-header nav a { padding: 14px 24px; font-size: 17px; min-height: 52px; display: flex; align-items: center; gap: 6px; border-bottom: 0; border-left: 4px solid transparent; }
+  .js .site-header nav a[aria-current="page"] { border-left-color: var(--gold); background: rgba(255,255,255,.08); }
+  .js .site-header nav a:hover { background: rgba(255,255,255,.06); }
+}
+@media print { .nav-toggle { display: none !important; } }

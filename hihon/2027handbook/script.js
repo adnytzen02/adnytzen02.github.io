@@ -123,3 +123,27 @@
   if (/iphone|ipad|ipod/i.test(navigator.userAgent)) { box.hidden = false; ios.hidden = false; }
   window.addEventListener('appinstalled', () => { box.hidden = true; });
 })();
+
+// ===== 手機版漢堡選單：開關、Esc 關閉並還焦點、點選單外或連結後關閉 =====
+(() => {
+  const btn = document.querySelector('.nav-toggle');
+  const nav = document.getElementById('site-nav');
+  if (!btn || !nav) return;
+  const mq = window.matchMedia('(max-width: 960px)');
+  const set = open => {
+    nav.classList.toggle('is-open', open);
+    btn.setAttribute('aria-expanded', open);
+  };
+  btn.addEventListener('click', () => set(btn.getAttribute('aria-expanded') !== 'true'));
+  nav.addEventListener('click', e => { if (e.target.closest('a')) set(false); });
+  document.addEventListener('click', e => {
+    if (!nav.classList.contains('is-open')) return;
+    if (!e.target.closest('.site-header')) set(false);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && nav.classList.contains('is-open')) { set(false); btn.focus(); }
+  });
+  // 開啟搜尋或放大到桌機寬度時一併收起
+  document.querySelectorAll('[data-search-open]').forEach(b => b.addEventListener('click', () => set(false)));
+  (mq.addEventListener ? mq.addEventListener('change', () => set(false)) : mq.addListener(() => set(false)));
+})();
