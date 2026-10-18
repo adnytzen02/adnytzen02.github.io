@@ -10,6 +10,15 @@
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const release = () => root.classList.remove('intro-pending');   // 解除 <head> 先藏文字的狀態
 
+  /* ---------- 首頁導覽列：開場畫面還在視窗內時隱藏，捲過後顯示（樣式在 style.css） ---------- */
+  const header = document.querySelector('.site-header');
+  if (header && hero && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([e]) => header.classList.toggle('is-shown', !e.isIntersecting),
+      { rootMargin: '-72px 0px 0px 0px' }).observe(hero);
+  } else if (header) {
+    header.classList.add('is-shown');
+  }
+
   /* ---------- 東京時間（日本不實施日光節約，固定比台灣快 1 小時） ---------- */
   const clock = document.getElementById('tokyo-time');
   if (clock && window.Intl) {
