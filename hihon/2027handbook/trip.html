@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" id="top">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>我的行程｜赴日旅遊手冊</title>
+<meta name="description" content="收藏的景點清單，可複製成文字或列印。">
+<meta property="og:title" content="我的行程｜赴日旅遊手冊">
+<meta property="og:description" content="收藏的景點清單，可複製成文字或列印。">
+<meta property="og:type" content="article">
+<meta property="og:image" content="hero.jpg">
+<meta name="theme-color" content="#0f1f38">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="赴日手冊">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%E2%9B%A9%3C/text%3E%3C/svg%3E">
+<script>document.documentElement.classList.add("js")</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Sans+TC:wght@400;500;700;800&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">跳到主要內容</a>
+<header class="site-header"><div class="site-header__inner"><a class="brand" href="index.html"><span aria-hidden="true">⛩</span> 赴日旅遊手冊</a><nav id="site-nav" aria-label="主選單"><ul><li><a href="index.html">首頁</a></li><li><a href="rules.html">新制總整理</a></li><li><a href="airport.html">機場流程</a></li><li><a href="train.html">鐵道搭乘</a></li><li><a href="zoo.html">水族館動物園</a></li><li><a href="anime.html">動漫街</a></li><li><a href="shrine.html">神社參拜</a></li><li><a href="tools.html">工具</a></li><li><a href="trip.html" aria-current="page">我的行程 <span class="nav-count" data-fav-count hidden></span></a></li></ul></nav><button class="search-btn" type="button" aria-haspopup="dialog" data-search-open><span aria-hidden="true">🔍</span><span class="search-btn__label">搜尋</span></button><button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="sr-only">選單</span><span class="nav-toggle__bars" aria-hidden="true"></span></button></div></header>
+<section class="hero hero--page"><div class="hero__inner"><span class="eyebrow">MY TRIP</span><h1>我的行程</h1><p class="hero__lead">在各章節的資訊卡點「☆ 收藏」，就會整理在這裡。</p></div></section>
+<main id="main" class="trip">
+<div class="tool__actions no-print" id="trip-actions" hidden>
+  <button type="button" class="btn btn--ghost" id="trip-copy">複製成文字</button>
+  <button type="button" class="btn btn--ghost" id="trip-print">列印</button>
+  <button type="button" class="btn btn--ghost" id="trip-clear">清空收藏</button>
+</div>
+<div id="trip-root"><noscript><p>需要開啟 JavaScript 才能使用收藏功能。</p></noscript></div>
+</main>
+<footer><p>© 2026 赴日旅遊手冊｜資料整理至 2026 年 10 月，僅供旅遊規劃參考。</p><p>營業時間、票價與各項規定可能調整，出發前請以官方公告為準。</p></footer>
+<a class="to-top" href="#top" aria-label="回到頁首" hidden>↑</a>
+<dialog id="search-dialog" class="search" aria-labelledby="search-title"><div class="search__head"><h2 id="search-title">搜尋全站內容</h2><button type="button" class="search__close" data-search-close aria-label="關閉搜尋">✕</button></div><label class="sr-only" for="search-input">輸入關鍵字</label><input id="search-input" type="search" placeholder="例如：退稅、京都、行動電源、御朱印" autocomplete="off" enterkeyhint="search"><p class="search__hint" id="search-status" role="status" aria-live="polite">輸入關鍵字開始搜尋。可用空白分隔多個詞，快速鍵：/</p><ol class="search__results" id="search-results"></ol></dialog>
+<script src="script.js" defer></script>
+<script src="search.js" defer></script>
+<script src="favorites.js" defer></script>
+</body>
+</html>
