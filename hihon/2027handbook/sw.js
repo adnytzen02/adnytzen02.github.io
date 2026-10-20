@@ -1,8 +1,8 @@
 // 由 build.py 自動產生。VERSION 隨檔案內容改變，舊快取會在啟用時清除。
-const VERSION = 'ce14ce9d30';
+const VERSION = '5aeff58367';
 const CACHE = 'jp-handbook-' + VERSION;
 const RUNTIME = 'jp-handbook-runtime';
-const PRECACHE = ["./", "./404.html", "./airport.html", "./anime.html", "./checklist.js", "./favorites.js", "./filters.js", "./hero.jpg", "./home.js", "./icons/apple-touch-icon.png", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png", "./index.html", "./japan-dots.js", "./manifest.json", "./rules.html", "./script.js", "./search-index.js", "./search.js", "./shrine.html", "./shrine.js", "./style.css", "./tools.html", "./tools.js", "./train.html", "./train.js", "./trip.html", "./vendor/LICENSES.txt", "./vendor/lenis.min.js", "./zoo.html"];
+const PRECACHE = ["./", "./404.html", "./airport.html", "./anime.html", "./checklist.js", "./favorites.js", "./filters.js", "./hero.jpg", "./home.js", "./icons/apple-touch-icon.png", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png", "./index.html", "./japan-dots.js", "./manifest.json", "./rules.html", "./script.js", "./search-index.js", "./search.js", "./shrine.html", "./shrine.js", "./style.css", "./tools.html", "./tools.js", "./train.html", "./train.js", "./trip.html", "./vendor/LICENSES.txt", "./vendor/lenis.min.js", "./zoo.css", "./zoo.html", "./zoo.js"];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
@@ -27,9 +27,10 @@ const networkFirst = async req => {
 // 先給快取、背景更新
 const staleWhileRevalidate = async (req, name) => {
   const cache = await caches.open(name);
+  // CSS／JS 網址帶有內容版本號（?v=），所以完全相符的快取一定是同一版；離線時才退回不同版本的同名檔案
   const hit = await cache.match(req);
   const fresh = fetch(req).then(res => { if (res && (res.ok || res.type === 'opaque')) cache.put(req, res.clone()); return res; }).catch(() => null);
-  return hit || (await fresh) || Response.error();
+  return hit || (await fresh) || (await cache.match(req, { ignoreSearch: true })) || Response.error();
 };
 
 self.addEventListener('fetch', e => {

@@ -1,3 +1,6 @@
+// 一般 defer 腳本（原為 type="module"），直接打開本機檔案時也能執行
+(() => {
+'use strict';
 // 神社參拜頁：「二拜二拍手一拜」節奏練習——依序點亮每個動作，並用文字提示目前該做什麼
 const wrap = document.querySelector('[data-beat]');
 const btn = document.querySelector('[data-beat-play]');
@@ -37,3 +40,4 @@ if (wrap && btn && now) {
   // 切到其他分頁時停止，避免背景計時
   document.addEventListener('visibilitychange', () => { if (document.hidden && timer) stop(); });
 }
+})();
