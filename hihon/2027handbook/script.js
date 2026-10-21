@@ -46,6 +46,7 @@
       links.forEach(a => { a.removeAttribute('aria-current'); a.classList.remove('active'); });
       const a = byId.get(hit.id);
       a.setAttribute('aria-current', 'true'); a.classList.add('active');
+      document.dispatchEvent(new CustomEvent('toc:current', { detail: { id: hit.id, text: a.textContent.trim() } }));
       // 只展開目前閱讀的群組，並讓高亮項目留在目錄可視範圍內
       document.querySelectorAll('.toc__group.is-open').forEach(g => g.classList.remove('is-open'));
       const grp = a.closest('.toc__group'); if (grp) grp.classList.add('is-open');
@@ -62,6 +63,57 @@
   // 手機版：目錄預設收合
   const details = document.querySelector('.toc__details');
   if (details && window.matchMedia('(max-width: 960px)').matches) details.open = false;
+
+  // 手機版：捲過頁首目錄後，畫面上方出現「目錄列」，點開從底部滑出完整目錄，不必再滑回頂端
+  const toc = document.querySelector('.toc');
+  if (toc && links.length) {
+    const bar = document.createElement('div');
+    bar.className = 'tocbar'; bar.hidden = true;
+    bar.innerHTML = '<button type="button" class="tocbar__btn" aria-haspopup="dialog"><span class="tocbar__icon" aria-hidden="true">☰</span><span class="tocbar__label">目錄</span><span class="tocbar__now"></span><span class="tocbar__open" aria-hidden="true">展開</span></button>';
+    const sheet = document.createElement('dialog');
+    sheet.className = 'tocsheet'; sheet.setAttribute('aria-labelledby', 'tocsheet-h');
+    sheet.innerHTML = '<div class="tocsheet__head"><h2 id="tocsheet-h">本頁目錄</h2><button type="button" class="tocsheet__close" aria-label="關閉目錄">✕</button></div><nav class="tocsheet__nav" aria-label="本頁目錄（彈出）"></nav>';
+    const list = toc.querySelector('ol').cloneNode(true);
+    list.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+    list.querySelectorAll('.toc__group').forEach(g => g.classList.add('is-open'));   // 彈出目錄全部展開
+    sheet.querySelector('nav').append(list);
+    const art = toc.parentElement.querySelector('article');
+    (art || toc.parentElement).prepend(bar); document.body.append(sheet);   // 放進文章內，黏貼範圍才會涵蓋整篇
+    const btn = bar.querySelector('button'), now = bar.querySelector('.tocbar__now');
+    const mq = window.matchMedia('(max-width: 960px)');
+    let pastToc = false;
+    const sync = () => { bar.hidden = !(mq.matches && pastToc); };
+    new IntersectionObserver(es => { const e = es[0]; pastToc = !e.isIntersecting && e.boundingClientRect.top < 0; sync(); }).observe(toc);
+    mq.addEventListener ? mq.addEventListener('change', sync) : mq.addListener(sync);
+    // 頁首高度 → 目錄列黏貼位置
+    const header = document.querySelector('.site-header');
+    const setTop = () => document.documentElement.style.setProperty('--hdr-h', (header ? header.offsetHeight : 0) + 'px');
+    setTop(); if (header && 'ResizeObserver' in window) new ResizeObserver(setTop).observe(header);
+    const mark = id => sheet.querySelectorAll('a').forEach(x => {
+      const on = x.getAttribute('href') === '#' + id;
+      x.classList.toggle('active', on); on ? x.setAttribute('aria-current', 'true') : x.removeAttribute('aria-current');
+    });
+    let curId = '';
+    document.addEventListener('toc:current', e => { curId = e.detail.id; now.textContent = e.detail.text; mark(curId); });
+    const cur = toc.querySelector('a.active'); if (cur) { curId = cur.getAttribute('href').slice(1); now.textContent = cur.textContent.trim(); mark(curId); }
+    let viaLink = false;
+    if (typeof sheet.showModal === 'function') {
+      btn.addEventListener('click', () => {
+        sheet.showModal();
+        const a = sheet.querySelector('a.active') || sheet.querySelector('a');
+        if (a) { a.scrollIntoView({ block: 'center' }); a.focus({ preventScroll: true }); }
+      });
+      sheet.querySelector('.tocsheet__close').addEventListener('click', () => sheet.close());
+      sheet.addEventListener('click', e => {
+        if (e.target === sheet) return sheet.close();                 // 點背景關閉
+        if (e.target.closest('a')) { viaLink = true; sheet.close(); }  // 點目錄項目：關閉並照常跳轉
+      });
+      // 用關閉鈕、Esc 或點背景關閉時，焦點回到目錄列；點項目跳轉時不搶焦點
+      sheet.addEventListener('close', () => { if (!viaLink) btn.focus({ preventScroll: true }); viaLink = false; });
+    } else {
+      btn.addEventListener('click', () => toc.scrollIntoView());      // 舊瀏覽器：回到頁首目錄
+    }
+  }
 })();
 
 // ===== 提示訊息（toast）：供其他腳本使用 window.toast(訊息, {action, onAction}) =====

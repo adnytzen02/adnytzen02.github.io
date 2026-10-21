@@ -1748,3 +1748,31 @@ html.lenis, html.lenis body { height: auto; }
 .ap-warns span { display: block; font-size: 15px; margin-top: 2px; }
 .ap .ap-srcs { font-size: 14.5px; columns: 2 280px; column-gap: 28px; }
 .ap .ap-srcs li { break-inside: avoid; }
+
+/* ===== 手機版：捲動時的目錄列與彈出目錄 ===== */
+.tocbar { position: sticky; top: var(--hdr-h, 56px); z-index: 35; margin: 0 0 8px; padding: 8px 0; background: color-mix(in srgb, var(--paper) 92%, transparent); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+.tocbar[hidden] { display: none; }
+.tocbar__btn { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 46px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: var(--ink); font: inherit; text-align: left; cursor: pointer; box-shadow: 0 6px 16px -12px rgba(15,31,56,.5); }
+.tocbar__icon { color: var(--crimson); font-size: 18px; }
+.tocbar__label { font-size: 13px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.tocbar__now { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; color: var(--navy); }
+.tocbar__open { font-size: 13px; font-weight: 700; color: var(--crimson); white-space: nowrap; }
+.tocsheet { width: 100%; max-width: 560px; max-height: 82dvh; margin: auto auto 0; padding: 0; border: 0; border-radius: 18px 18px 0 0; background: #fff; color: var(--ink); box-shadow: 0 -20px 50px -20px rgba(15,31,56,.5); }
+.tocsheet::backdrop { background: rgba(15,31,56,.55); }
+.tocsheet[open] { display: flex; flex-direction: column; animation: tocsheet-in .22s ease-out; }
+@keyframes tocsheet-in { from { transform: translateY(40px); opacity: 0; } }
+.tocsheet__head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; border-bottom: 1px solid var(--line); }
+.tocsheet__head h2 { margin: 0; font-size: 16px; letter-spacing: .1em; }
+.tocsheet__close { width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--paper); font-size: 18px; cursor: pointer; color: var(--ink); }
+.tocsheet__nav { overflow-y: auto; padding: 8px 10px calc(16px + env(safe-area-inset-bottom)); overscroll-behavior: contain; }
+.tocsheet ol { list-style: none; margin: 0; padding: 0; }
+.tocsheet a { display: block; min-height: 44px; padding: 11px 12px; border-left: 3px solid transparent; border-radius: 0 10px 10px 0; color: var(--ink); text-decoration: none; line-height: 1.45; }
+.tocsheet .toc__group > a { font-weight: 700; color: var(--navy); }
+.js .tocsheet .toc__group > .toc__sub { display: block; }
+.tocsheet ol.toc__sub { margin: 0 0 6px 12px; border-left: 2px solid var(--line); }
+.tocsheet .toc__sub a { font-size: 15px; color: var(--muted); }
+.tocsheet a:hover { background: var(--paper); }
+.tocsheet a.active { background: var(--crimson-soft); color: #9c1f25; border-left-color: var(--crimson); font-weight: 700; }
+@media (min-width: 961px) { .tocbar { display: none !important; } }
+@media (prefers-reduced-motion: reduce) { .tocsheet[open] { animation: none; } }
+@media print { .tocbar, .tocsheet { display: none !important; } }

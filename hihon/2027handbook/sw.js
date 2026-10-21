@@ -1,5 +1,5 @@
 // 由 build.py 自動產生。VERSION 隨檔案內容改變，舊快取會在啟用時清除。
-const VERSION = '7f2cbd3fd1';
+const VERSION = '690f01f5b0';
 const CACHE = 'jp-handbook-' + VERSION;
 const RUNTIME = 'jp-handbook-runtime';
 const PRECACHE = ["./", "./404.html", "./airport.html", "./anime.css", "./anime.html", "./anime.js", "./checklist.js", "./favorites.js", "./filters.js", "./hero.jpg", "./home.js", "./icons/apple-touch-icon.png", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/icon-maskable-512.png", "./index.html", "./japan-dots.js", "./manifest.json", "./rules.html", "./script.js", "./search-index.js", "./search.js", "./shrine.html", "./shrine.js", "./style.css", "./tools.html", "./tools.js", "./train.html", "./train.js", "./trip.html", "./vendor/LICENSES.txt", "./vendor/lenis.min.js", "./zoo.css", "./zoo.html", "./zoo.js"];
