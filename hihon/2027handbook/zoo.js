@@ -218,8 +218,7 @@ if (root) {
     $$('[data-hallnav]').forEach(a => a.classList.toggle('is-empty', !per[a.dataset.hallnav]));
     $$('[data-tab-count]').forEach(b => (b.textContent = per[b.dataset.tabCount] || 0));
     $$('[data-ov-count]').forEach(b => {
-      const k = b.dataset.ovCount, c = per[k] || 0; b.textContent = c;
-      const m = b.closest('.gh-ov__mark'); if (m) m.setAttribute('aria-label', m.getAttribute('aria-label').replace(/（\d+ 處）/, `（${c} 處）`));
+      const k = b.dataset.ovCount, c = per[k] || 0; b.textContent = c;   // 按鈕名稱直接由文字組成，數字一改就跟著更新
     });
     $$('[data-hallnav]').forEach(a => { if (per[a.dataset.hallnav]) { a.removeAttribute('aria-disabled'); a.removeAttribute('tabindex'); } else { a.setAttribute('aria-disabled', 'true'); a.tabIndex = -1; } });
     [...lights, ...keys].forEach(el => { const r = byId.get(el.dataset.light || el.dataset.key); el.classList.toggle('is-off', !!r && r.hidden); });
