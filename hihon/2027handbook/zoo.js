@@ -1,4 +1,4 @@
-// 水族館與動物園・金色大廳：夜色光場、禮賓台篩選、點亮地圖、展廳列展開、物種銘牌、收藏長明燈
+// 水族館與動物園：夜色光場、航路篩選（舊稱禮賓台）、星の林地圖、月の船渡口、物種銘牌介紹、收藏長明燈
 // 一般 defer 腳本（不用 type="module"），直接打開本機檔案時也能執行
 (() => {
 'use strict';
@@ -64,8 +64,10 @@ function lightField(canvas) {
     const w = canvas.offsetWidth, h = canvas.offsetHeight; if (!w || !h) return;
     dpr = Math.min(devicePixelRatio || 1, 1.5);
     if (Math.abs(w - W) < 2 && Math.abs(h - H) < 2 && orbs.length) return;
+    // 只有高度小幅變動（手機網址列收合）時不重建光場，避免畫面閃一下
+    const rebuild = !orbs.length || Math.abs(w - W) >= 2 || Math.abs(h - H) > 140;
     W = w; H = h; canvas.width = W * dpr; canvas.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    build(); if (!running) draw(0, 0);
+    if (rebuild) build(); if (!running) draw(0, 0);
   };
   const stamp = (img, x, y, s, a) => { ctx.globalAlpha = a; ctx.drawImage(img, x - s / 2, y - s / 2, s, s); };
   function draw(t, dt) {
@@ -147,9 +149,9 @@ if (root) {
   const scrollTo = el => el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
   const pop = el => { if (!el || reduce) return; el.classList.remove('is-pop'); void el.offsetWidth; el.classList.add('is-pop'); };
 
-  // 「想看什麼」的顯示名稱：禮賓台選項＋物種銘牌
+  // 「想看什麼」的顯示名稱：航路選項＋物種銘牌
   const wantLabel = new Map($$('input[name="g-want"]').map(i => [i.value, i.nextElementSibling.textContent]));
-  $$('.gh-plaque [data-set-want]').forEach(b => wantLabel.set(b.dataset.setWant, $('h3', b.closest('.gh-plaque')).textContent));
+  $$('.gh-plaque [data-set-want]').forEach(b => wantLabel.set(b.dataset.setWant, $('.gh-plaque__open', b.closest('.gh-plaque')).firstChild.textContent.trim()));
   const regionLabel = new Map($$('input[name="g-region"]').map(i => [i.value, i.nextElementSibling.textContent]));
   const dayLabel = new Map($$('input[name="g-day"]').map(i => [i.value, i.nextElementSibling.textContent]));
   const kindLabel = new Map($$('input[name="g-kind"]').map(i => [i.value, i.nextElementSibling.textContent]));
@@ -206,9 +208,20 @@ if (root) {
       const ok = matches(r); r.hidden = !ok;
       if (ok) { n++; per[r.dataset.region] = (per[r.dataset.region] || 0) + 1; }
     });
-    $$('.gh-room').forEach(room => { const c = per[room.dataset.room] || 0; room.hidden = !c; $('[data-room-count]', room).textContent = c; });
+    $$('.gh-room').forEach(room => {
+      const vis = rows.filter(r => r.dataset.region === room.dataset.room && !r.hidden), c = vis.length;
+      room.hidden = !c; $('[data-room-count]', room).textContent = c;
+      const aq = $('[data-room-aq]', room), zo = $('[data-room-zo]', room);
+      if (aq) aq.textContent = vis.filter(r => r.dataset.kind === '水族館').length;
+      if (zo) zo.textContent = vis.filter(r => r.dataset.kind === '動物園').length;
+    });
     $$('[data-hallnav]').forEach(a => a.classList.toggle('is-empty', !per[a.dataset.hallnav]));
     $$('[data-tab-count]').forEach(b => (b.textContent = per[b.dataset.tabCount] || 0));
+    $$('[data-ov-count]').forEach(b => {
+      const k = b.dataset.ovCount, c = per[k] || 0; b.textContent = c;
+      const m = b.closest('.gh-ov__mark'); if (m) m.setAttribute('aria-label', m.getAttribute('aria-label').replace(/（\d+ 處）/, `（${c} 處）`));
+    });
+    $$('[data-hallnav]').forEach(a => { if (per[a.dataset.hallnav]) { a.removeAttribute('aria-disabled'); a.removeAttribute('tabindex'); } else { a.setAttribute('aria-disabled', 'true'); a.tabIndex = -1; } });
     [...lights, ...keys].forEach(el => { const r = byId.get(el.dataset.light || el.dataset.key); el.classList.toggle('is-off', !!r && r.hidden); });
     $$('[data-match-count]').forEach(el => { if (el.textContent !== String(n)) { el.textContent = n; pop(el); } });
     $$('[data-lit-count]').forEach(el => (el.textContent = n));
@@ -219,9 +232,10 @@ if (root) {
                    state.day && dayLabel.get(state.day), state.scope && scopeLabel.get(state.scope), state.q && `「${state.q}」`].filter(Boolean);
     $('[data-now]').textContent = parts.length ? parts.join('・') : '全部場館';
     refreshChips(); showPeek(rows.filter(r => !r.hidden));
+    if (hallTrack) afterFilter();
   }
 
-  // 禮賓台五問
+  // 航路五問
   $('.gh-desk').addEventListener('change', e => {
     const i = e.target; if (i.type !== 'radio') return;
     if (i.name === 'g-region') { state.region = i.value; if (i.value) switchRegion(i.value); }
@@ -288,13 +302,74 @@ if (root) {
     rows.forEach(r => { if (!r.hidden) setOpen(r, open); }); syncExpandAll();
   });
 
+  // ---------- 月の船：四處渡口左右滑動切換地區 ----------
+  const behavior = reduce ? 'auto' : 'smooth';
+  const icon = id => `<svg class="gi" aria-hidden="true" focusable="false"><use href="#${id}"/></svg>`;
+  const hallTrack = $('.gh-rooms'), rooms = $$('.gh-room'), hallLinks = $$('[data-hallnav]');
+  const hallBar = document.createElement('div');
+  hallBar.className = 'gh-hallbar';
+  hallBar.innerHTML = `<button type="button" class="gh-hall-btn" data-hall-dir="-1" aria-label="上一座渡口">${icon('zi-chev-l')}</button>`
+    + `<p class="gh-hallbar__now" aria-live="polite"></p>`
+    + `<button type="button" class="gh-hall-btn" data-hall-dir="1" aria-label="下一座渡口">${icon('zi-chev-r')}</button>`;
+  hallTrack.before(hallBar);
+  const [hallPrev, hallNext] = $$('[data-hall-dir]', hallBar), hallNow = $('.gh-hallbar__now', hallBar);
+  const visRooms = () => rooms.filter(r => !r.hidden);
+  let curRoom = rooms[0], hallRaf = 0, lastW = 0;
+  function syncHalls() {
+    hallRaf = 0;
+    const vis = visRooms();
+    if (!vis.length) { hallTrack.style.height = ''; return; }
+    const i = Math.min(vis.length - 1, Math.max(0, Math.round(hallTrack.scrollLeft / Math.max(1, hallTrack.clientWidth))));
+    curRoom = vis[i];
+    hallTrack.style.height = curRoom.offsetHeight + 'px';      // 不讓最長的那座渡口撐高整條軌道
+    hallLinks.forEach(a => a.setAttribute('aria-current', a.dataset.hallnav === curRoom.dataset.room ? 'true' : 'false'));
+    hallPrev.disabled = i === 0; hallNext.disabled = i === vis.length - 1;
+    const label = `${$('.gh-room__no span', curRoom).textContent}・${$('h3', curRoom).textContent}`;
+    hallNow.innerHTML = '';
+    hallNow.append(label);
+    const small = document.createElement('small'); small.textContent = `${i + 1}／${vis.length}`; hallNow.append(small);
+    const hint = document.createElement('span'); hint.className = 'gh-hallbar__hint'; hint.textContent = vis.length > 1 ? '左右滑動，前往下一座渡口' : '只有這座渡口符合條件'; hallNow.append(hint);
+  }
+  const queueHalls = () => { if (!hallRaf) hallRaf = requestAnimationFrame(syncHalls); };
+  function goHall(room, smooth = true) {
+    const i = visRooms().indexOf(room); if (i < 0) return;
+    curRoom = room;
+    hallTrack.scrollTo({ left: i * hallTrack.clientWidth, behavior: smooth ? behavior : 'auto' });
+    if (!smooth || reduce) syncHalls();
+  }
+  hallTrack.addEventListener('scroll', queueHalls, { passive: true });
+  new ResizeObserver(() => {
+    // 視窗寬度改變時，維持停在同一座展廳
+    if (hallTrack.clientWidth !== lastW) { lastW = hallTrack.clientWidth; const i = visRooms().indexOf(curRoom); if (i >= 0) hallTrack.scrollLeft = i * lastW; }
+    queueHalls();
+  }).observe(hallTrack);
+  const roomRO = new ResizeObserver(queueHalls);
+  rooms.forEach(r => roomRO.observe(r));               // 展開、收合列表時跟著調整高度
+  hallBar.addEventListener('click', e => {
+    const b = e.target.closest('[data-hall-dir]'); if (!b || b.disabled) return;
+    const vis = visRooms(), i = vis.indexOf(curRoom) + +b.dataset.hallDir;
+    if (vis[i]) goHall(vis[i]);
+  });
+  hallLinks.forEach(a => a.addEventListener('click', e => {
+    const room = rooms.find(r => r.dataset.room === a.dataset.hallnav); if (!room || room.hidden) return;
+    e.preventDefault(); goHall(room);
+    window.scrollTo({ top: hallBar.getBoundingClientRect().top + scrollY - 90, behavior });
+  }));
+  // 篩選後：目前那座還在就留在原地，否則回到第一座
+  function afterFilter() {
+    const vis = visRooms();
+    goHall(vis.includes(curRoom) ? curRoom : vis[0], false);
+  }
+
   // 打開指定場館：被目前條件藏起來時先清除條件
   function openRow(id, { flash = true } = {}) {
     const r = byId.get(id); if (!r) return false;
-    if (r.hidden) reset();
+    if (r.hidden) { reset(); const st = $('.gh-desk__result'); if (st) st.insertAdjacentText('beforeend', '（已清除條件以顯示這間場館）'); }
+    goHall(r.closest('.gh-room'), false);              // 先切到那座渡口
     setOpen(r, true); syncExpandAll();
     requestAnimationFrame(() => {
-      scrollTo(r);
+      // 列表在橫向軌道裡時，瀏覽器不會套用 scroll-margin，所以自己算垂直位置（留給頂部選單）
+      window.scrollTo({ top: r.getBoundingClientRect().top + scrollY - 90, behavior });
       if (flash && !reduce) { r.classList.remove('is-flash'); void r.offsetWidth; r.classList.add('is-flash'); }
     });
     return true;
@@ -306,11 +381,12 @@ if (root) {
     if (!byId.has(id)) return;
     e.preventDefault(); history.replaceState(null, '', '#' + encodeURIComponent(id)); openRow(id);
     $('.gh-row__toggle', byId.get(id)).focus({ preventScroll: true });
+    if (a.closest('.gh-light')) offerBack(id);
   });
   const fromHash = () => { const id = decodeURIComponent(location.hash.slice(1)); if (byId.has(id)) openRow(id); };
   addEventListener('hashchange', fromHash);
 
-  // ---------- Ⅰ 點亮地圖 ----------
+  // ---------- Ⅱ 點亮地圖 ----------
   const tabs = $$('.gh-tab'), panels = $$('.gh-region'), marks = $$('.gh-ov__mark');
   let hallSeen = false;
   function ignite(panel) {
@@ -350,7 +426,7 @@ if (root) {
   const hot = (id, on) => [...lightOf(id), ...keyOf(id)].forEach(el => el.classList.toggle('is-hot', on));
   function showTip(light) {
     const r = byId.get(light.dataset.light); if (!r) return;
-    $('b', tip).textContent = r.dataset.title;
+    $('b', tip).textContent = `No.${$('.gh-row__no', r).textContent} ${r.dataset.title}`;
     $('span', tip).textContent = `${r.dataset.kind}・${r.dataset.area}｜${$('.gh-row__hook', r).textContent}`;
     const b = light.getBoundingClientRect();
     tip.style.left = Math.min(innerWidth - 140, Math.max(140, b.left + b.width / 2)) + 'px';
@@ -369,8 +445,97 @@ if (root) {
     k.addEventListener('pointerleave', () => hot(k.dataset.key, false));
     k.addEventListener('focus', () => hot(k.dataset.key, true));
     k.addEventListener('blur', () => hot(k.dataset.key, false));
-    k.addEventListener('click', () => { history.replaceState(null, '', '#' + encodeURIComponent(k.dataset.key)); openRow(k.dataset.key); });
+    k.addEventListener('click', () => { history.replaceState(null, '', '#' + encodeURIComponent(k.dataset.key)); openRow(k.dataset.key); offerBack(k.dataset.key); });
   });
+
+  // ---------- 從地圖跳到場館後，一鍵回到地圖 ----------
+  const back = document.createElement('button');
+  back.type = 'button'; back.className = 'gh-back'; back.hidden = true;
+  back.innerHTML = `${icon('zi-pin')}<span>回到地圖</span>`;
+  root.append(back);
+  let backId = '', backAt = 0;
+  function offerBack(id) { backId = id; backAt = Date.now(); back.hidden = false; }
+  function hideBack() { back.hidden = true; backId = ''; }
+  // 切到該地區、捲回地圖，並讓那盞燈閃幾下
+  function showOnMap(id) {
+    const l = lightOf(id)[0]; if (!l) return;
+    hideBack();
+    switchRegion(l.closest('.gh-region').dataset.regionPanel);
+    scrollTo($('.gh-hall__bar'));
+    lights.forEach(x => x.classList.remove('is-ping'));
+    void l.offsetWidth; l.classList.add('is-ping'); hot(id, true);
+    setTimeout(() => { l.classList.remove('is-ping'); if (document.activeElement !== l) hot(id, false); }, 3400);
+    setTimeout(() => l.focus({ preventScroll: true }), reduce ? 0 : 750);
+  }
+  back.addEventListener('click', () => showOnMap(backId));
+  // 使用者自己捲回地圖時，按鈕就收起來
+  new IntersectionObserver(es => {
+    if (backId && Date.now() - backAt > 1500 && es.some(e => e.isIntersecting)) hideBack();
+  }, { threshold: .35 }).observe($('.gh-hall__regions'));
+  // 每張卡片的完整介紹裡也放一顆「在地圖上找到它」
+  rows.forEach(r => {
+    if (!lightOf(r.id).length) return;
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'gh-link-btn gh-row__tomap';
+    b.innerHTML = `${icon('zi-pin')}在星の林裡找到它`;
+    b.addEventListener('click', () => showOnMap(r.id));
+    $('.gh-row__body', r).prepend(b);
+  });
+
+  // ---------- 物種介紹：點銘牌，畫面中央浮出一張星圖卡 ----------
+  const star = $('#gh-star');
+  if (star && star.showModal) {
+    const chart = $('.gh-star__chart', star), venues = $('.gh-star__venues', star), filterBtn = $('[data-star-filter]', star);
+    let opener = null, curSp = '';
+    // 依場館數畫一個小星座：位置由物種名決定，每次打開都一樣
+    function drawChart(sp, n) {
+      let seed = [...sp].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7);
+      const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+      const k = Math.max(1, n);
+      const pts = Array.from({ length: k }, (_, i) => [k === 1 ? 160 : 24 + (272 / (k - 1)) * i + (rnd() - .5) * 26, k === 1 ? 60 : 26 + rnd() * 68]);
+      let s = '';
+      for (let i = 1; i < pts.length; i++) s += `<line x1="${pts[i - 1][0].toFixed(1)}" y1="${pts[i - 1][1].toFixed(1)}" x2="${pts[i][0].toFixed(1)}" y2="${pts[i][1].toFixed(1)}"/>`;
+      pts.forEach((p, i) => { s += `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${(2.2 + rnd() * 1.6).toFixed(1)}" style="--i:${i}"/>`; });
+      for (let i = 0; i < 26; i++) s += `<circle cx="${(rnd() * 320).toFixed(1)}" cy="${(rnd() * 120).toFixed(1)}" r=".7" opacity="${(.25 + rnd() * .4).toFixed(2)}" style="filter:none"/>`;
+      chart.innerHTML = s;
+    }
+    function openStar(btn) {
+      const li = btn.closest('.gh-plaque'), sp = btn.dataset.star; curSp = sp; opener = btn;
+      const name = btn.firstChild.textContent.trim();
+      const links = $$('.gh-plaque__names a', li);
+      star.classList.toggle('is-zo', li.classList.contains('gh-plaque--zo'));
+      $('.gh-star__sci', star).textContent = $('.gh-plaque__sci', li).textContent;
+      $('.gh-star__title', star).textContent = name;
+      $('.gh-star__count', star).innerHTML = `<b>${links.length}</b> 處場館的介紹中提到牠`;
+      const tpl = $(`template[data-star-info="${sp}"]`, li);
+      $('.gh-star__text', star).replaceChildren(tpl ? tpl.content.cloneNode(true) : '');
+      venues.replaceChildren(...links.map(a => {
+        const r = byId.get(a.dataset.openId), item = document.createElement('li'), link = document.createElement('a');
+        link.href = a.getAttribute('href'); link.dataset.openId = a.dataset.openId; link.textContent = a.textContent;
+        if (r) { const sm = document.createElement('small'); sm.textContent = r.dataset.area; link.append(sm); }
+        item.append(link); return item;
+      }));
+      filterBtn.textContent = `在月の船只看這 ${links.length} 處`;
+      drawChart(sp, links.length);
+      star.classList.remove('is-closing'); star.showModal(); $('.gh-star__card', star).scrollTop = 0;
+      $('[data-star-close]', star).focus();
+    }
+    function closeStar(then) {
+      if (!star.open) { if (then) then(); return; }
+      const done = () => { star.classList.remove('is-closing'); star.close(); if (then) then(); else if (opener) opener.focus(); };
+      if (reduce) return done();
+      star.classList.add('is-closing'); setTimeout(done, 200);
+    }
+    $$('.gh-plaque__open').forEach(b => b.addEventListener('click', () => openStar(b)));
+    star.addEventListener('cancel', e => { e.preventDefault(); closeStar(); });          // Esc 也走淡出
+    star.addEventListener('click', e => {
+      if (e.target === star) return closeStar();                                        // 點卡片外的暗處關閉
+      if (e.target.closest('[data-star-close]')) return closeStar();
+      const a = e.target.closest('.gh-star__venues a');
+      if (a) { e.preventDefault(); e.stopPropagation(); const id = a.dataset.openId; closeStar(() => { history.replaceState(null, '', '#' + encodeURIComponent(id)); openRow(id); $('.gh-row__toggle', byId.get(id)).focus({ preventScroll: true }); }); return; }
+      if (e.target.closest('[data-star-filter]')) { e.stopPropagation(); closeStar(() => { setWant('sp:' + curSp); scrollTo($('#設施總覽')); }); }
+    });
+  }
 
   // ---------- 收藏：地圖上的長明燈 ----------
   const page = location.pathname.split('/').pop() || 'index.html';
