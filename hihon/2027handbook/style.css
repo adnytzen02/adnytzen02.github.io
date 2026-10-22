@@ -587,7 +587,8 @@ button.btn.btn--ghost { border: 1px solid var(--navy); }
 .nav-toggle[aria-expanded="true"] .nav-toggle__bars::before { transform: translateY(6px) rotate(45deg); }
 .nav-toggle[aria-expanded="true"] .nav-toggle__bars::after { transform: translateY(-6px) rotate(-45deg); }
 
-@media (max-width: 960px) {
+/* 導覽列 10 項，1200px 以下改用漢堡選單 */
+@media (max-width: 1199px) {
   .js .nav-toggle { display: grid; }
   .js .site-header__inner { gap: 8px; }
   .js .site-header .search-btn { margin-left: auto; }
@@ -1065,7 +1066,7 @@ html.lenis, html.lenis body { height: auto; }
 .ap-gate--red { background: var(--ap-stop); }
 
 /* --- 四大機場：快速比較 --- */
-.ap-tiles { list-style: none; margin: 8px 0 24px; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.ap-tiles { list-style: none; margin: 8px 0 24px; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .ap-tile { display: flex; flex-direction: column; gap: 6px; height: 100%; padding: 16px; border-radius: 14px; background: var(--navy-deep); color: var(--card); text-decoration: none; }
 .ap-tile:hover { box-shadow: 0 0 0 3px var(--gold); }
 .ap-tile__code { font-family: var(--font-serif); font-size: 34px; font-weight: 700; line-height: 1; color: var(--gold); letter-spacing: .04em; }
@@ -1776,3 +1777,106 @@ html.lenis, html.lenis body { height: auto; }
 @media (min-width: 961px) { .tocbar { display: none !important; } }
 @media (prefers-reduced-motion: reduce) { .tocsheet[open] { animation: none; } }
 @media print { .tocbar, .tocsheet { display: none !important; } }
+
+/* =====================================================================
+   鐵道頁：上車前檢查清單＝一張分三站的「乘車券」（沿用工具頁護照清單的結構）
+   ===================================================================== */
+.tk {
+  --pp-cover: #173d2b; --pp-foil: #ffd76a; --pp-paper: #eef3ea; --pp-guilloche: rgba(23, 61, 43, .06);
+  --pp-text: #1d2a22; --pp-muted: #56645b; --pp-rule: #cfdccd; --pp-accent: #1f7a4a;
+  --tk-green: #1f7a4a; --tk-blue: #1d56a6; --tk-orange: #b54d14;
+  background-image: repeating-linear-gradient(135deg, var(--pp-guilloche) 0 2px, transparent 2px 9px);
+}
+.tk-head { position: relative; border-bottom: 4px solid var(--pp-foil); }
+.tk-head__ja { margin: 0 0 8px; font-size: 14px; font-weight: 700; letter-spacing: .2em; color: var(--pp-foil); }
+/* 軌道：枕木＋前進中的列車色 */
+.tk-route { padding-top: 24px; }
+.tk-track { height: 10px; border-radius: 0; background:
+  repeating-linear-gradient(90deg, rgba(23,61,43,.28) 0 3px, transparent 3px 14px),
+  linear-gradient(180deg, transparent 2px, rgba(23,61,43,.35) 2px 3px, transparent 3px 7px, rgba(23,61,43,.35) 7px 8px, transparent 8px); overflow: visible; position: relative; }
+.tk-track i { position: relative; height: 10px; border-radius: 5px; background: var(--pp-accent); }
+.tk-track i::after { content: "🚃"; position: absolute; right: -14px; top: 50%; transform: translateY(-55%); font-size: 20px; line-height: 1; }
+.tk-route ol { grid-template-columns: repeat(3, 1fr); }
+.tk-route li span { border-radius: 3px; }
+/* 車票：淡綠地紋、左右剪票缺口、上緣色帶 */
+.tk-book { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.tk-ticket { position: relative; min-height: 250px; padding-top: 22px; padding-bottom: 104px; border-radius: 10px; border: 0; background:
+    linear-gradient(var(--ink), var(--ink)) top / 100% 7px no-repeat,
+    repeating-linear-gradient(45deg, rgba(31,122,74,.05) 0 1px, transparent 1px 6px),
+    #fbfdf8;
+  box-shadow: 0 1px 0 var(--pp-rule), 0 8px 20px -14px rgba(23,61,43,.55);
+  -webkit-mask: radial-gradient(circle 9px at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 9px at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat;
+          mask: radial-gradient(circle 9px at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 9px at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat; }
+.tk-ticket .pp-page__head { flex-wrap: wrap; row-gap: 2px; border-bottom: 1.5px dashed var(--pp-rule); }
+.tk-ticket .pp-page__no { padding: 1px 8px; border-radius: 4px; background: var(--ink); color: #fff; font-weight: 700; }
+.tk-ticket__sub { font-size: 13px; color: var(--pp-muted); }
+.tk-slot { width: 96px; height: 96px; border-radius: 50%; right: 18px; bottom: 14px; letter-spacing: .1em; }
+.tk-stamp { right: 14px; bottom: 10px; }
+.tk-stamp--punch { width: 104px; height: 104px; border-radius: 50%; }
+.tk-stamp--sign { width: 140px; height: 78px; border-radius: 8px; }
+.tk-stamp--go { width: 148px; height: 88px; border-radius: 44px; }
+.tk-stamp b { font-family: "Noto Sans JP", var(--font-serif); font-weight: 800; }
+.tk.is-all-done .tk-head { background: linear-gradient(90deg, var(--pp-cover), #1f5c3d); }
+.tk .pp-foot { padding-top: 10px; }
+@media (max-width: 960px) { .tk-book { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) {
+  .tk-book { grid-template-columns: 1fr; }
+  .tk-ticket { min-height: 0; }
+  .tk-route li { flex-direction: row; align-items: center; }
+}
+@media (prefers-reduced-motion: reduce) { .tk-track i { transition: none; } }
+
+/* ===== 鐵道頁：新幹線路線（車站時間清單＋桌機立體地圖） ===== */
+.tline__cap { margin: 4px 0 8px; font-size: 15px; color: var(--muted); }
+.tline { list-style: none; margin: 0 0 12px; padding: 0 0 0 4px; display: grid; gap: 0; }
+.tline__st { position: relative; display: grid; grid-template-columns: 4.6em 1fr auto; align-items: baseline; gap: 8px; margin: 0; padding: 8px 4px 8px 26px; border-bottom: 1px dashed var(--line); }
+.tline__st::before { content: ""; position: absolute; left: 7px; top: 0; bottom: 0; width: 4px; background: #1f8fb3; }
+.tline__st.is-sanyo::before { background: #c99400; }
+.tline__st:first-child::before { top: 50%; }
+.tline__st:last-child::before { bottom: 50%; }
+.tline__st::after { content: ""; position: absolute; left: 3px; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%; background: #fff; border: 3px solid var(--navy); }
+.tline__st.is-major::after { width: 16px; height: 16px; margin-top: -8px; left: 1px; }
+.tline__st b { font-size: 16px; }
+.tline__st:not(.is-major) b { font-weight: 500; font-size: 15px; }
+.tline__st span { font-size: 12.5px; color: var(--muted); font-family: var(--font-ja); }
+.tline__st small { font-size: 14.5px; font-weight: 700; color: var(--navy); }
+.tline__st.is-on { background: #eef6fb; }
+@media (min-width: 1024px) {
+  /* 桌機：橫向路線圖 */
+  .tline { grid-auto-flow: column; grid-auto-columns: 1fr; padding: 0; }
+  .tline__st { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 2px; padding: 30px 2px 8px; border-bottom: 0; }
+  .tline__st::before { left: 0; right: 0; top: 13px; bottom: auto; width: auto; height: 4px; }
+  .tline__st:first-child::before { top: 13px; left: 50%; }
+  .tline__st:last-child::before { bottom: auto; right: 50%; }
+  .tline__st::after, .tline__st.is-major::after { left: 50%; top: 15px; margin-left: -8px; }
+  .tline__st:not(.is-major)::after { margin-left: -6px; }
+  .tline__st small { font-size: 13px; }
+  .tline__st span { font-size: 10.5px; letter-spacing: -.03em; white-space: nowrap; }
+  .js .tm3d:not([hidden]) ~ .tline .tline__st { cursor: pointer; }
+}
+.tm3d { margin: 4px 0 18px; }
+.tm3d[hidden] { display: none; }
+.tm3d__stage { position: relative; height: clamp(380px, 38vw, 480px); border-radius: 14px; overflow: hidden; border: 1px solid #22385a;
+  background: radial-gradient(90% 80% at 55% 10%, #1d3a63 0%, #0f1f38 55%, #0a1426 100%); }
+.tm3d__stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.tm3d__stage canvas:active { cursor: grabbing !important; }
+.tm3d__labels { position: absolute; inset: 0; pointer-events: none; }
+.tm3d__label { position: absolute; left: 0; top: 0; pointer-events: auto; display: grid; justify-items: center; padding: 4px 10px 5px; border: 1.5px solid rgba(190, 215, 255, .7); border-radius: 6px;
+  background: rgba(10, 20, 38, .86); color: #fff; font: inherit; line-height: 1.2; white-space: nowrap; cursor: pointer; transition: opacity .4s, background .2s, border-color .2s; will-change: transform; }
+.tm3d__label b { font-size: 15px; }
+.tm3d__label span { font-size: 11px; color: #b9cdf0; }
+.tm3d__label::after { content: ""; position: absolute; left: 50%; top: 100%; width: 1.5px; height: var(--lead, 6px); margin-left: -.75px; background: rgba(190, 215, 255, .7); }
+.tm3d__label:hover, .tm3d__label.is-on, .tm3d__label:focus-visible { background: #1d3a63; border-color: #ffd23f; }
+.tm3d__label:focus-visible { outline: 3px solid #ffd23f; outline-offset: 2px; }
+.tm3d__info { position: absolute; left: 16px; bottom: 16px; margin: 0; padding: 10px 14px; border-radius: 10px; background: rgba(10, 20, 38, .9); border: 1px solid #ffd23f; color: #fff; }
+.tm3d__info b { display: block; font-size: 18px; color: #ffd23f; }
+.tm3d__info span { font-size: 14px; }
+.tm3d__legend { position: absolute; right: 14px; top: 12px; margin: 0; display: flex; gap: 14px; font-size: 12.5px; color: #d6e2f7; }
+.tm3d__legend span::before { content: ""; display: inline-block; width: 18px; height: 4px; margin-right: 6px; vertical-align: middle; border-radius: 2px; background: #5ee0ff; }
+.tm3d__legend .is-sanyo::before { background: #ffd23f; }
+.tm3d__hint { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
+.tm3d.is-loading .tm3d__stage::after, .tm3d.is-failed .tm3d__stage::after { position: absolute; inset: 0; display: grid; place-items: center; color: #b9cdf0; font-size: 15px; letter-spacing: .1em; }
+.tm3d.is-loading .tm3d__stage::after { content: "立體地圖載入中…"; }
+.tm3d.is-failed .tm3d__stage::after { content: "這台裝置無法顯示立體地圖，請看下方車站清單。"; }
+.tm3d.is-loading .tm3d__hint, .tm3d.is-failed .tm3d__hint, .tm3d.is-loading .tm3d__legend, .tm3d.is-failed .tm3d__legend { visibility: hidden; }
+@media print { .tm3d { display: none !important; } }

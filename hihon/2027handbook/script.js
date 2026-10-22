@@ -184,7 +184,7 @@
   const btn = document.querySelector('.nav-toggle');
   const nav = document.getElementById('site-nav');
   if (!btn || !nav) return;
-  const mq = window.matchMedia('(max-width: 960px)');
+  const mq = window.matchMedia('(max-width: 1199px)');
   const set = open => {
     nav.classList.toggle('is-open', open);
     btn.setAttribute('aria-expanded', open);

@@ -65,24 +65,74 @@
     update();
   }
 
-  // ===== 上車前 30 秒檢查清單（獨立的 localStorage key，不影響出發前清單）=====
+  // ===== 上車前 30 秒檢查清單：三站車票，每站勾完蓋剪票章（獨立的 localStorage key，不影響出發前清單）=====
   const KEY = 'jp-handbook-train-checklist';
-  const boxes = [...document.querySelectorAll('#train-checklist-box input[data-tkey]')];
+  const box = document.querySelector('[data-train-checklist]');
+  const boxes = box ? [...box.querySelectorAll('input[data-tkey]')] : [];
   if (boxes.length) {
     let state = {};
     try { state = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (_) {}
     const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (_) {} };
     const count = document.getElementById('train-check-count');
-    const render = () => {
+    const bar = box.querySelector('[data-tcheck-progress]');
+    const stages = [...box.querySelectorAll('[data-tstage]')];
+    const today = () => { const d = new Date(); return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`; };
+    // animate：只有剛勾完的那一站播放剪票動畫，重新整理時直接顯示
+    const render = (animate) => {
       boxes.forEach(b => { b.checked = !!state[b.dataset.tkey]; });
       const done = boxes.filter(b => b.checked).length;
       count.textContent = `${done} / ${boxes.length}`;
-      if (done === boxes.length && window.toast) window.toast('🚄 全部確認完成，祝旅途順利！');
+      if (bar) bar.style.width = (done / boxes.length * 100) + '%';
+      stages.forEach(fs => {
+        const bs = [...fs.querySelectorAll('input[data-tkey]')], n = bs.filter(b => b.checked).length, complete = n === bs.length;
+        const dk = '_stamp' + fs.dataset.tstage;
+        if (complete && !state[dk]) { state[dk] = today(); save(); }
+        if (!complete && state[dk]) { delete state[dk]; save(); }
+        fs.querySelector('[data-stage-count]').textContent = complete ? '已剪票' : `${n} / ${bs.length}`;
+        fs.querySelector('[data-stamp-date]').textContent = state[dk] || '';
+        const was = fs.classList.contains('is-done');
+        fs.classList.toggle('is-done', complete);
+        if (complete && !was && animate === fs) { fs.classList.remove('just-done'); void fs.offsetWidth; fs.classList.add('just-done'); }
+        const node = box.querySelector(`[data-tstage-node="${fs.dataset.tstage}"]`); if (node) node.classList.toggle('is-done', complete);
+      });
+      box.classList.toggle('is-all-done', done === boxes.length);
+      return done;
     };
-    boxes.forEach(b => b.addEventListener('change', () => { state[b.dataset.tkey] = b.checked; save(); render(); }));
+    boxes.forEach(b => b.addEventListener('change', () => {
+      state[b.dataset.tkey] = b.checked; save();
+      if (render(b.closest('[data-tstage]')) === boxes.length && b.checked && window.toast) window.toast('🚄 全部確認完成，祝旅途順利！');
+    }));
     document.getElementById('train-check-reset')?.addEventListener('click', () => {
       if (confirm('確定要取消所有勾選嗎？')) { state = {}; save(); render(); }
     });
+    window.addEventListener('storage', e => { if (e.key === KEY) { try { state = JSON.parse(e.newValue || '{}') || {}; } catch (_) { state = {}; } render(); } });
     render();
   }
+})();
+
+// ---------- 新幹線路線立體地圖（桌機限定） ----------
+// 條件：寬度 ≥ 1024px、有滑鼠、未開「減少動態」與省流量、支援 WebGL；不符合時只顯示車站時間清單
+// 用一般 <script> 依序載入 three.js 精簡版與地圖程式，直接點開 HTML（file://）也能執行
+(() => {
+  const host = document.querySelector('[data-tm3d]');
+  if (!host) return;
+  const ok = (() => {
+    if (!matchMedia('(min-width: 1024px) and (hover: hover) and (pointer: fine)').matches) return false;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+    if (navigator.connection && navigator.connection.saveData) return false;
+    try { const c = document.createElement('canvas'), g = c.getContext('webgl2') || c.getContext('webgl'); g?.getExtension('WEBGL_lose_context')?.loseContext(); return !!g; } catch (_) { return false; }
+  })();
+  if (!ok || !('IntersectionObserver' in window)) return;
+  host.hidden = false; host.classList.add('is-loading');        // 先保留版位，避免畫面跳動
+  const load = src => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('無法載入 ' + src)); document.head.appendChild(s); });
+  const fail = err => { host.classList.remove('is-loading'); host.classList.add('is-failed'); console.warn('立體地圖未載入：', err); };
+  const io = new IntersectionObserver(es => {
+    if (!es[0].isIntersecting) return;
+    io.disconnect();
+    (window.THREE ? Promise.resolve() : load(host.dataset.three))
+      .then(() => load(host.dataset.src))
+      .then(() => { try { window.TrainMap3D.mount(host); } catch (err) { fail(err); } })
+      .catch(fail);
+  }, { rootMargin: '400px 0px' });
+  io.observe(host);
 })();

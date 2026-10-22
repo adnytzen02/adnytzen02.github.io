@@ -367,3 +367,4 @@
   .ak-map__frame, .ak-map__svg { max-height: 640px; }
 }
 @media print { .ak-map__frame { box-shadow: none; } }
+

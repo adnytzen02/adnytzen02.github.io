@@ -151,4 +151,5 @@ if (dlg && dlg.showModal) {
   dlg.addEventListener('click', e => { if (e.target === dlg) close(); });    // 點卡片外關閉
   dlg.addEventListener('close', () => { if (opener) opener.focus(); });
 }
+
 })();

@@ -1,0 +1,169 @@
+/* ===== 超市採買頁（supermarket.html）：價位地圖＝貨架、店名＝價格標籤 ===== */
+.sm {
+  --shelf: #d9cdb6;      /* 貨架層板 */
+  --tag-paper: #fffdf6;  /* 標籤紙 */
+}
+/* 七個價位帶的代表色（白字對比皆 ≥ 4.5） */
+.sm [data-t="1"] { --tc: #7a5a12; --tc-soft: #f6efdc; }
+.sm [data-t="2"] { --tc: #5b3d8a; --tc-soft: #efe9f7; }
+.sm [data-t="3"] { --tc: #1f3a5f; --tc-soft: #e8eef6; }
+.sm [data-t="4"] { --tc: #2b6a55; --tc-soft: #e5f2ec; }
+.sm [data-t="5"] { --tc: #9c4317; --tc-soft: #f8eadf; }
+.sm [data-t="6"] { --tc: #b7282e; --tc-soft: #fbeceb; }
+.sm [data-t="7"] { --tc: #861436; --tc-soft: #f7e6eb; }
+
+.sm .sm-h2 { display: flex; flex-direction: column; gap: 2px; }
+.sm .sm-h2 small { font-family: var(--font); font-size: 13px; letter-spacing: .2em; color: var(--crimson); font-weight: 800; }
+.sm .sm-lead { color: var(--muted); }
+
+/* ---------- 價位地圖 ---------- */
+.sm .sm-map { margin: 16px 0 8px; }
+.sm .sm-map__frame { position: relative; display: grid; grid-template-columns: 1fr; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.sm .sm-map__y { display: none; }
+.sm .sm-tiers { list-style: none; margin: 0; padding: 0; }
+.sm .sm-tier { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 14px 14px 16px; border-bottom: 6px solid var(--shelf); background: linear-gradient(180deg, #fff 0%, #fff 70%, #f7f2e8 100%); }
+.sm .sm-tier:last-child { border-bottom: 0; }
+.sm .sm-tier__label { display: flex; align-items: baseline; gap: 8px; }
+.sm .sm-tier__label b { display: inline-block; padding: 2px 10px; border-radius: 6px; background: var(--tc); color: #fff; font-size: 14px; letter-spacing: .05em; }
+.sm .sm-tier__label span { font-size: 13px; color: var(--muted); }
+.sm .sm-tier__shelf { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* 價格標籤造型：左側打孔＋色條 */
+.sm .sm-chip {
+  position: relative; display: inline-flex; flex-direction: column; justify-content: center; min-height: 40px;
+  padding: 4px 12px 4px 22px; border-radius: 4px 8px 8px 4px; background: var(--tag-paper);
+  border: 1px solid #e3d9c4; border-left: 4px solid var(--tc); color: var(--ink);
+  font-size: 14.5px; font-weight: 700; line-height: 1.3; text-decoration: none;
+}
+.sm .sm-chip::before { content: ""; position: absolute; left: 7px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%; background: var(--paper); box-shadow: inset 0 0 0 1px #cfc3aa; }
+.sm .sm-chip__jp { font-size: 11.5px; font-weight: 400; color: var(--muted); }
+.sm .sm-chip--link { color: var(--tc); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.sm .sm-chip--link::after { content: "→"; position: absolute; right: 6px; top: 3px; font-size: 11px; text-decoration: none; opacity: .7; }
+.sm .sm-chip--link { padding-right: 20px; }
+.sm .sm-chip--link:hover, .sm .sm-chip--link:focus-visible { background: var(--tc-soft); }
+.sm .sm-map__x { display: flex; justify-content: space-between; margin: 8px 4px 0; font-size: 13px; color: var(--muted); font-weight: 700; }
+.sm .sm-map figcaption { margin-top: 6px; font-size: 14px; color: var(--muted); }
+
+/* 平板以上：左側價位帶＋色帶刻度 */
+@media (min-width: 761px) {
+  .sm .sm-map__frame { grid-template-columns: 34px 1fr; }
+  .sm .sm-map__y { display: flex; flex-direction: column; justify-content: space-between; align-items: center; margin: 0; padding: 14px 0; background: linear-gradient(180deg, #7a5a12, #1f3a5f 45%, #861436); color: #fff; font-size: 12px; font-weight: 700; text-align: center; }
+  .sm .sm-tier { grid-template-columns: 104px 1fr; align-items: center; gap: 12px; padding: 12px 16px; }
+  .sm .sm-tier__label { flex-direction: column; gap: 2px; align-items: flex-start; }
+  .sm .sm-tier__label span { font-size: 12px; }
+  .sm .sm-map__x { margin-left: 34px; padding-left: 120px; }
+}
+/* 價位帶說明 */
+.sm .sm-legend { list-style: none; margin: 12px 0; padding: 0; display: grid; gap: 8px; counter-reset: lg; }
+.sm .sm-legend li { display: grid; grid-template-columns: 96px 1fr; gap: 12px; align-items: start; padding: 10px 14px; border-radius: 10px; background: var(--tc-soft); }
+.sm .sm-legend b { color: var(--tc); }
+.sm .sm-legend span { font-size: 15.5px; }
+
+/* ---------- 依用途 ---------- */
+.sm .sm-uses { display: grid; gap: 14px; margin: 16px 0; }
+@media (min-width: 900px) { .sm-uses { grid-template-columns: 1fr 1fr; } }
+.sm .sm-use { padding: 16px 18px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
+.sm .sm-use h3 { margin: 0 0 4px; font-size: 19px; display: flex; gap: 8px; align-items: center; }
+.sm .sm-use__band { margin: 0 0 6px; font-size: 13.5px; color: var(--crimson); font-weight: 700; }
+.sm .sm-use p { margin: 0 0 10px; font-size: 15.5px; }
+.sm .sm-use__go { min-height: 40px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--navy); background: #fff; color: var(--navy); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.sm .sm-use__go::after { content: " ↓"; }
+.sm .sm-use__go:hover { background: #eef3fa; }
+
+/* ---------- 篩選 ---------- */
+.sm .sm-filter { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+.sm .sm-filter__btn { min-height: 40px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--ink); font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer; }
+.sm .sm-filter__btn[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }
+.sm .sm-filter__status { margin: 4px 0 12px; font-size: 14px; color: var(--muted); }
+
+/* ---------- 介紹卡：貨架 POP 造型 ---------- */
+.sm .sm-cards { display: grid; gap: 16px; }
+@media (min-width: 900px) { .sm-cards { grid-template-columns: 1fr 1fr; } }
+.sm .sm-card { position: relative; display: flex; flex-direction: column; padding: 0 18px 16px; background: #fff; border: 1px solid var(--line); border-top: 8px solid var(--tc); border-radius: 6px 6px var(--radius) var(--radius); box-shadow: var(--shadow); }
+.sm .sm-card[hidden] { display: none; }
+.sm .sm-card:target, .sm-card.is-flash { outline: 3px solid var(--gold); outline-offset: 3px; }
+.sm .sm-card__head { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: start; padding-top: 14px; }
+.sm .sm-card__tier { grid-column: 1 / -1; margin: 0; }
+.sm .sm-card__tier span { display: inline-block; padding: 1px 10px; border-radius: 0 0 6px 6px; margin-top: -14px; background: var(--tc); color: #fff; font-size: 12.5px; font-weight: 700; letter-spacing: .08em; }
+.sm .sm-card__name { margin: 0; font-size: 20px; line-height: 1.4; }
+.sm .sm-card__jp { display: block; font-size: 13px; font-weight: 400; color: var(--muted); font-family: var(--font-ja); }
+.sm .sm-card .map-link { margin-top: 2px; }
+.sm .sm-card__hook { margin: 8px 0 6px; font-weight: 700; color: var(--tc); font-size: 15.5px; }
+.sm .sm-card__facts { margin: 0 0 8px; padding-left: 1.2em; font-size: 15px; }
+.sm .sm-card__facts li { margin: 2px 0; }
+.sm .sm-card__fit { margin: auto 0 8px; padding: 8px 12px; border-radius: 8px; background: var(--tc-soft); font-size: 15px; }
+.sm .sm-card__tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.sm .sm-card__tags li { padding: 1px 10px; border: 1px dashed var(--tc); border-radius: 999px; font-size: 13px; color: var(--tc); font-weight: 700; }
+
+/* ---------- 小技巧：收據造型 ---------- */
+.sm .sm-tips { list-style: none; margin: 14px 0; padding: 18px 18px 22px; display: grid; gap: 14px; background: #fff; border: 1px solid var(--line); border-radius: 6px;
+  -webkit-mask: radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 0 / 16px 100% repeat-x; mask: radial-gradient(circle 6px at 50% 100%, transparent 98%, #000) 0 0 / 16px 100% repeat-x; }
+.sm .sm-tip { display: grid; grid-template-columns: 36px 1fr; gap: 10px; padding-bottom: 14px; border-bottom: 1px dashed var(--line); }
+.sm .sm-tip:last-child { border-bottom: 0; padding-bottom: 0; }
+.sm .sm-tip__ic { font-size: 24px; line-height: 1.3; }
+.sm .sm-tip b { font-size: 16.5px; }
+.sm .sm-tip p { margin: 2px 0 0; font-size: 15.5px; }
+.sm .sm-tip__jp { color: var(--navy); font-size: 14.5px !important; font-weight: 700; }
+.sm .sm-tip__jp span[lang] { font-family: var(--font-ja); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .sm .sm-card.is-flash { animation: sm-flash 1.2s ease; }
+  @keyframes sm-flash { 0% { outline-color: transparent; } 30% { outline-color: var(--gold); } }
+}
+@media print {
+  .sm .sm-filter, .sm-filter__status, .sm-use__go { display: none !important; }
+  .sm .sm-card[hidden] { display: flex !important; }
+  .sm .sm-tips { -webkit-mask: none; mask: none; }
+}
+
+/* 覆蓋 .prose 預設：標題、段落、清單 */
+.sm .sm-card__name { margin: 0; padding: 0; border: 0; font-family: var(--font); }
+.sm .sm-card__tier { margin: 0; }
+.sm .sm-card__head { padding-top: 0; }
+.sm .sm-card__tier span { margin-top: 0; }
+.sm .sm-tier__shelf > li, .sm .sm-card__tags li, .sm .sm-tips li, .sm .sm-legend li { margin: 0; }
+.sm .sm-use h3 { margin: 0 0 4px; padding: 0; border: 0; font-family: var(--font); }
+.sm .sm-tier__label span, .sm .sm-map__x span { margin: 0; }
+
+/* ---------- 標誌版標籤：標誌在上、店名小字在下 ---------- */
+.sm .sm-chip { align-items: flex-start; gap: 3px; padding: 7px 12px 6px 22px; background: #fff; }
+.sm .sm-logo { display: block; height: 32px; width: auto; max-width: 132px; object-fit: contain; object-position: left center; }
+.sm .sm-chip__t { font-size: 11.5px; font-weight: 700; color: var(--muted); line-height: 1.2; }
+.sm .sm-chip__jp { font-size: 10.5px; line-height: 1.2; }
+.sm .sm-chip--link { text-decoration: none; }
+.sm .sm-chip--link .sm-chip__t { color: var(--tc); text-decoration: underline; text-underline-offset: 2px; }
+.sm .sm-chip--link::after { top: 4px; }
+.sm .sm-tier__shelf { align-items: stretch; }
+@media (min-width: 761px) { .sm .sm-logo { height: 38px; max-width: 160px; } }
+.sm .sm-card__logos { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 4px 0 2px; }
+.sm .sm-card__logo { display: block; height: 40px; width: auto; max-width: 170px; object-fit: contain; }
+
+/* ---------- 帶回台灣：檢疫判讀 ---------- */
+.sm .sm-ledger { margin: 16px auto 8px; max-width: 640px; }
+.sm .sm-ledger a { display: block; border-radius: 6px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--line); }
+.sm .sm-ledger img { width: 100%; height: auto; }
+.sm .sm-ledger figcaption { margin-top: 8px; font-size: 14px; color: var(--muted); text-align: center; }
+.sm .sm-qlist { list-style: none; margin: 10px 0 18px; padding: 0; display: grid; gap: 10px; }
+.sm .sm-qlist li { margin: 0; padding: 12px 16px 12px 18px; background: #fff; border: 1px solid var(--line); border-left: 6px solid var(--qc); border-radius: 4px 10px 10px 4px; }
+.sm .sm-qlist li > b { display: block; font-size: 17px; color: var(--ink); }
+.sm .sm-qlist li > span { display: block; font-size: 15.5px; color: var(--muted); }
+.sm .sm-qlist em { font-style: normal; font-weight: 700; color: var(--qt); }
+.sm .sm-qlist [lang="ja"] { font-family: var(--font-ja); color: var(--ink); font-weight: 700; }
+.sm .sm-qlist--no { --qc: #aa242a; --qt: #961c22; }
+.sm .sm-qlist--ask { --qc: #b87a12; --qt: #7c4e00; }
+.sm .sm-qlist--ok { --qc: #26684e; --qt: #1e5840; }
+.sm .sm-fines { display: grid; gap: 10px; margin: 12px 0; }
+@media (min-width: 640px) { .sm .sm-fines { grid-template-columns: repeat(3, 1fr); } }
+.sm .sm-fine { padding: 12px 14px; background: #fff; border: 1px solid var(--line); border-top: 5px solid var(--fc); border-radius: 6px; }
+.sm .sm-fine span { display: block; font-size: 14px; color: var(--muted); }
+.sm .sm-fine b { display: block; font-family: var(--font-serif); font-size: 22px; color: var(--ft); }
+.sm .sm-fine small { font-size: 12.5px; color: var(--muted); }
+.sm .sm-fine--no { --fc: #aa242a; --ft: #961c22; }
+.sm .sm-fine--ask { --fc: #b87a12; --ft: #7c4e00; }
+.sm .sm-limits li { margin: 4px 0; font-size: 15.5px; }
+.sm .sm-steps { list-style: none; margin: 12px 0; padding: 0; counter-reset: st; display: grid; gap: 10px; }
+.sm .sm-steps li { counter-increment: st; position: relative; margin: 0; padding: 12px 16px 12px 58px; background: #fff; border: 1px solid var(--line); border-radius: 10px; }
+.sm .sm-steps li::before { content: counter(st); position: absolute; left: 14px; top: 12px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--navy); color: #fff; font-weight: 800; font-size: 15px; }
+.sm .sm-steps li > b { display: block; font-size: 16.5px; }
+.sm .sm-steps li > span { display: block; font-size: 15.5px; color: var(--muted); }
+@media print { .sm .sm-ledger { break-inside: avoid; } }

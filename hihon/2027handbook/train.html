@@ -15,13 +15,13 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="theme-color" content="#0f1f38">
-<link rel="stylesheet" href="style.css?v=251a4f91">
+<link rel="stylesheet" href="style.css?v=a408881b">
 <noscript><style>.tabs__panel[hidden]{display:block!important}.tabs__list{display:none!important}</style></noscript>
 </head>
 <body>
 <div class="progress" id="progress" aria-hidden="true"></div>
 <a class="skip-link" href="#main">跳到主要內容</a>
-<header class="site-header"><div class="site-header__inner"><a class="brand" href="index.html"><span aria-hidden="true">⛩</span> 赴日旅遊手冊</a><nav id="site-nav" aria-label="主選單"><ul><li><a href="index.html">首頁</a></li><li><a href="rules.html">新制總整理</a></li><li><a href="airport.html">機場流程</a></li><li><a href="train.html" aria-current="page">鐵道搭乘</a></li><li><a href="zoo.html">水族館動物園</a></li><li><a href="anime.html">動漫街</a></li><li><a href="shrine.html">神社參拜</a></li><li><a href="tools.html">工具</a></li><li><a href="trip.html">我的行程 <span class="nav-count" data-fav-count hidden></span></a></li></ul></nav><button class="search-btn" type="button" aria-haspopup="dialog" data-search-open><span aria-hidden="true">🔍</span><span class="search-btn__label">搜尋</span></button><button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="sr-only">選單</span><span class="nav-toggle__bars" aria-hidden="true"></span></button></div></header>
+<header class="site-header"><div class="site-header__inner"><a class="brand" href="index.html"><span aria-hidden="true">⛩</span> 赴日旅遊手冊</a><nav id="site-nav" aria-label="主選單"><ul><li><a href="index.html">首頁</a></li><li><a href="rules.html">新制總整理</a></li><li><a href="airport.html">機場流程</a></li><li><a href="train.html" aria-current="page">鐵道搭乘</a></li><li><a href="zoo.html">水族館動物園</a></li><li><a href="anime.html">動漫街</a></li><li><a href="shrine.html">神社參拜</a></li><li><a href="supermarket.html">超市採買</a></li><li><a href="tools.html">工具</a></li><li><a href="trip.html">我的行程 <span class="nav-count" data-fav-count hidden></span></a></li></ul></nav><button class="search-btn" type="button" aria-haspopup="dialog" data-search-open><span aria-hidden="true">🔍</span><span class="search-btn__label">搜尋</span></button><button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="sr-only">選單</span><span class="nav-toggle__bars" aria-hidden="true"></span></button></div></header>
 
 <!-- ===== Hero ===== -->
 <section class="hero hero--page" aria-labelledby="train-title">
@@ -254,6 +254,8 @@
         <!-- ② 新幹線 -->
         <div class="tabs__panel" role="tabpanel" id="train-shinkansen" aria-labelledby="tab-shinkansen" tabindex="0" hidden>
           <h3 class="tabs__title">② 新幹線專屬規定 <span class="badge badge--soon">重點標示</span></h3>
+<div class="rule" id="shinkansen-map"><div class="rule__head"><h3>🚄 東海道・山陽新幹線：主要站要多久</h3><span class="badge">Nozomi 參考時間</span></div><div class="rule__body"><div class="tm3d" data-tm3d data-three="vendor/three-lite.js" data-src="train-map3d.js?v=d5e1cf3e" hidden><div class="tm3d__stage"><canvas aria-hidden="true"></canvas><div class="tm3d__labels" role="group" aria-label="立體地圖：主要車站"></div><p class="tm3d__info" role="status" aria-live="polite" hidden></p><p class="tm3d__legend" aria-hidden="true"><span class="is-tokaido">東海道新幹線</span><span class="is-sanyo">山陽新幹線</span></p></div><p class="tm3d__hint">拖曳可以旋轉視角；點車站名稱，看從東京出發要多久。</p></div><p class="tline__cap">東京出發，搭 Nozomi（のぞみ）到各站的大約時間：</p><ol class="tline"><li data-st="0" class="tline__st is-major"><b>東京</b><span lang="ja">とうきょう</span><small>起點</small></li><li data-st="1" class="tline__st"><b>品川</b><span lang="ja">しながわ</span><small>約 6 分</small></li><li data-st="2" class="tline__st"><b>新橫濱</b><span lang="ja">しんよこはま</span><small>約 17 分</small></li><li data-st="8" class="tline__st is-major"><b>名古屋</b><span lang="ja">なごや</span><small>約 1 小時 34 分</small></li><li data-st="11" class="tline__st is-major"><b>京都</b><span lang="ja">きょうと</span><small>約 2 小時 08 分</small></li><li data-st="12" class="tline__st is-major"><b>新大阪</b><span lang="ja">しんおおさか</span><small>約 2 小時 22 分</small></li><li data-st="13" class="tline__st is-sanyo"><b>新神戶</b><span lang="ja">しんこうべ</span><small>約 2 小時 36 分</small></li><li data-st="15" class="tline__st is-sanyo"><b>岡山</b><span lang="ja">おかやま</span><small>約 3 小時 09 分</small></li><li data-st="17" class="tline__st is-major is-sanyo"><b>廣島</b><span lang="ja">ひろしま</span><small>約 3 小時 49 分</small></li><li data-st="19" class="tline__st is-sanyo"><b>小倉</b><span lang="ja">こくら</span><small>約 4 小時 35 分</small></li><li data-st="20" class="tline__st is-major is-sanyo"><b>博多</b><span lang="ja">はかた</span><small>約 4 小時 52 分</small></li></ol><ul class="check"><li>時間是 Nozomi 從東京出發的參考值，依車次會差幾分鐘。</li><li><b>東京–新大阪</b>是東海道新幹線（JR 東海），<b>新大阪–博多</b>是山陽新幹線（JR 西日本）。有直通東京–博多的 Nozomi，也有只到新大阪的班次，訂票時看清楚終點站。</li></ul></div></div>
+
 
           <div class="rule">
             <div class="rule__head"><h3>🧳 特大行李規定</h3><span class="badge badge--soon">東海道・山陽・九州新幹線</span></div>
@@ -412,24 +414,14 @@
     <!-- ===== Checklist ===== -->
     <section id="train-checklist" class="reveal">
       <h2><span class="num">02</span>上車前 30 秒檢查清單</h2>
-      <p class="sub">勾選結果只存在這台裝置的瀏覽器。已完成 <span class="check-count" id="train-check-count" role="status">0 / 6</span></p>
-      <div class="checklist-wrap">
-        <div class="checklist train-checklist" id="train-checklist-box">
-          <label><input type="checkbox" data-tkey="ic"><span>IC 卡餘額充足（長距離或轉乘前先儲值）</span></label>
-          <label><input type="checkbox" data-tkey="ticket"><span>搭特急／新幹線：乘車券＋特急券都在手上（或電子票已綁定 IC 卡）</span></label>
-          <label><input type="checkbox" data-tkey="bag"><span>後背包已改成前背或手提</span></label>
-          <label><input type="checkbox" data-tkey="silent"><span>手機已轉靜音（マナーモード）</span></label>
-          <label><input type="checkbox" data-tkey="luggage"><span>新幹線：已確認有無特大行李（160cm 以上）預約</span></label>
-          <label><input type="checkbox" data-tkey="car"><span>確認車廂號碼、自由席／指定席與女性專用車廂標示</span></label>
-        </div>
-        <div class="checklist-foot"><button type="button" class="btn btn--ghost" id="train-check-reset">全部取消勾選</button></div>
-      </div>
-    </section>
+      <p class="sub">搭車前花 30 秒，照順序檢查一遍。</p>
+      <div class="pp tk" data-train-checklist><div class="pp-head tk-head"><div><p class="tk-head__ja" lang="ja">乗車券　台灣 ⇄ 日本　普通列車</p><p class="pp-lead">分成「改札前、月台、上車」三站，共 6 項。每一站全部勾完，車票就會蓋上一枚剪票章。勾選只存在這台裝置的瀏覽器。</p></div><p class="pp-total">已完成 <b class="check-count" id="train-check-count" role="status">0 / 6</b></p></div><div class="pp-route tk-route" aria-hidden="true"><div class="pp-route__bar tk-track"><i data-tcheck-progress></i></div><ol><li data-tstage-node="1"><span></span>改札前</li><li data-tstage-node="2"><span></span>月台</li><li data-tstage-node="3"><span></span>上車</li></ol></div><div class="pp-book tk-book"><fieldset class="pp-page tk-ticket checklist-stage" data-tstage="1" style="--ink: var(--tk-green)"><legend class="pp-page__head"><span class="pp-page__no">第 1 站</span><span class="pp-page__name">改札前</span><span class="tk-ticket__sub">買票・儲值</span><span class="pp-page__count" data-stage-count></span></legend><div class="pp-page__items"><label class="pp-item"><input type="checkbox" data-tkey="ic"><span>IC 卡餘額充足（長距離或轉乘前先儲值）</span></label><label class="pp-item"><input type="checkbox" data-tkey="ticket"><span>搭特急／新幹線：乘車券＋特急券都在手上（或電子票已綁定 IC 卡）</span></label></div><div class="pp-stamp tk-stamp tk-stamp--punch" aria-hidden="true"><small>入鋏</small><b lang="ja">改札済</b><time data-stamp-date></time></div><span class="pp-slot tk-slot" aria-hidden="true">剪票處</span></fieldset><fieldset class="pp-page tk-ticket checklist-stage" data-tstage="2" style="--ink: var(--tk-blue)"><legend class="pp-page__head"><span class="pp-page__no">第 2 站</span><span class="pp-page__name">月台</span><span class="tk-ticket__sub">候車確認</span><span class="pp-page__count" data-stage-count></span></legend><div class="pp-page__items"><label class="pp-item"><input type="checkbox" data-tkey="luggage"><span>新幹線：已確認有無特大行李（160cm 以上）預約</span></label><label class="pp-item"><input type="checkbox" data-tkey="car"><span>確認車廂號碼、自由席／指定席與女性專用車廂標示</span></label></div><div class="pp-stamp tk-stamp tk-stamp--sign" aria-hidden="true"><small>PLATFORM</small><b>月台確認</b><time data-stamp-date></time></div><span class="pp-slot tk-slot" aria-hidden="true">剪票處</span></fieldset><fieldset class="pp-page tk-ticket checklist-stage" data-tstage="3" style="--ink: var(--tk-orange)"><legend class="pp-page__head"><span class="pp-page__no">第 3 站</span><span class="pp-page__name">上車</span><span class="tk-ticket__sub">車廂禮儀</span><span class="pp-page__count" data-stage-count></span></legend><div class="pp-page__items"><label class="pp-item"><input type="checkbox" data-tkey="bag"><span>後背包已改成前背或手提</span></label><label class="pp-item"><input type="checkbox" data-tkey="silent"><span>手機已轉靜音（<span lang="ja">マナーモード</span>）</span></label></div><div class="pp-stamp tk-stamp tk-stamp--go" aria-hidden="true"><small>ALL CLEAR</small><b lang="ja">出発進行</b><time data-stamp-date></time></div><span class="pp-slot tk-slot" aria-hidden="true">剪票處</span></fieldset></div><div class="pp-foot"><button type="button" class="btn btn--ghost" id="train-check-reset">全部取消勾選</button></div></div>
+      </section>
 
     <p class="disclaimer">
       📌 <b>免責聲明：</b>本文資訊整理至 2026 年 10 月，僅供旅遊規劃參考。票價、行李規定與實施時段可能調整，請以 JR 各公司、各地鐵與私鐵業者官方公告為準。
     </p>
-  <nav class="pager" aria-label="章節切換"><a class="pager__link pager__link--prev" href="airport.html"><span>上一章</span>機場流程與四大機場交通指南</a><a class="pager__link pager__link--next" href="zoo.html"><span>下一章</span>日本四地區水族館與動物園指南</a></nav>
+  <nav class="pager" aria-label="章節切換"><a class="pager__link pager__link--prev" href="airport.html"><span>上一章</span>機場流程與六大機場交通指南</a><a class="pager__link pager__link--next" href="zoo.html"><span>下一章</span>日本四地區水族館與動物園指南</a></nav>
 </article>
 </main>
 
@@ -437,9 +429,9 @@
 <a class="to-top" href="#top" aria-label="回到頁首" hidden>↑</a>
 <dialog id="search-dialog" class="search" aria-labelledby="search-title"><div class="search__head"><h2 id="search-title">搜尋全站內容</h2><button type="button" class="search__close" data-search-close aria-label="關閉搜尋">✕</button></div><label class="sr-only" for="search-input">輸入關鍵字</label><input id="search-input" type="search" placeholder="例如：退稅、京都、行動電源、御朱印" autocomplete="off" enterkeyhint="search"><p class="search__hint" id="search-status" role="status" aria-live="polite">輸入關鍵字開始搜尋。可用空白分隔多個詞，快速鍵：/</p><ol class="search__results" id="search-results"></ol></dialog>
 
-<script src="script.js?v=8a9e127a" defer></script>
+<script src="script.js?v=9fe9c87d" defer></script>
 <script src="search.js?v=a5fd0a5f" defer></script>
 <script src="favorites.js?v=8565e0a9" defer></script>
-<script src="train.js?v=3ce11c43" defer></script>
+<script src="train.js?v=9515cf7e" defer></script>
 </body>
 </html>
