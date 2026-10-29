@@ -34,3 +34,4 @@
     card.classList.remove('is-flash'); void card.offsetWidth; card.classList.add('is-flash');
   }));
 })();
+

@@ -127,3 +127,123 @@
   feeInput.addEventListener('input', renderTax);
   renderRows(); renderTax();
 })();
+
+/* ================= 訂房確認信：填資料 → 中文／英文／日文 ================= */
+// 「📌 訂房資訊」由表單帶入；其餘為固定文字（中文為使用者提供的原文，英日文為事先翻譯）
+// 資料只在記憶體中，不寫入 localStorage
+(() => {
+  const form = document.getElementById('hm-form');
+  if (!form) return;
+  const $ = id => document.getElementById(id);
+  const v = id => $(id).value.trim();
+  const status = $('hm-status'), agesBox = $('hm-ages'), agesList = agesBox.querySelector('.hm-ages__list');
+  form.hidden = false; $('hm-actions').hidden = false; $('hm-tabs').hidden = false;
+
+  const ROOM = {
+    single: ['單人房', 'Single room', 'シングルルーム'],
+    double: ['雙人房（一張大床）', 'Double room (one double bed)', 'ダブルルーム'],
+    twin: ['雙床房', 'Twin room (two single beds)', 'ツインルーム'],
+    triple: ['三人房', 'Triple room', 'トリプルルーム'],
+    family: ['家庭房', 'Family room', 'ファミリールーム'],
+    washitsu: ['和室', 'Japanese-style room (washitsu)', '和室']
+  };
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const dZh = s => { if (!s) return 'XXXX年XX月XX日'; const [y, m, d] = s.split('-'); return `${y}年${m}月${d}日`; };
+  const dEn = s => { if (!s) return 'XXXX-XX-XX'; const [y, m, d] = s.split('-'); return `${MONTHS[+m - 1]} ${+d}, ${y}`; };
+  const andList = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+
+  // 兒童人數 → 年齡欄
+  const syncAges = () => {
+    const n = Math.max(0, Math.min(6, parseInt(v('hm-child'), 10) || 0));
+    const old = [...agesList.querySelectorAll('input')].map(i => i.value);
+    agesList.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+      const w = document.createElement('label'); w.className = 'hm-age';
+      w.innerHTML = `<span class="sr-only">第 ${i + 1} 位兒童年齡</span><input type="number" min="0" max="17" inputmode="numeric" placeholder="X" value="${old[i] || ''}"><span aria-hidden="true">歲</span>`;
+      agesList.appendChild(w);
+    }
+    agesBox.hidden = n === 0;
+  };
+
+  const data = () => {
+    const adult = v('hm-adult'), childRaw = v('hm-child');
+    const ages = [...agesList.querySelectorAll('input')].map(i => i.value.trim() || 'X');
+    const r = $('hm-room').value, other = v('hm-room-other');
+    const room = r === 'other' ? [other || 'XXX', other || 'XXX', other || 'XXX'] : (ROOM[r] || ['XXX', 'XXX', 'XXX']);
+    return { name: v('hm-name') || 'XXX', no: v('hm-no') || 'XXXXXXXX', cin: v('hm-in'), cout: v('hm-out'), adult, childRaw, ages, room };
+  };
+
+  const zh = d => {
+    const kids = d.childRaw === '' ? '、X位兒童（年齡：X歲、X歲）' : +d.childRaw === 0 ? '' : `、${d.childRaw}位兒童（年齡：${d.ages.map(a => a + '歲').join('、')}）`;
+    return ['主旨：訂房確認', '', '您好：', '我有透過訂房網站預訂貴飯店的住宿，想確認訂單是否成立，以及相關入住資訊是否正確。', '',
+      '📌 訂房資訊', `* 訂房姓名：${d.name}`, `* 訂房編號：${d.no}`, `* 入住日期：${dZh(d.cin)}`, `* 退房日期：${dZh(d.cout)}`,
+      `* 入住人數：${d.adult || 'X'}位大人${kids}`, `* 預訂房型：${d.room[0]}`, '',
+      '想麻煩您協助確認以下事項：', '1. 訂房是否成功，訂單資料是否正確。', '2. 預訂的房型及床型是否無誤。',
+      '3. 兒童是否可以與大人同床入住？', '   同床入住的年齡限制及相關費用為何？', '4. 其他特殊需求是否有備註（如有）。', '',
+      '再麻煩您協助確認，謝謝！', '期待入住貴飯店，謝謝您的協助。'].join('\n');
+  };
+  const en = d => {
+    const a = d.adult || 'X', adults = `${a} adult${a === '1' ? '' : 's'}`;
+    const n = d.childRaw;
+    const kids = n === '' ? ', X children (ages: X and X)' : +n === 0 ? '' : +n === 1 ? `, 1 child (age: ${d.ages[0]})` : `, ${n} children (ages: ${andList(d.ages)})`;
+    return ['Subject: Reservation Confirmation', '', 'Dear Sir or Madam,',
+      'I have made a reservation at your hotel through a booking website. I would like to confirm that the reservation has been completed and that the details below are correct.', '',
+      '📌 Reservation Details', `* Guest name: ${d.name}`, `* Reservation number: ${d.no}`, `* Check-in date: ${dEn(d.cin)}`, `* Check-out date: ${dEn(d.cout)}`,
+      `* Number of guests: ${adults}${kids}`, `* Room type: ${d.room[1]}`, '',
+      'Could you kindly confirm the following?', '1. Whether the reservation has been completed and all details are correct.', '2. Whether the room type and bed type are correct.',
+      '3. Can children share a bed with adults?', '   If so, what are the age limit and any additional charges?', '4. Whether any special requests have been noted (if any).', '',
+      'Thank you very much for checking.', 'I look forward to staying at your hotel. Thank you for your assistance.'].join('\n');
+  };
+  const ja = d => {
+    const n = d.childRaw;
+    const kids = n === '' ? '、子ども X名（年齢：X歳、X歳）' : +n === 0 ? '' : `、子ども${n}名（年齢：${d.ages.map(a => a + '歳').join('、')}）`;
+    return ['件名：予約確認のお願い', '', 'ご担当者様', '予約サイトを通じて貴ホテルに宿泊の予約をいたしました。予約が成立しているか、また宿泊内容に誤りがないかを確認させていただきたく、ご連絡いたしました。', '',
+      '📌 予約内容', `* 予約者名：${d.name}`, `* 予約番号：${d.no}`, `* チェックイン日：${dZh(d.cin)}`, `* チェックアウト日：${dZh(d.cout)}`,
+      `* 宿泊人数：大人${d.adult || 'X'}名${kids}`, `* 部屋タイプ：${d.room[2]}`, '',
+      'お手数ですが、以下の点についてご確認をお願いいたします。', '1. 予約が成立しているか、予約内容に誤りがないか。', '2. 予約した部屋タイプおよびベッドタイプに誤りがないか。',
+      '3. 子どもは大人と同じベッドで添い寝できますか。', '   添い寝の年齢制限および追加料金はありますか。', '4. その他の特別なリクエストが備考に記載されているか（ある場合）。', '',
+      'ご確認のほど、よろしくお願いいたします。', '貴ホテルでの滞在を楽しみにしております。ご協力ありがとうございます。'].join('\n');
+  };
+
+  const out = { zh: $('hm-letter-zh'), en: $('hm-letter-en'), ja: $('hm-letter-ja') };
+  const build = () => {
+    $('hm-room-other-f').hidden = $('hm-room').value !== 'other';
+    const d = data();
+    out.zh.textContent = zh(d); out.en.textContent = en(d); out.ja.textContent = ja(d);
+    const a = v('hm-in'), b = v('hm-out');
+    if (a && b) { const nights = Math.round((new Date(b) - new Date(a)) / 864e5); status.textContent = nights > 0 ? `共 ${nights} 晚。` : '⚠️ 退房日期要晚於入住日期，請再檢查一次。'; }
+    else status.textContent = '';
+  };
+  form.addEventListener('input', e => { if (e.target.id === 'hm-child') syncAges(); build(); });
+  form.addEventListener('change', build);
+
+  // 語言分頁（方向鍵切換）
+  const tabs = [...document.querySelectorAll('#hm-tabs [role="tab"]')];
+  const show = (i, focus) => {
+    tabs.forEach((t, j) => { const on = i === j; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; $(t.getAttribute('aria-controls')).hidden = !on; });
+    if (focus) tabs[i].focus();
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => show(i));
+    t.addEventListener('keydown', e => {
+      const k = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+      if (k) { e.preventDefault(); show((i + k + tabs.length) % tabs.length, true); }
+    });
+  });
+
+  // 複製：單一語言或中文＋外文
+  const SEP = '\n\n――――――――――\n\n';
+  const LABEL = { zh: '中文', en: '英文', ja: '日文', 'zh+en': '中文＋英文', 'zh+ja': '中文＋日文' };
+  const text = k => k.split('+').map(x => out[x].textContent).join(SEP);
+  document.querySelectorAll('[data-hm-copy]').forEach(b => b.addEventListener('click', async () => {
+    const k = b.dataset.hmCopy, msg = `已複製${LABEL[k]}版本。`;
+    try { await navigator.clipboard.writeText(text(k)); window.toast ? window.toast(msg) : (status.textContent = msg); }
+    catch (_) {
+      const lang = k.split('+').pop(); show(['zh', 'en', 'ja'].indexOf(lang));
+      const r = document.createRange(); r.selectNodeContents(out[lang]); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      status.textContent = '無法自動複製，已幫你選取信件文字，請按「複製」。';
+    }
+  }));
+  $('hm-reset').addEventListener('click', () => { form.reset(); syncAges(); build(); status.textContent = '已清空。'; });
+  syncAges(); build();
+})();

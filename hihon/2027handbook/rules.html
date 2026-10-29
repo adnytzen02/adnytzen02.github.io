@@ -14,13 +14,14 @@
 <script>document.documentElement.classList.add("js")</script>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%E2%9B%A9%3C/text%3E%3C/svg%3E">
 <meta name="theme-color" content="#0f1f38">
-<link rel="stylesheet" href="style.css?v=a408881b">
+<link rel="stylesheet" href="style.css?v=ea4165db">
 </head>
 <body>
 <div class="progress" id="progress" aria-hidden="true"></div>
 <a class="skip-link" href="#main">跳到主要內容</a>
-<header class="site-header"><div class="site-header__inner"><a class="brand" href="index.html"><span aria-hidden="true">⛩</span> 赴日旅遊手冊</a><nav id="site-nav" aria-label="主選單"><ul><li><a href="index.html">首頁</a></li><li><a href="rules.html" aria-current="page">新制總整理</a></li><li><a href="airport.html">機場流程</a></li><li><a href="train.html">鐵道搭乘</a></li><li><a href="zoo.html">水族館動物園</a></li><li><a href="anime.html">動漫街</a></li><li><a href="shrine.html">神社參拜</a></li><li><a href="supermarket.html">超市採買</a></li><li><a href="tools.html">工具</a></li><li><a href="trip.html">我的行程 <span class="nav-count" data-fav-count hidden></span></a></li></ul></nav><button class="search-btn" type="button" aria-haspopup="dialog" data-search-open><span aria-hidden="true">🔍</span><span class="search-btn__label">搜尋</span></button><button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="sr-only">選單</span><span class="nav-toggle__bars" aria-hidden="true"></span></button></div></header>
+<header class="site-header"><div class="site-header__inner"><a class="brand" href="index.html"><span aria-hidden="true">⛩</span> 赴日旅遊手冊</a><nav id="site-nav" aria-label="主選單"><ul><li><a href="index.html">首頁</a></li><li><a href="rules.html" aria-current="page">新制總整理</a></li><li><a href="airport.html">機場流程</a></li><li><a href="train.html">鐵道搭乘</a></li><li><a href="zoo.html">水族館動物園</a></li><li><a href="anime.html">動漫街</a></li><li><a href="shrine.html">神社參拜</a></li><li><a href="supermarket.html">超市採買</a></li><li><a href="tools.html">工具</a></li><li><a href="trip.html">我的行程 <span class="nav-count" data-fav-count hidden></span></a></li></ul></nav><button class="search-btn" type="button" aria-haspopup="dialog" aria-label="搜尋" data-search-open><span aria-hidden="true">🔍</span><span class="search-btn__label">搜尋</span></button><button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="sr-only">選單</span><span class="nav-toggle__bars" aria-hidden="true"></span></button></div></header>
 
 <!-- ===== Hero ===== -->
 <section class="hero hero--page hero--image" aria-labelledby="rules-title">
@@ -172,7 +173,7 @@
     <section id="powerbank" class="reveal">
       <h2><span class="num">04</span>行動電源新規：機上不能充電</h2>
       <p class="sub">日本國土交通省 2026/4/24 起適用，日本出發／抵達的國內線與國際線皆適用。</p>
-      <div class="table-wrap">
+      <div class="table-wrap" tabindex="0" role="region" aria-label="行動電源新規（可左右捲動）">
         <table>
           <thead><tr><th style="width:30%">項目</th><th>規定</th></tr></thead>
           <tbody>
@@ -196,7 +197,7 @@
       <p class="sub">住宿稅通常<b>不含在訂房網站的房價內</b>，入住或退房時在櫃檯以現金／信用卡另付。</p>
 
       <h3>京都市（2026/3/1 起，每人每晚）</h3>
-      <div class="table-wrap">
+      <div class="table-wrap" tabindex="0" role="region" aria-label="京都市住宿稅（可左右捲動）">
         <table>
           <thead><tr><th>每人每晚房價（未稅）</th><th>住宿稅</th></tr></thead>
           <tbody>
@@ -210,7 +211,7 @@
       </div>
 
       <h3>其他地區一覽</h3>
-      <div class="table-wrap">
+      <div class="table-wrap" tabindex="0" role="region" aria-label="其他地區住宿稅一覽（可左右捲動）">
         <table>
           <thead><tr><th style="width:24%">地區</th><th style="width:22%">實施時間</th><th>重點</th></tr></thead>
           <tbody>
@@ -233,7 +234,7 @@
     <section id="attractions" class="reveal">
       <h2><span class="num">06</span>景點雙重價格・富士山入山費</h2>
       <p class="sub">「居民價」與「觀光客價」分開，是近年日本對抗過度觀光的新趨勢。</p>
-      <div class="table-wrap">
+      <div class="table-wrap" tabindex="0" role="region" aria-label="景點雙重價格・富士山入山費（可左右捲動）">
         <table>
           <thead><tr><th style="width:24%">景點</th><th style="width:22%">時間</th><th>內容</th></tr></thead>
           <tbody>
@@ -313,8 +314,7 @@
   </article>
 </main>
 
-<footer><p>© 2026 赴日旅遊手冊｜資料整理至 2026 年 10 月，僅供旅遊規劃參考。</p><p>營業時間、票價與各項規定可能調整，出發前請以官方公告為準。</p></footer>
-<a class="to-top" href="#top" aria-label="回到頁首" hidden>↑</a>
+<footer><p>© 2026 赴日旅遊手冊｜資料整理至 2026 年 10 月，僅供旅遊規劃參考。</p><p>營業時間、票價與各項規定可能調整，出發前請以官方公告為準。</p><a class="to-top" href="#top" aria-label="回到頁首" hidden>↑</a></footer>
 <dialog id="search-dialog" class="search" aria-labelledby="search-title"><div class="search__head"><h2 id="search-title">搜尋全站內容</h2><button type="button" class="search__close" data-search-close aria-label="關閉搜尋">✕</button></div><label class="sr-only" for="search-input">輸入關鍵字</label><input id="search-input" type="search" placeholder="例如：退稅、京都、行動電源、御朱印" autocomplete="off" enterkeyhint="search"><p class="search__hint" id="search-status" role="status" aria-live="polite">輸入關鍵字開始搜尋。可用空白分隔多個詞，快速鍵：/</p><ol class="search__results" id="search-results"></ol></dialog>
 
 <script src="script.js?v=9fe9c87d" defer></script>

@@ -1,4 +1,4 @@
 本資料夾為網站使用的第三方函式庫（已隨網站一併提供，離線可用）。
 - Lenis 1.3.27（慣性平滑滾動，首頁）：MIT
-- three.js r169（three-lite.js：只含鐵道頁立體地圖用到的類別，桌機才載入）：MIT，Copyright © 2010-2024 three.js authors
+- three.js r169（three-lite.js：只含鐵道頁立體地圖、動漫頁一番賞販賣機用到的類別，需要時才載入）：MIT，Copyright © 2010-2024 three.js authors
 首頁開場動畫（home.js）為本站自行撰寫，未使用其他動畫函式庫。

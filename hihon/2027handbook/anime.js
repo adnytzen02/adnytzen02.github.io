@@ -1,4 +1,4 @@
-// 動漫街導覽：招牌點燈、街區路線列、店家篩選、複製日文店名、會話大字卡
+// 動漫街導覽：光暈邊框卡片、招牌點亮、街區路線列、店家篩選、複製日文店名、會話大字卡（頁首動畫見 seasons.js）
 // 一般 defer 腳本（不用 type="module"），直接打開本機檔案也能執行
 (() => {
 'use strict';
@@ -25,6 +25,26 @@ else {
   }, { threshold: .3 });
   const box = $('.ak-signs'); if (box) io.observe(box);
 }
+
+// ---------- 光暈邊框卡片：游標相對每張卡片的座標 → --x、--y ----------
+// 同一排的每張卡都更新，所以光團跨到相鄰卡片時，鄰卡邊緣也會被微微點亮
+$$('.ak-spot').forEach(row => {
+  if (reduce) return;
+  const cards = [...row.children];
+  let raf = 0, px = 0, py = 0;
+  const paint = () => {
+    raf = 0;
+    cards.forEach(c => { const r = c.getBoundingClientRect(); c.style.setProperty('--x', (px - r.left) + 'px'); c.style.setProperty('--y', (py - r.top) + 'px'); });
+  };
+  row.addEventListener('pointermove', e => {
+    if (e.pointerType === 'touch') return;                 // 觸控不做跟隨光
+    px = e.clientX; py = e.clientY; row.classList.add('is-spot');
+    if (!raf) raf = requestAnimationFrame(paint);
+  }, { passive: true });
+  row.addEventListener('pointerleave', () => row.classList.remove('is-spot'));
+});
+
+// 頁首的銀杏並木在 seasons.js（與神社頁共用）
 
 // ---------- 路線列：目前所在的街區 ----------
 const lineLinks = $$('[data-line]');

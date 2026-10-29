@@ -14,14 +14,15 @@
 <script>document.documentElement.classList.add("js")</script>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%E2%9B%A9%3C/text%3E%3C/svg%3E">
 <meta name="theme-color" content="#0f1f38">
-<link rel="stylesheet" href="style.css?v=a408881b">
+<link rel="stylesheet" href="style.css?v=ea4165db">
 <noscript><style>.tabs__panel[hidden]{display:block!important}.tabs__list{display:none!important}</style></noscript>
 </head>
 <body>
 <div class="progress" id="progress" aria-hidden="true"></div>
 <a class="skip-link" href="#main">跳到主要內容</a>
-<header class="site-header"><div class="site-header__inner"><a class="brand" href="index.html"><span aria-hidden="true">⛩</span> 赴日旅遊手冊</a><nav id="site-nav" aria-label="主選單"><ul><li><a href="index.html">首頁</a></li><li><a href="rules.html">新制總整理</a></li><li><a href="airport.html">機場流程</a></li><li><a href="train.html" aria-current="page">鐵道搭乘</a></li><li><a href="zoo.html">水族館動物園</a></li><li><a href="anime.html">動漫街</a></li><li><a href="shrine.html">神社參拜</a></li><li><a href="supermarket.html">超市採買</a></li><li><a href="tools.html">工具</a></li><li><a href="trip.html">我的行程 <span class="nav-count" data-fav-count hidden></span></a></li></ul></nav><button class="search-btn" type="button" aria-haspopup="dialog" data-search-open><span aria-hidden="true">🔍</span><span class="search-btn__label">搜尋</span></button><button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="sr-only">選單</span><span class="nav-toggle__bars" aria-hidden="true"></span></button></div></header>
+<header class="site-header"><div class="site-header__inner"><a class="brand" href="index.html"><span aria-hidden="true">⛩</span> 赴日旅遊手冊</a><nav id="site-nav" aria-label="主選單"><ul><li><a href="index.html">首頁</a></li><li><a href="rules.html">新制總整理</a></li><li><a href="airport.html">機場流程</a></li><li><a href="train.html" aria-current="page">鐵道搭乘</a></li><li><a href="zoo.html">水族館動物園</a></li><li><a href="anime.html">動漫街</a></li><li><a href="shrine.html">神社參拜</a></li><li><a href="supermarket.html">超市採買</a></li><li><a href="tools.html">工具</a></li><li><a href="trip.html">我的行程 <span class="nav-count" data-fav-count hidden></span></a></li></ul></nav><button class="search-btn" type="button" aria-haspopup="dialog" aria-label="搜尋" data-search-open><span aria-hidden="true">🔍</span><span class="search-btn__label">搜尋</span></button><button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="sr-only">選單</span><span class="nav-toggle__bars" aria-hidden="true"></span></button></div></header>
 
 <!-- ===== Hero ===== -->
 <section class="hero hero--page" aria-labelledby="train-title">
@@ -103,7 +104,7 @@
                 <li><b>跨區不能直接刷</b>：例如 JR 東日本與 JR 東海的交界，用 IC 卡從東京一路刷到靜岡以西可能出不了站，長途請改買紙本票。</li>
                 <li><b>日本車票的邏輯＝「乘車券」＋「附加券」</b>：乘車券付的是距離；搭特急、新幹線、綠色車廂時要再加買<b>特急券／綠色券</b>。</li>
               </ul>
-              <div class="table-wrap">
+              <div class="table-wrap" tabindex="0" role="region" aria-label="三大系統差異比較表（可左右捲動）">
                 <table>
                   <thead><tr><th style="width:30%">搭乘列車</th><th>需要的票</th></tr></thead>
                   <tbody>
@@ -334,7 +335,7 @@
           <details class="acc">
             <summary>🚺 女性專用車廂（女性専用車両）</summary>
             <div>
-              <div class="table-wrap">
+              <div class="table-wrap" tabindex="0" role="region" aria-label="車廂禮儀比較表（可左右捲動）">
                 <table>
                   <thead><tr><th style="width:28%">項目</th><th>說明</th></tr></thead>
                   <tbody>
@@ -425,8 +426,7 @@
 </article>
 </main>
 
-<footer><p>© 2026 赴日旅遊手冊｜資料整理至 2026 年 10 月，僅供旅遊規劃參考。</p><p>營業時間、票價與各項規定可能調整，出發前請以官方公告為準。</p></footer>
-<a class="to-top" href="#top" aria-label="回到頁首" hidden>↑</a>
+<footer><p>© 2026 赴日旅遊手冊｜資料整理至 2026 年 10 月，僅供旅遊規劃參考。</p><p>營業時間、票價與各項規定可能調整，出發前請以官方公告為準。</p><a class="to-top" href="#top" aria-label="回到頁首" hidden>↑</a></footer>
 <dialog id="search-dialog" class="search" aria-labelledby="search-title"><div class="search__head"><h2 id="search-title">搜尋全站內容</h2><button type="button" class="search__close" data-search-close aria-label="關閉搜尋">✕</button></div><label class="sr-only" for="search-input">輸入關鍵字</label><input id="search-input" type="search" placeholder="例如：退稅、京都、行動電源、御朱印" autocomplete="off" enterkeyhint="search"><p class="search__hint" id="search-status" role="status" aria-live="polite">輸入關鍵字開始搜尋。可用空白分隔多個詞，快速鍵：/</p><ol class="search__results" id="search-results"></ol></dialog>
 
 <script src="script.js?v=9fe9c87d" defer></script>

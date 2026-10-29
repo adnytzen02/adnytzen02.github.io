@@ -125,7 +125,7 @@ article h3 { font-size: 19px; color: var(--navy); margin: 28px 0 10px; }
   display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px;
   border-radius: 999px; letter-spacing: .05em; vertical-align: middle; white-space: nowrap;
 }
-.badge--live { background: var(--green-soft); color: var(--green); }
+.badge--live { background: var(--green-soft); color: #256b4c; }
 .badge--soon { background: var(--crimson-soft); color: var(--crimson); }
 .badge--plan { background: var(--gold-soft); color: #8a6d12; }
 
@@ -587,6 +587,8 @@ button.btn.btn--ghost { border: 1px solid var(--navy); }
 .nav-toggle[aria-expanded="true"] .nav-toggle__bars::before { transform: translateY(6px) rotate(45deg); }
 .nav-toggle[aria-expanded="true"] .nav-toggle__bars::after { transform: translateY(-6px) rotate(-45deg); }
 
+/* 導覽列 10 項：桌機縮小左右留白，避免溢出（含收藏數字徽章） */
+@media (min-width: 1200px) { .site-header nav a { padding-left: 8px; padding-right: 8px; } }
 /* 導覽列 10 項，1200px 以下改用漢堡選單 */
 @media (max-width: 1199px) {
   .js .nav-toggle { display: grid; }
@@ -815,6 +817,7 @@ html.lenis, html.lenis body { height: auto; }
 .arrive.is-landed .reveal-step:nth-of-type(2) { transition-delay: .38s; }
 .arrive.is-landed .reveal-step:nth-of-type(3) { transition-delay: .5s; }
 .arrive.is-landed .reveal-step:nth-of-type(4) { transition-delay: .62s; }
+.arrive.is-landed .reveal-step:nth-of-type(5) { transition-delay: .74s; }
 
 /* --- 手機：地圖在上、文字在下（--map-h 由 home.js 設定；無 JS 時為 0） --- */
 @media (max-width: 899px) {
@@ -943,7 +946,7 @@ html.lenis, html.lenis body { height: auto; }
   --ap-amber: #ffb52e;     /* 看板琥珀色字 */
   --ap-ok: #7fe08a;        /* 看板綠字（報到中、登機中） */
   --ap-alert: #ff7a6b;     /* 看板紅字（更換登機門） */
-  --ap-go: #1f8a4c;        /* 海關綠色通道 */
+  --ap-go: #17733f;        /* 海關綠色通道（加深以符合對比） */
   --ap-stop: #c7372f;      /* 海關紅色通道 */
 }
 .ap-intro { font-size: 17px; }
@@ -1041,7 +1044,7 @@ html.lenis, html.lenis body { height: auto; }
 .ap-lane small { font-size: 12.5px; color: #c9d3e3; }
 .ap-lane em { margin-top: 6px; font-style: normal; font-size: 13px; font-weight: 700; color: var(--ap-sign-fg); }
 .ap-lane.is-pick { box-shadow: 0 0 0 3px var(--ap-sign-fg); }
-.ap-lane:not(.is-pick) { opacity: .6; }
+.ap-lane:not(.is-pick) { background: #3d475c; }   /* 非本人通道：以較淺底色區分，不用透明度（維持文字對比） */
 .ap-flow { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 12px; padding: 0; counter-reset: f; }
 .ap-flow li { counter-increment: f; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); font-size: 14.5px; }
 .ap-flow li::before { content: counter(f); display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--crimson); color: var(--card); font-size: 12px; font-weight: 800; }
@@ -1081,7 +1084,7 @@ html.lenis, html.lenis body { height: auto; }
   padding: 12px 6px; border-bottom: 1px solid var(--line);
 }
 .ap-route__kind { justify-self: start; padding: 2px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 700; background: #eaf0f8; color: var(--navy); }
-.ap-route__kind--bus { background: var(--green-soft); color: var(--green); }
+.ap-route__kind--bus { background: var(--green-soft); color: #256b4c; }
 .ap-route__kind--ship, .ap-route__kind--taxi { background: var(--gold-soft); color: #7a5d0c; }
 .ap-route__name { color: var(--navy); }
 .ap-route__time, .ap-route__price { font-variant-numeric: tabular-nums; }
@@ -1880,3 +1883,73 @@ html.lenis, html.lenis body { height: auto; }
 .tm3d.is-failed .tm3d__stage::after { content: "這台裝置無法顯示立體地圖，請看下方車站清單。"; }
 .tm3d.is-loading .tm3d__hint, .tm3d.is-failed .tm3d__hint, .tm3d.is-loading .tm3d__legend, .tm3d.is-failed .tm3d__legend { visibility: hidden; }
 @media print { .tm3d { display: none !important; } }
+
+/* 首頁開場四句：每句一行；空間不夠時只在逗號後換行 */
+.arrive__verse { margin-bottom: 18px; }
+.arrive__verse + .arrive__verse { margin-bottom: 28px; }
+.arrive__ln { display: block; }
+.arrive__ln > span { display: inline-block; }
+
+/* 外觀同 h5、語意為 h4（機場頁） */
+.prose h4.h5-look { font-size: 16px; margin: 22px 0 6px; color: var(--crimson); }
+.table-wrap:focus-visible { outline: 3px solid #3d6bff; outline-offset: 2px; }
+
+/* ===== 工具頁：訂房確認信 ===== */
+.hm-checks { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 6px; }
+.hm-checks li { margin: 0; padding: 10px 14px; border-radius: 10px; background: var(--green-soft); font-weight: 700; color: #1f4f3a; }
+.hm-note { margin: 0 0 18px; padding: 14px 16px; border-left: 4px solid var(--gold); background: var(--gold-soft); border-radius: 0 10px 10px 0; font-size: 15.5px; }
+.hm-note p { margin: 0; }
+.hm-note p + p { margin-top: 10px; }
+.hm-form { margin: 0 0 14px; }
+.hm-form__lead { margin: 0 0 10px; font-size: 14.5px; color: var(--muted); }
+.hm-grid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .hm-grid { grid-template-columns: 1fr 1fr; } .hm-wide, .hm-ages { grid-column: 1 / -1; } }
+.hm-grid .field { margin: 0; display: grid; gap: 4px; }
+.hm-grid label, .hm-ages__label { font-size: 14px; font-weight: 700; color: var(--navy); }
+.hm-grid input, .hm-grid textarea, .hm-grid select { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; font: inherit; font-size: 16px; background: #fff; color: var(--ink); }
+.hm-grid textarea { resize: vertical; }
+.hm-grid input:focus-visible, .hm-grid textarea:focus-visible, .hm-grid select:focus-visible { outline: 3px solid #3d6bff; outline-offset: 1px; }
+.hm-ages[hidden] { display: none; }
+.hm-ages__list { display: flex; flex-wrap: wrap; gap: 8px; }
+.hm-age { display: inline-flex; align-items: center; gap: 6px; }
+.hm-age input { width: 80px; }
+.hm-status { min-height: 1.5em; margin: 8px 0 0; font-size: 14px; color: var(--navy); font-weight: 700; }
+.hm-letter { border: 1px solid var(--line); border-radius: 12px; background: #fffdf8; box-shadow: inset 0 0 0 6px #fff; overflow: hidden; }
+.hm-letter__title { margin: 0; padding: 10px 16px; background: var(--navy); color: #fff; font-weight: 700; font-size: 15px; }
+.hm-letter__body { margin: 0; padding: 16px; white-space: pre-wrap; word-break: break-word; font: inherit; font-size: 15.5px; line-height: 1.9; color: var(--ink);
+  background-image: repeating-linear-gradient(transparent 0 calc(1.9em - 1px), #efe8da calc(1.9em - 1px) 1.9em); background-position: 0 16px; }
+.hm-letter__body:focus-visible { outline: 3px solid #3d6bff; outline-offset: -3px; }
+.hm-hint { margin: 10px 0 0; font-size: 15px; color: var(--muted); }
+.hm-actions { display: grid; gap: 8px; margin-top: 12px; }
+.hm-actions__row { display: flex; flex-wrap: wrap; gap: 8px; }
+.hm-actions[hidden], .hm-tabs[hidden] { display: none; }
+@media print { .hm-form, .hm-actions, .hm-hint { display: none !important; } }
+.hm-grid [hidden] { display: none; }
+.hm-tabs { display: flex; gap: 6px; margin: 0 0 -1px; }
+.hm-tabs [role="tab"] { min-height: 44px; padding: 8px 16px; border: 1px solid var(--line); border-bottom: 0; border-radius: 10px 10px 0 0; background: #f3efe6; color: var(--ink); font: inherit; font-weight: 700; cursor: pointer; }
+.hm-tabs [role="tab"][aria-selected="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }
+.hm-tabs [role="tab"]:focus-visible { outline: 3px solid #3d6bff; outline-offset: 2px; }
+.hm-tabs:not([hidden]) + .hm-letter, .hm-tabs:not([hidden]) ~ .hm-letter { border-top-left-radius: 0; }
+.hm-letter[hidden] { display: none; }
+
+/* ===== 插畫頁首（seasons.js）：動漫頁＝平面海報風、神社頁＝木版畫風；少量飄落 ===== */
+.scene-fx { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.scene-art { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.scene-fall { position: absolute; top: -40px; display: block; animation-name: scene-fall, scene-sway; animation-timing-function: linear, ease-in-out; animation-iteration-count: infinite, infinite; animation-direction: normal, alternate; will-change: transform; }
+.scene-fall svg { display: block; width: 100%; height: 100%; overflow: visible; }
+@keyframes scene-fall { from { translate: 0 0; } to { translate: var(--drift, -80px) 120vh; } }
+@keyframes scene-sway { from { rotate: -35deg; scale: 1 1; } to { rotate: 40deg; scale: .55 1; } }
+@media (prefers-reduced-motion: reduce) { .scene-fall { display: none; } }
+.hero--scene { min-height: clamp(440px, 64vh, 640px); background: #1f3a5f; }
+.hero--scene::before { z-index: 1; display: block; }
+.hero--scene.has-scene::before { background: linear-gradient(90deg, rgba(15,31,56,.92) 0%, rgba(15,31,56,.72) 36%, rgba(15,31,56,0) 62%); }
+@media (max-width: 640px) { .hero--scene.has-scene::before { background: rgba(15,31,56,.66); } }
+.hero--scene .hero__inner { z-index: 2; }
+.hero--scene .hero__lead { text-shadow: 0 1px 8px rgba(0,0,0,.5); }
+@media print { .scene-fx { display: none; } .hero--scene { min-height: 0; } }
+
+/* 神社頁：櫻花參道頁首（shrine-hero.js 繪製白天／夜晚與花吹雪轉場） */
+.hero--sakura { min-height: clamp(460px, 70vh, 700px); background: linear-gradient(90deg, #3a1428, #6a2a48 60%, #f3c3d2); }
+.hero--sakura .scene-cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero--sakura.has-scene::before { display: none; }
+.hero--sakura h1 { text-shadow: 0 2px 16px rgba(0,0,0,.45); }

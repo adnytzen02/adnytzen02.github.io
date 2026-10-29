@@ -167,3 +167,4 @@
 .sm .sm-steps li > b { display: block; font-size: 16.5px; }
 .sm .sm-steps li > span { display: block; font-size: 15.5px; color: var(--muted); }
 @media print { .sm .sm-ledger { break-inside: avoid; } }
+
