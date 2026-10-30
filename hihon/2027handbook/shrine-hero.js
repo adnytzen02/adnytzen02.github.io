@@ -5,7 +5,7 @@
 // 頁首撐滿視窗（扣除網站標頭）；canvas 固定絕對定位且限制像素量，避免「canvas 撐大頁首 → 再放大 canvas」的記憶體暴增迴圈
 // 一般 <script>（defer）載入，three.js 以動態 import 從 CDN 取得；載入失敗或不支援 WebGL 時保留漸層底圖
 // 「減少動態效果」時只畫一張白天靜止畫面；動畫可用右下角按鈕暫停
-// 進站時只顯示滿版的靜態文字畫面（寫在 shrine.html，樣式在 shrine-hero.css）（文字定格晃動；轉場完成前鎖住頁面捲動）（不載入 three.js、不建立 WebGL）；轉動滾輪／按鍵／輕滑／點按鈕後，
+// 進站時只顯示滿版的靜態文字畫面（寫在 shrine.html，樣式在 shrine-hero.css；轉場時以櫻花液體填充圖示顯示載入進度；網站導覽列到 PART 1 才出現）（文字定格晃動；轉場完成前鎖住頁面捲動）（不載入 three.js、不建立 WebGL）；轉動滾輪／按鍵／輕滑／點按鈕後，
 // 文字化作花瓣隱約散開，同時在背後載入動畫，兩者都完成後才淡出進站畫面、露出動畫頁首（頁面不會被捲動）
 (() => {
 'use strict';
@@ -32,8 +32,6 @@ const setHeroHeight = () => {
   heroTarget = h; hero.style.setProperty('--sakura-h', h + 'px');
 };
 setHeroHeight(); addEventListener('resize', setHeroHeight, { passive: true });
-const scrim = document.createElement('div'); scrim.className = 'scene-scrim';
-box.append(scrim);
 hero.dataset.scene = 'day';
 
 // ======== 進站畫面：先只顯示靜態文字；一定要轉動滾輪進入動畫頁首後，才能往下看到內容 ========
@@ -50,10 +48,10 @@ intro = document.createElement('div');
 intro.className = 'scene-intro';
 intro.innerHTML = `<div class="scene-intro__body">
   <span class="eyebrow" aria-hidden="true">${sm('SHRINES & TEMPLES', .7).replace('&', '&amp;')}</span>
-  <span class="scene-intro__title" aria-hidden="true">${sm('櫻花參道', 1.6, '參道')}</span>
-  <span class="scene-intro__lead" aria-hidden="true">${sm('一陣風吹過花隧道，白晝便化作夜櫻。', .8)}</span>
+  <span class="scene-intro__title" aria-hidden="true">${sm('神社參拜', 1.6, '參拜')}</span>
+  <span class="scene-intro__lead" aria-hidden="true">${sm('先學會參拜禮儀，再挑想去的神社與寺廟。', .8)}</span>
 </div>
-<span class="scene-intro__wait" aria-hidden="true">櫻花綻放中…</span>`;
+`;
 hero.append(intro);
 }
 
@@ -102,26 +100,68 @@ function unlock() {
   removeEventListener('touchmove', onTouchMove); removeEventListener('scroll', onScroll); removeEventListener('hashchange', onHash);
   document.removeEventListener('focusin', onFocus);
   if ('scrollRestoration' in history) history.scrollRestoration = 'auto';
+  navUpdate();
   const h = location.hash || savedHash;                                         // 網址帶 #錨點：進入後再捲過去
   const el = h && document.getElementById(decodeURIComponent(h.slice(1)));
-  if (el) requestAnimationFrame(() => el.scrollIntoView());
+  if (el) requestAnimationFrame(() => { el.scrollIntoView(); navUpdate(); });
 }
+
+// ---- 載入動畫：櫻花液體填充圖示 ----
+// 動畫在背景載入時，液面用 GSAP 慢慢升到 90%（數字同步）；載入完成再補滿到 100%，才進入頁首
+// 沒有 GSAP（離線或載入失敗）時改用 requestAnimationFrame 做同樣的補間
+const loader = (() => {
+  const el = intro.querySelector('.lf');
+  if (!el) return { start() {}, complete(cb) { cb(); } };
+  const levels = el.querySelectorAll('.lf__level'), nums = el.querySelectorAll('.lf__num');
+  const st = { p: 0 }, Y0 = 182, Y1 = 18;                      // 液面 y：205＝空、-14＝滿（含波浪高度）
+  const render = () => {
+    const y = Y0 + (Y1 - Y0) * st.p, pct = Math.round(st.p * 100) + '%';
+    if (window.gsap) gsap.set(levels, { y }); else levels.forEach(g => g.setAttribute('transform', `translate(0 ${y})`));
+    nums.forEach(n => { n.textContent = pct; });
+    el.setAttribute('aria-valuenow', Math.round(st.p * 100));
+  };
+  let tw = null;
+  const tween = (to, dur, ease, done) => {
+    if (tw) tw.kill();
+    if (window.gsap) { tw = gsap.to(st, { p: to, duration: dur, ease, onUpdate: render, onComplete: done }); return; }
+    const from = st.p, t0 = performance.now(); let alive = true;   // 備用補間（ease-out）
+    tw = { kill() { alive = false; } };
+    const step = now => { if (!alive) return; const k = Math.max(0, Math.min(1, (now - t0) / (dur * 1000))); st.p = from + (to - from) * (1 - (1 - k) ** 2); render(); if (k < 1) requestAnimationFrame(step); else if (done) done(); };
+    requestAnimationFrame(step);
+  };
+  if (window.gsap) gsap.set(levels, { y: Y0 });
+  return {
+    start() { tween(.9, reduce ? .8 : 3.2, 'power1.out'); },
+    complete(cb) { tween(1, reduce ? .2 : .7, 'power2.inOut', () => setTimeout(cb, reduce ? 0 : 280)); },
+  };
+})();
+
+// ---- 網站導覽列：進站畫面與 3D 頁首時藏起來，捲到 PART 1 才出現 ----
+const part1 = document.getElementById('chapter-start') || document.querySelector('article h2');
+const navUpdate = () => {
+  const navOpen = document.querySelector('#site-nav.is-open');
+  const show = !locked && (navOpen || (part1 ? part1.getBoundingClientRect().top < innerHeight * .6 : scrollY > hero.offsetHeight * .6));
+  root.classList.toggle('sh-nav-hidden', !show);
+};
+addEventListener('scroll', navUpdate, { passive: true });
+addEventListener('resize', navUpdate, { passive: true });
 
 function begin() {
   if (begun) return; begun = true;
   const hadFocus = intro.contains(document.activeElement);
   hero.classList.add('intro-leaving');
   // 花瓣散完、動畫也準備好了，才淡出進站畫面（避免先露出空白底圖）
-  let scattered = false, ready = false, finished = false;
+  let scattered = false, ready = false, filled = false, finished = false;
+  loader.start();
   const finish = () => {
-    if (finished || !scattered || !ready) return; finished = true;
+    if (finished || !scattered || !filled) return; finished = true;
     hero.classList.add('intro-done');
     unlock();                                                                   // 進入動畫頁首後才能往下捲
-    if (hadFocus) { const h1 = hero.querySelector('h1'); if (h1) { h1.tabIndex = -1; h1.focus({ preventScroll: true }); } }
+    if (hadFocus) { const h1 = document.getElementById('page-title'); if (h1) { h1.tabIndex = -1; h1.focus({ preventScroll: true }); } }
     setTimeout(() => intro.remove(), 1000);
   };
   scatter(() => { scattered = true; scatterDone(); finish(); });
-  const markReady = () => { ready = true; finish(); };
+  const markReady = () => { if (ready) return; ready = true; loader.complete(() => { filled = true; finish(); }); };
   if (hero.classList.contains('is-ready')) markReady();
   else {
     const mo = new MutationObserver(() => { if (hero.classList.contains('is-ready')) { mo.disconnect(); markReady(); } });
@@ -141,8 +181,8 @@ function scatter(done) {
   c.width = Math.max(1, Math.round(r.width * dpr)); c.height = Math.max(1, Math.round(r.height * dpr));
   intro.append(c);
   const g = c.getContext('2d'); g.scale(dpr, dpr);
-  const cs = getComputedStyle(root), v = (n, f) => cs.getPropertyValue(n).trim() || f;   // 花瓣顏色取自網站主題色
-  const cols = [v('--gold-soft', '#fbf4df'), v('--crimson-soft', '#fbeceb'), v('--gold', '#c9a227'), '#ffffff', v('--crimson-soft', '#fbeceb'), v('--gold-soft', '#fbf4df')];
+  const cs = getComputedStyle(hero), v = (n, f) => cs.getPropertyValue(n).trim() || f;   // 花瓣顏色取自神社頁的配色（朱、松葉、金）
+  const cols = [v('--sh-shu', '#c4531f'), v('--sh-matsu', '#2d6a5a'), v('--sh-gold', '#d9a43a'), v('--sh-shu-ink', '#a8401a'), v('--sh-matsu-ink', '#25594b'), v('--sh-shu', '#c4531f')];
   const src = [...intro.querySelectorAll('.scene-intro__title,.scene-intro__lead,.scene-intro .eyebrow')].map(el => el.getBoundingClientRect());
   const cx = r.width / 2, cy = r.height * .45, P = [];
   const n = r.width < 640 ? 70 : 130;
@@ -190,7 +230,7 @@ let renderer;
 try { renderer = new T.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }); } catch (e) { return; }
 renderer.toneMapping = T.NeutralToneMapping;
 const cv = renderer.domElement; cv.className = 'scene-cv'; cv.setAttribute('aria-hidden', 'true');
-box.insertBefore(cv, scrim);
+box.append(cv);
 
 const lowEnd = (navigator.hardwareConcurrency || 4) <= 4 || matchMedia('(max-width:639px)').matches;
 const Q = lowEnd ? .6 : 1;                                     // 粒子與花朵數量的倍率
@@ -747,37 +787,121 @@ const frontMat = flyMat.clone(); frontMat.transparent = true; frontMat.depthTest
 const frontFly = new T.InstancedMesh(new T.PlaneGeometry(1, 1), frontMat, MAXF);
 [backFly, frontFly].forEach(m => { m.instanceColor = new T.InstancedBufferAttribute(new Float32Array(m.count * 3), 3); m.count = 0; m.frustumCulled = false; scene.add(m); });
 frontFly.renderOrder = 11;
-// 遮幕：貼在鏡頭前的一層「花瓣牆」，由左往右捲過畫面
-const veilU = { uVeil: { value: 0 }, uIn: { value: 0 }, uOut: { value: 0 }, uMix: { value: 0 }, uTime: skyU.uTime, uAspect: { value: 2 } };
-const veil = new T.Mesh(new T.PlaneGeometry(1, 1), new T.ShaderMaterial({
-  uniforms: veilU, transparent: true, depthTest: false, depthWrite: false,
-  vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }`,
-  fragmentShader: `
-    uniform float uIn, uOut, uMix, uTime, uAspect; varying vec2 vUv;
-    float h2(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-    float n2(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f); return mix(mix(h2(i), h2(i + vec2(1, 0)), f.x), mix(h2(i + vec2(0, 1)), h2(i + vec2(1, 1)), f.x), f.y); }
-    vec4 layer(vec2 uv, float sc, float sp, float sd){
-      vec2 p = uv * sc; p.x -= uTime * sp; p.y += sin(p.x * .7 + sd) * .3;
-      vec2 id = floor(p), f = fract(p) - .5;
-      float h = h2(id + sd), a = h * 6.28 + uTime * (h - .5) * 4.;
-      vec2 q = mat2(cos(a), -sin(a), sin(a), cos(a)) * (f + (vec2(h2(id + sd + 1.), h2(id + sd + 2.)) - .5) * .35);
-      q.y += .1 * q.x * q.x * 4.;
-      float m = smoothstep(.34, .3, length(q * vec2(1., 1.75)));
-      return vec4(vec3(.75 + .35 * h + .25 * q.y), m);
-    }
-    void main(){
-      vec2 uv = vec2(vUv.x * uAspect, vUv.y);
-      vec3 dA = vec3(.98, .82, .87), dB = vec3(.93, .62, .74), nA = vec3(.86, .14, .38), nB = vec3(.36, .04, .2);
-      vec3 base = mix(mix(dB, dA, .4), mix(nB, nA, .35), uMix);
-      vec3 pc = mix(dA, nA, uMix), col = base * (.85 + .2 * n2(uv * 3. + vec2(-uTime * 2., 0.)));
-      for (int i = 0; i < 3; i++){ float fi = float(i); vec4 L = layer(uv, 5. + fi * 4., 2.4 + fi * 1.6, fi * 7.); col = mix(col, pc * L.rgb, L.a * .9); }
-      float s = vUv.x + (n2(uv * 2.5 + uTime) - .5) * .35;
-      float a = (1. - smoothstep(uIn - .22, uIn, s)) * smoothstep(uOut - .22, uOut, s);
-      gl_FragColor = vec4(pow(col, vec3(2.2)), a);
-      #include <colorspace_fragment>
-    }`,
-}));
-veil.renderOrder = 10; veil.frustumCulled = false; veil.position.z = -1.2; camera.add(veil); veil.visible = false;
+// ======== 轉場遮幕（照 sop.html）========
+// 疊加順序與 sop.html 相同：3D 場景 → 2D 層（後層花瓣 → 花霧漸層 → 前層花瓣）→ 3D 立體花瓣風暴
+// 2D 層畫在一張不放進頁面的 canvas，再當成全畫面貼圖疊上去；全部用同一個 WebGL renderer，不另外開第二個 WebGL context
+const vcv = mk(2, 2);
+const vg = vcv.getContext('2d');
+const VPAL = {
+  day: [['#fff8fa', '#f7b2c7'], ['#ffe3ec', '#ee8fad'], ['#ffffff', '#fbd0de']],
+  night: [['#ff6b9b', '#b80d48'], ['#ff3877', '#800530'], ['#ff99bb', '#d91656']],
+};
+const VCOL = { day: ['255, 210, 226', '255, 236, 244'], night: ['195, 28, 88', '235, 75, 132'] };   // 花霧：邊緣色、中間色
+const VPATH = new Path2D('M0 7 C-5.5 3.5 -6.5 -5.2 -2.4 -8.2 L0 -6.1 L2.4 -8.2 C6.5 -5.2 5.5 3.5 0 7 Z');
+function veilSprite([c0, c1], soft) {
+  const S = 64, c = mk(S, S), g = c.getContext('2d');
+  g.translate(S / 2, S / 2); g.scale(2.8, 2.8);
+  const gr = g.createLinearGradient(-3, 7, 3, -8); gr.addColorStop(0, c1); gr.addColorStop(.65, c0); gr.addColorStop(1, '#ffffff');
+  g.fillStyle = gr;
+  if (soft && 'filter' in g) {                                   // 柔焦花瓣：同 sop.html 的 blur(4px)；這張 64px 小圖用 CPU 繪製，不佔顯示記憶體
+    g.filter = 'blur(4px)'; g.fill(VPATH);
+  } else if (soft) {                                             // 不支援 canvas filter 的瀏覽器：疊幾層半透明花瓣模擬模糊
+    for (const [k, a] of [[1.45, .12], [1.3, .16], [1.15, .22], [1, .5]]) { g.save(); g.scale(k, k); g.globalAlpha = a; g.fill(VPATH); g.restore(); }
+  } else {
+    g.fill(VPATH);
+    g.strokeStyle = 'rgba(255,255,255,0.42)'; g.lineWidth = .35; g.beginPath(); g.moveTo(0, 5.5); g.quadraticCurveTo(.7, 0, 0, -5.5); g.stroke();
+  }
+  return c;
+}
+const VSPR = {};
+for (const m of ['day', 'night']) VSPR[m] = { petal: VPAL[m].map(c => veilSprite(c, false)), petalB: VPAL[m].map(c => veilSprite(c, true)) };
+let vW = 1, vH = 1, vDpr = 1, vU = 1, vDirty = false, vShow = false;
+const vPetals = [], VMAX = Math.round(1400 * Q);
+function veilResize(w, h, d) { vW = w; vH = h; vDpr = d; vU = h / 640; vcv.width = Math.round(w * d); vcv.height = Math.round(h * d); vDirty = true; }
+function spawnVeilPetal() {
+  if (vPetals.length >= VMAX) return;
+  vPetals.push({ x: mr(-vW * .45, -20), y: mr(-vH * .25, vH * 1.15), z: mr(.8, 3.8), vx: mr(950, 1850) * (vW / 1280 * .65 + .35), vy: mr(-110, 160),
+                 r: mr(0, 6.28), vr: mr(-7, 7), f: mr(0, 6.28), vf: mr(4, 8), i: Math.floor(Math.random() * 3) });
+}
+// 2D 層 → 全畫面貼圖
+const vTex = new T.CanvasTexture(vcv); vTex.colorSpace = T.SRGBColorSpace; vTex.minFilter = T.LinearFilter; vTex.generateMipmaps = false;
+const ovScene = new T.Scene(), ovCam = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+ovScene.add(new T.Mesh(new T.PlaneGeometry(2, 2), new T.MeshBasicMaterial({ map: vTex, transparent: true, depthTest: false, depthWrite: false, toneMapped: false })));
+// sop.html 的 3D 立體花瓣風暴：彎曲花瓣 InstancedMesh，只在颳風時出現（風勢^0.65 決定大小），畫在 2D 花霧之上
+const stScene = new T.Scene(), stCam = new T.PerspectiveCamera(50, 2, 1, 2000); stCam.position.z = 500;
+const ST_COUNT = Math.round(555 * Q), stData = [];
+const stMesh = (() => {
+  const shape = new T.Shape();
+  shape.moveTo(0, -9); shape.bezierCurveTo(-7.5, -4, -8.5, 6, -2.6, 10); shape.lineTo(0, 7.2); shape.lineTo(2.6, 10); shape.bezierCurveTo(8.5, 6, 7.5, -4, 0, -9);
+  const geom = new T.ShapeGeometry(shape, 6), pos = geom.attributes.position;
+  for (let i = 0; i < pos.count; i++) { const x = pos.getX(i), y = pos.getY(i); pos.setZ(i, x * x * .045 + Math.sin(y * .25) * 1.4); }   // 碗狀微彎
+  geom.computeVertexNormals();
+  const m = new T.InstancedMesh(geom, new T.MeshBasicMaterial({ color: 0xffffff, side: T.DoubleSide, transparent: true, opacity: .95, toneMapped: false }), ST_COUNT);
+  m.instanceMatrix.setUsage(T.DynamicDrawUsage); m.frustumCulled = false;
+  for (let i = 0; i < ST_COUNT; i++) stData.push({ x: mr(-700, 700), y: mr(-380, 380), z: mr(40, 410), vx: mr(35, 95), vy: mr(-45, -18),
+    rx: mr(0, 6.28), ry: mr(0, 6.28), rz: mr(0, 6.28), vrx: mr(-3.5, 3.5), vry: mr(-4.5, 4.5), vrz: mr(-2.8, 2.8), scale: mr(1.2, 3.6), phase: mr(0, 6.28) });
+  stScene.add(m); return m;
+})();
+const ST_PAL = { day: ['#fff6f9', '#ffd1df', '#ffabc5', '#ffe6ee', '#f58eb0'], night: ['#ff2a6d', '#ff6b9b', '#d91454', '#ff8fb8', '#b50b42'] };
+function stColors(m) { const c = new Color(); for (let i = 0; i < ST_COUNT; i++) stMesh.setColorAt(i, c.set(ST_PAL[m][i % 5])); stMesh.instanceColor.needsUpdate = true; }
+stColors('day');
+let stShow = false;
+function stepStorm(dt, wind) {
+  const k = Math.pow(wind, .65); stShow = k >= .01;
+  if (!stShow) return;                                           // 沒有風時不更新也不繪製（位置保留到下一次颳風）
+  const boost = 1 + wind * 18;
+  for (let i = 0; i < ST_COUNT; i++) {
+    const d = stData[i];
+    d.x += (d.vx * boost + Math.sin(t * 2.5 + d.phase) * 28) * dt;
+    d.y += (d.vy * (1 - wind * .4) + Math.cos(t * 3.2 + d.phase) * 35 * wind) * dt;
+    d.rx += d.vrx * (1 + wind * 3.5) * dt; d.ry += d.vry * (1 + wind * 3.5) * dt; d.rz += d.vrz * (1 + wind * 2.5) * dt;
+    if (d.x > 780) { d.x = mr(-820, -650); d.y = mr(-420, 420); }
+    if (d.y < -440) { d.y = 430; d.x = mr(-700, 500); }
+    dummy.position.set(d.x, d.y, d.z); dummy.rotation.set(d.rx, d.ry, d.rz);
+    const s = d.scale * k * (1 + wind * .55); dummy.scale.set(s, s, s); dummy.updateMatrix(); stMesh.setMatrixAt(i, dummy.matrix);
+  }
+  stMesh.instanceMatrix.needsUpdate = true;
+}
+// 繪製一格：3D 場景 → 2D 遮幕貼圖 → 3D 花瓣風暴
+function renderAll() {
+  renderer.render(scene, camera);
+  if (!vShow && !stShow) return;
+  renderer.autoClear = false;
+  if (vShow) renderer.render(ovScene, ovCam);
+  if (stShow) { renderer.clearDepth(); renderer.render(stScene, stCam); }
+  renderer.autoClear = true;
+}
+let lastWind = 0;
+function drawVeil(dt, cover, paint = true) {
+  if (!vPetals.length && cover <= .01) {                        // 沒有轉場時不重畫，只在結束後清空一次
+    if (vDirty) { vg.setTransform(1, 0, 0, 1, 0, 0); vg.clearRect(0, 0, vcv.width, vcv.height); vDirty = false; }
+    vShow = false; return;
+  }
+  const sp = VSPR[mode], back = [], front = [];
+  for (let i = vPetals.length - 1; i >= 0; i--) {
+    const q = vPetals[i];
+    q.f += q.vf * dt; q.r += q.vr * dt;
+    q.x += q.vx * dt + Math.sin(t * 1.5 + q.f) * 14 * dt; q.y += q.vy * dt;
+    if (q.x > vW + 110 || q.y > vH + 90 || q.y < -vH * .4) { vPetals.splice(i, 1); continue; }
+    (q.z > 1.9 ? front : back).push(q);
+  }
+  if (!paint) return;                                            // 只更新位置、不繪製（測試用的加速模擬）
+  vDirty = true; vShow = true; vTex.needsUpdate = true;
+  vg.setTransform(1, 0, 0, 1, 0, 0); vg.clearRect(0, 0, vcv.width, vcv.height); vg.setTransform(vDpr, 0, 0, vDpr, 0, 0);
+  const draw = q => {
+    const s = (q.z > 2.3 ? 24 : 11) * q.z * vU, sx = Math.abs(Math.cos(q.f)) * .84 + .16;
+    vg.save(); vg.translate(q.x, q.y); vg.rotate(q.r); vg.scale(sx, 1);
+    vg.drawImage((q.z > 2.3 ? sp.petalB : sp.petal)[q.i], -s / 2, -s / 2, s, s); vg.restore();
+  };
+  back.forEach(draw);
+  if (cover > .01) {                                             // 花霧漸層：風勢越強越不透明，高峰時完全遮住畫面
+    const [edge, mid] = VCOL[mode], a = Math.min(.985, Math.pow(cover, .85) * 1.02);
+    const gr = vg.createLinearGradient(0, 0, vW, vH * .35);
+    gr.addColorStop(0, `rgba(${edge}, ${a})`); gr.addColorStop(.5, `rgba(${mid}, ${Math.min(.99, a * 1.03)})`); gr.addColorStop(1, `rgba(${edge}, ${a})`);
+    vg.fillStyle = gr; vg.fillRect(0, 0, vW, vH);
+  }
+  front.forEach(draw);
+}
 
 // ======== 前景散景光點 ========
 const bokehU = { uMode: { value: 0 }, uPx: { value: 1 }, uTime: skyU.uTime, uOpacity: { value: 1 } };
@@ -809,11 +933,14 @@ const MODES = {
   day: { fog: '#f6cbd8', dens: .028, exp: 1.06, hemi: ['#fff3f7', '#f0bccb', 2.6], sun: ['#fff3e8', 2.0], pl: 0, paper: .25, glow: 0, bark: '#c9aeb4', bokeh: 1, stars: 0 },
   night: { fog: '#121535', dens: .032, exp: 1.12, hemi: ['#3d4796', '#3a0f26', .75], sun: ['#7e86ff', .35], pl: 9, paper: 2.6, glow: 1, bark: '#9a7c84', bokeh: 1.1, stars: 1 },
 };
-let mode = 'day';
+let mode = 'day', statusEl = null;
+const STATUS = { day: '白晝・晴櫻風鈴', night: '夜晚・星雲夜櫻' };
 function applyMode(m) {
   if (m === 'night') ensureNight();
   mode = m; const s = MODES[m], night = m === 'night' ? 1 : 0;
   hero.dataset.scene = m;
+  if (statusEl) statusEl.textContent = STATUS[m];
+  stColors(m);
   fog.color.set(s.fog); fog.density = s.dens; blossomU.uDensity.value = s.dens;
   renderer.toneMappingExposure = s.exp;
   hemi.color.set(s.hemi[0]); hemi.groundColor.set(s.hemi[1]); hemi.intensity = s.hemi[2];
@@ -834,13 +961,6 @@ const camRight = new Vector3(), camUp = new Vector3(), camFwd = new Vector3(), t
 function spawnAmbient(anyY) {
   const z = mr(-22, 3), p = new Vector3(cxz(z) + mr(-7, 6), anyY ? mr(0, 6) : mr(5, 6.5), z);
   fly.push({ p, v: new Vector3(mr(.1, .35), mr(-.55, -.3), mr(-.1, .1)), r: new Vector3(mr(0, 6), mr(0, 6), mr(0, 6)), w: new Vector3(mr(-2, 2), mr(-3, 3), mr(-2, 2)), s: mr(.04, .06), c: new Color(pick(PAL[mode].petals)), life: 0, max: 30, amb: true, ph: mr(0, 6.28) });
-}
-function spawnGust() {
-  const fov = camera.fov * Math.PI / 360, d = .45 + 13 * Math.pow(Math.random(), 2.3), hh = Math.tan(fov) * d, hw = hh * camera.aspect;
-  const local = new Vector3(-hw * mr(1.02, 1.6), mr(-hh * 1.1, hh * 1.15), -d).applyMatrix4(camera.matrixWorld);
-  const sp = d * mr(1.7, 2.8) + .5;
-  const v = camRight.clone().multiplyScalar(sp).addScaledVector(camUp, sp * mr(-.18, .3)).addScaledVector(camFwd, mr(-.3, .3));
-  fly.push({ p: local, v, r: new Vector3(mr(0, 6), mr(0, 6), mr(0, 6)), w: new Vector3(mr(-9, 9), mr(-12, 12), mr(-9, 9)), s: mr(.035, .06) * (d < 1.5 ? 1.2 : 1), c: new Color(pick(PAL[mode].petals)), life: 0, max: (2 * hw * 1.6) / sp + .6, amb: false, ph: mr(0, 6.28), near: d < 1.15 });
 }
 function updatePetals(dt, wind) {
   let nb = 0, nf = 0;
@@ -886,7 +1006,8 @@ function resize() {
   camera.fov = camera.aspect < .8 ? 72 : camera.aspect < 1.3 ? 60 : 50;
   if (narrow) { camBase.set(.15, 1.5, 3.4); camLook.set(.5, 3, -20); } else { camBase.set(0, 1.55, 3.4); camLook.set(-1.6, 2.9, -20); }
   camera.updateProjectionMatrix();
-  const vh = 2 * Math.tan(camera.fov * Math.PI / 360) * 1.2 * 1.08; veil.scale.set(vh * camera.aspect, vh, 1); veilU.uAspect.value = camera.aspect;
+  stCam.aspect = W / H; stCam.updateProjectionMatrix();
+  veilResize(W, H, Math.min(dpr, 1.5));
   starU.uPx.value = dpr; bokehU.uPx.value = dpr * Math.min(W, H * 1.6) / 1100;
   return true;
 }
@@ -899,22 +1020,24 @@ function placeCamera() {
 }
 
 // ======== 時間軸：白天停留 → 花吹雪 → 夜晚停留 → 花吹雪 → … ========
-const HOLD = { day: 7, night: 9 }, GUST = 4.2;
-let phase = 'hold', timer = 0, gustT = 0, swapped = false, t = 0, from = 'day';
+const HOLD = { day: 7, night: 8.5 }, GUST = 3.4;
+let phase = 'hold', timer = 0, gustT = 0, swapped = false, t = 0, from = 'day', autoCycle = true;
+// 吹起櫻吹雪：自動循環到時間，或按右上角按鈕
+function triggerGust() {
+  if (phase === 'gust') return;
+  if (reduce) { applyMode(mode === 'day' ? 'night' : 'day'); still(); return; }   // 減少動態效果：直接切換，不播轉場
+  phase = 'gust'; gustT = 0; swapped = false; from = mode; timer = 0;
+  start();
+}
 function frame(dt, draw = true) {
-  t += dt; timer += dt;
+  t += dt;
   let wind = 0;
-  if (phase === 'hold' && timer > HOLD[mode]) { phase = 'gust'; gustT = 0; swapped = false; from = mode; }
-  veil.visible = false;
+  if (autoCycle && phase === 'hold') { timer += dt; if (timer >= HOLD[mode]) triggerGust(); }
   if (phase === 'gust') {
     gustT += dt; const u = Math.min(1, gustT / GUST);
-    wind = u < .4 ? Math.pow(u / .4, 1.5) : u < .62 ? 1 : Math.pow(Math.max(0, 1 - (u - .62) / .38), 1.4);
-    let n = (60 + 820 * wind) * Q * dt; while (n > 0) { if (Math.random() < n) spawnGust(); n -= 1; }
-    // 遮幕：先由左往右蓋滿（u .12→.46），切換場景（u .5），再由左往右揭開（u .56→.92）
-    const ease = x => x * x * (3 - 2 * x), rmp = (a, b) => ease(Math.min(1, Math.max(0, (u - a) / (b - a))));
-    veilU.uIn.value = -.25 + 1.6 * rmp(.12, .46); veilU.uOut.value = -.25 + 1.6 * rmp(.56, .92);
-    veilU.uMix.value = from === 'day' ? rmp(.4, .6) : 1 - rmp(.4, .6);
-    veil.visible = u > .1 && u < .95;
+    // 風勢曲線（同 sop.html）：0～42% 增強、42～58% 最強（花霧完全遮住）、58～100% 減弱
+    wind = u < .42 ? Math.pow(u / .42, 1.5) : u <= .58 ? 1 : Math.pow(Math.max(0, 1 - (u - .58) / .42), 1.35);
+    let n = (85 + 1450 * wind) * Q * dt; while (n > 0) { if (Math.random() < n) spawnVeilPetal(); n -= 1; }   // 2D 高速花瓣流
     if (!swapped && u >= .5) { applyMode(from === 'day' ? 'night' : 'day'); swapped = true; }
     if (u >= 1) { phase = 'hold'; timer = 0; }
   }
@@ -933,15 +1056,20 @@ function frame(dt, draw = true) {
   }
   placeCamera();
   updatePetals(dt, wind);
-  if (draw) renderer.render(scene, camera);
+  lastWind = wind;
+  drawVeil(dt, wind, draw);
+  stepStorm(dt, wind);
+  if (draw) renderAll();
 }
 
 // ======== 啟動、可見度、暫停 ========
-let raf = 0, last = 0, vis = false, paused = false;
-const loop = now => { raf = 0; if (halted) return; const dt = Math.min(.05, (now - last) / 1000 || .016); last = now; frame(dt); if (vis && !paused) raf = requestAnimationFrame(loop); };
-const start = () => { if (!raf && vis && !paused && !reduce && !halted) { last = performance.now(); raf = requestAnimationFrame(loop); } };
+let raf = 0, last = 0, vis = false;
+// 自動循環開啟、正在轉場、或轉場花瓣還沒飛完時才持續繪製；關閉自動循環＝背景動態停止（符合 WCAG 2.2.2 可暫停）
+const running = () => autoCycle || phase === 'gust' || vPetals.length > 0;
+const loop = now => { raf = 0; if (halted) return; const dt = Math.min(.05, (now - last) / 1000 || .016); last = now; frame(dt); if (vis && running()) raf = requestAnimationFrame(loop); };
+const start = () => { if (!raf && vis && running() && !reduce && !halted) { last = performance.now(); raf = requestAnimationFrame(loop); } };
 const check = () => { const r = hero.getBoundingClientRect(); vis = r.bottom > 0 && r.top < innerHeight && !document.hidden; if (vis) start(); };
-const still = () => { if (halted) return; placeCamera(); updatePetals(0, 0); renderer.render(scene, camera); };
+const still = () => { if (halted) return; placeCamera(); updatePetals(0, 0); drawVeil(0, lastWind); stepStorm(0, lastWind); renderAll(); };
 
 applyMode('day');
 if (!resize()) return;
@@ -950,12 +1078,38 @@ still();
 hero.classList.add('has-scene', 'is-ready');
 if (!reduce) (window.requestIdleCallback || (f => setTimeout(f, 1200)))(ensureNight, { timeout: 4000 });
 
+// ---- 右上角：狀態列＋「吹起櫻吹雪」＋「自動循環」（照 sop.html）----
+{
+  const ctl = document.createElement('div');
+  ctl.className = 'hero-controls'; ctl.setAttribute('role', 'group'); ctl.setAttribute('aria-label', '場景時間與櫻吹雪切換');
+  ctl.innerHTML = `<span class="hero-status-pill"><span class="hero-status-dot" aria-hidden="true"></span><span data-hero-status-text></span></span>
+<button type="button" class="hero-ctl-btn" data-hero-gust-btn title="${reduce ? '切換白晝與夜晚' : '立即吹起櫻花花瓣風並切換晝夜'}"><span aria-hidden="true">🌸</span> ${reduce ? '切換晝夜' : '吹起櫻吹雪'}</button>
+${reduce ? '' : '<button type="button" class="hero-ctl-btn" data-hero-auto-btn aria-pressed="true" title="關閉後停止自動晝夜循環與背景動態"><span data-hero-auto-text>自動循環：開</span></button>'}`;
+  hero.append(ctl);
+  statusEl = ctl.querySelector('[data-hero-status-text]'); statusEl.textContent = STATUS[mode];
+  ctl.querySelector('[data-hero-gust-btn]').addEventListener('click', triggerGust);
+  const autoBtn = ctl.querySelector('[data-hero-auto-btn]');
+  // 平時隱藏：滑鼠在頁首上移動、手機輕點畫面、鍵盤聚焦按鈕時顯示，閒置 2 秒後淡出（滑鼠停在控制列上、或鍵盤聚焦在按鈕上時不淡出）
+  let hideT = 0;
+  const showCtl = () => {
+    ctl.classList.add('is-shown'); clearTimeout(hideT);
+    hideT = setTimeout(function idle() {
+      if (ctl.matches(':hover') || ctl.querySelector(':focus-visible')) { hideT = setTimeout(idle, 2000); return; }
+      ctl.classList.remove('is-shown');
+    }, 2000);
+  };
+  hero.addEventListener('pointermove', showCtl, { passive: true });
+  hero.addEventListener('pointerdown', showCtl, { passive: true });
+  ctl.addEventListener('focusin', showCtl);
+  ctl.addEventListener('focusout', showCtl);
+  if (autoBtn) autoBtn.addEventListener('click', () => {
+    autoCycle = !autoCycle; timer = 0;
+    autoBtn.setAttribute('aria-pressed', String(autoCycle));
+    autoBtn.querySelector('[data-hero-auto-text]').textContent = `自動循環：${autoCycle ? '開' : '關'}`;
+    if (autoCycle) check();
+  });
+}
 if (!reduce) {
-  const btn = document.createElement('button');
-  btn.type = 'button'; btn.className = 'scene-toggle';
-  const label = () => { btn.textContent = paused ? '▶ 播放背景動畫' : '❚❚ 暫停背景動畫'; btn.setAttribute('aria-pressed', String(paused)); };
-  label(); hero.append(btn);
-  btn.addEventListener('click', () => { paused = !paused; label(); if (!paused) check(); });
   hero.addEventListener('pointermove', e => { const r = hero.getBoundingClientRect(); pointer.tx = (e.clientX - r.left) / r.width * 2 - 1; pointer.ty = (e.clientY - r.top) / r.height * 2 - 1; }, { passive: true });
   hero.addEventListener('pointerleave', () => { pointer.tx = pointer.ty = 0; });
 }
@@ -963,12 +1117,12 @@ check();
 let rt = 0;
 if ('ResizeObserver' in window) new ResizeObserver(() => {
   clearTimeout(rt);
-  rt = setTimeout(() => { if (Math.abs(hero.clientWidth - appliedW) < 2 && Math.abs(hero.clientHeight - appliedH) < 2) return; if (resize() && (reduce || paused)) still(); check(); }, 150);
+  rt = setTimeout(() => { if (Math.abs(hero.clientWidth - appliedW) < 2 && Math.abs(hero.clientHeight - appliedH) < 2) return; if (resize() && (reduce || !running())) still(); check(); }, 150);
 }).observe(hero);
 if ('IntersectionObserver' in window) new IntersectionObserver(check).observe(hero);
 addEventListener('scroll', check, { passive: true });
 document.addEventListener('visibilitychange', check);
 // 測試用：讀取目前狀態、直接跳到指定場景
-hero.shrineHero = { stats: () => ({ ...STATS, calls: renderer.info.render.calls, tris: renderer.info.render.triangles, px: [renderer.domElement.width, renderer.domElement.height] }), get mode() { return mode; }, get phase() { return phase; }, set: m => { applyMode(m); phase = 'hold'; timer = 0; veil.visible = false; still(); }, gust: () => { timer = 999; }, sim: sec => { for (let i = 0; i < sec * 30; i++) frame(1 / 30, false); renderer.render(scene, camera); } };
+hero.shrineHero = { stats: () => ({ ...STATS, calls: renderer.info.render.calls, tris: renderer.info.render.triangles, px: [renderer.domElement.width, renderer.domElement.height] }), get mode() { return mode; }, get phase() { return phase; }, set: m => { applyMode(m); phase = 'hold'; timer = 0; vPetals.length = 0; lastWind = 0; still(); }, gust: triggerGust, sim: sec => { for (let i = 0; i < sec * 30; i++) frame(1 / 30, false); drawVeil(0, lastWind); stepStorm(0, lastWind); renderAll(); } };
 }
 })();
