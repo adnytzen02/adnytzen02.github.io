@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-TW" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Shopping Relics｜日本購物清單</title>
+  <meta name="description" content="旅日購物清單：記錄想買的商品、店家與日幣價格，自動換算台幣、試算免稅退稅門檻、追蹤預算與行李重量，還能一鍵出示日文給店員看。">
+  <meta name="theme-color" content="#f4f7f9">
+  <!-- 在畫面繪製前套用主題（預設淺色），避免閃一下深色 -->
+  <script>
+    try { document.documentElement.dataset.theme = localStorage.getItem('shopping-relics:theme') || 'light'; } catch (e) { /* 無痕模式維持淺色 */ }
+    // 網頁應用設定檔只在網址開啟時載入（雙擊開啟的 file:// 不支援，避免主控台錯誤）
+    if (/^https?:$/.test(location.protocol)) {
+      var mf = document.createElement('link');
+      mf.rel = 'manifest';
+      mf.href = 'manifest.webmanifest';
+      document.head.appendChild(mf);
+    }
+  </script>
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="購物清單">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+  <!-- 分享預覽（LINE、Facebook 等）：社群平台只認完整網址。若部署網址改變，請一併修改以下網址 -->
+  <link rel="canonical" href="https://adnytzen02.github.io/hihon/kaimono/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="zh_TW">
+  <meta property="og:site_name" content="Shopping Relics">
+  <meta property="og:url" content="https://adnytzen02.github.io/hihon/kaimono/">
+  <meta property="og:title" content="Shopping Relics｜日本購物清單">
+  <meta property="og:description" content="旅日必買清單、匯率換算、免稅退稅試算、預算與行李重量管理，一個頁面搞定。">
+  <meta property="og:image" content="https://adnytzen02.github.io/hihon/kaimono/assets/og-image.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Shopping Relics 旅日必買願望清單：匯率換算、免稅退稅試算、預算與行李管理">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Shopping Relics｜日本購物清單">
+  <meta name="twitter:description" content="旅日必買清單、匯率換算、免稅退稅試算、預算與行李重量管理，一個頁面搞定。">
+  <meta name="twitter:image" content="https://adnytzen02.github.io/hihon/kaimono/assets/og-image.png">
+
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- js/app.js 由 src/ 打包而成（npm run build），一般 script 才能在雙擊開啟時執行 -->
+  <script defer src="js/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要內容</a>
+  <div class="aura" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#/list" aria-label="Shopping Relics 首頁">
+        <span class="brand-mark"><span class="ms" aria-hidden="true">auto_awesome</span></span>
+        <span class="brand-text">
+          <span class="brand-name">SHOPPING RELICS</span>
+          <span class="brand-sub">神域遺物庫 · JAPAN SHOPPING</span>
+        </span>
+      </a>
+
+      <nav class="nav-desktop" aria-label="主要分頁">
+        <a href="#/list" data-route="list">購物聖庫</a>
+        <a href="#/areas" data-route="areas">購買地區</a>
+        <a href="#/budget" data-route="budget">預算匯率</a>
+        <a href="#/luggage" data-route="luggage">行程行李</a>
+      </nav>
+
+      <div class="topbar-tools">
+        <a class="chip-stat chip-rate" href="#/budget" id="hdr-rate" aria-label="匯率">
+          <span class="chip-k">匯率</span>
+          <span class="chip-v chip-v-full">—</span>
+          <span class="chip-v chip-v-short" aria-hidden="true">—</span>
+        </a>
+        <div class="chip-stat chip-total" id="hdr-total">
+          <span class="chip-k">清單總額</span>
+          <span class="chip-v">—</span>
+        </div>
+        <button type="button" class="icon-btn icon-btn-line" id="btn-theme" aria-label="切換外觀" title="切換外觀">
+          <span class="ms" aria-hidden="true">light_mode</span>
+        </button>
+        <button type="button" class="icon-btn icon-btn-gold" id="btn-settings" aria-label="設定與資料備份" title="設定與資料備份">
+          <span class="ms" aria-hidden="true">tune</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <div id="view" class="view"></div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p class="footer-brand"><span class="ms" aria-hidden="true">auto_awesome</span> SHOPPING RELICS · 神域遺物庫</p>
+      <p class="footer-note">資料只存在你的瀏覽器裡。匯率與免稅計算僅供參考，實際以店家與海關為準。</p>
+    </div>
+  </footer>
+
+  <button type="button" class="fab" id="fab-add" aria-label="新增採購項目">
+    <span class="ms" aria-hidden="true">add</span>
+  </button>
+
+  <nav class="nav-mobile" aria-label="主要分頁">
+    <a href="#/list" data-route="list"><span class="ms" aria-hidden="true">temple_buddhist</span><span>購物聖庫</span></a>
+    <a href="#/areas" data-route="areas"><span class="ms" aria-hidden="true">map</span><span>購買地區</span></a>
+    <a href="#/budget" data-route="budget"><span class="ms" aria-hidden="true">account_balance_wallet</span><span>預算匯率</span></a>
+    <a href="#/luggage" data-route="luggage"><span class="ms" aria-hidden="true">luggage</span><span>行程行李</span></a>
+  </nav>
+
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
+
+  <noscript><p class="noscript">這個網站需要啟用 JavaScript 才能使用。</p></noscript>
+</body>
+</html>
