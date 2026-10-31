@@ -669,3 +669,11 @@
   .gh-rooms { display: block !important; height: auto !important; overflow: visible !important; } .gh-hallbar, .gh-back { display: none !important; }
   .gh-plaque__plate { box-shadow: none; border: 1px solid #999; }
 }
+
+/* ---- 水族館頁的網站導覽列：頁首畫面時藏起來（畫面滿版），往下捲過頁首再出現；鍵盤 Tab 到導覽列時一定顯示（用 :focus-visible，手機點過按鈕不會讓它一直停留） ---- */
+@media screen {
+  .js .page-grand .site-header { position: fixed; left: 0; right: 0; top: 0; transition: transform .45s cubic-bezier(.2,.7,.2,1), opacity .35s ease; }
+  .js.zoo-nav-hidden .page-grand .site-header:not(:has(:focus-visible)) { transform: translateY(-110%); opacity: 0; pointer-events: none; }
+  .js .page-grand .gh-hero { min-height: 100vh; min-height: 100svh; }
+}
+@media screen and (prefers-reduced-motion: reduce) { .js .page-grand .site-header { transition: none; } }

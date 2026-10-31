@@ -1064,9 +1064,10 @@ function frame(dt, draw = true) {
 
 // ======== 啟動、可見度、暫停 ========
 let raf = 0, last = 0, vis = false;
-// 自動循環開啟、正在轉場、或轉場花瓣還沒飛完時才持續繪製；關閉自動循環＝背景動態停止（符合 WCAG 2.2.2 可暫停）
-const running = () => autoCycle || phase === 'gust' || vPetals.length > 0;
-const loop = now => { raf = 0; if (halted) return; const dt = Math.min(.05, (now - last) / 1000 || .016); last = now; frame(dt); if (vis && running()) raf = requestAnimationFrame(loop); };
+// 頁首在畫面內就持續繪製；「自動循環：關」只停止白天／夜晚的自動切換，花瓣、風鈴、燈火照常動
+const running = () => true;
+// frame() 裡自動吹起櫻吹雪時會呼叫 start() 先排好下一格；這裡只在還沒排時才排，避免同時跑兩條迴圈（越跑越快）
+const loop = now => { raf = 0; if (halted) return; const dt = Math.min(.05, (now - last) / 1000 || .016); last = now; frame(dt); if (!raf && vis && running()) raf = requestAnimationFrame(loop); };
 const start = () => { if (!raf && vis && running() && !reduce && !halted) { last = performance.now(); raf = requestAnimationFrame(loop); } };
 const check = () => { const r = hero.getBoundingClientRect(); vis = r.bottom > 0 && r.top < innerHeight && !document.hidden; if (vis) start(); };
 const still = () => { if (halted) return; placeCamera(); updatePetals(0, 0); drawVeil(0, lastWind); stepStorm(0, lastWind); renderAll(); };
@@ -1084,7 +1085,7 @@ if (!reduce) (window.requestIdleCallback || (f => setTimeout(f, 1200)))(ensureNi
   ctl.className = 'hero-controls'; ctl.setAttribute('role', 'group'); ctl.setAttribute('aria-label', '場景時間與櫻吹雪切換');
   ctl.innerHTML = `<span class="hero-status-pill"><span class="hero-status-dot" aria-hidden="true"></span><span data-hero-status-text></span></span>
 <button type="button" class="hero-ctl-btn" data-hero-gust-btn title="${reduce ? '切換白晝與夜晚' : '立即吹起櫻花花瓣風並切換晝夜'}"><span aria-hidden="true">🌸</span> ${reduce ? '切換晝夜' : '吹起櫻吹雪'}</button>
-${reduce ? '' : '<button type="button" class="hero-ctl-btn" data-hero-auto-btn aria-pressed="true" title="關閉後停止自動晝夜循環與背景動態"><span data-hero-auto-text>自動循環：開</span></button>'}`;
+${reduce ? '' : '<button type="button" class="hero-ctl-btn" data-hero-auto-btn aria-pressed="true" title="關閉後停止白天／夜晚自動切換，花瓣照常飄動"><span data-hero-auto-text>自動循環：開</span></button>'}`;
   hero.append(ctl);
   statusEl = ctl.querySelector('[data-hero-status-text]'); statusEl.textContent = STATUS[mode];
   ctl.querySelector('[data-hero-gust-btn]').addEventListener('click', triggerGust);
