@@ -47,66 +47,83 @@ export const PHRASES = [
 export const DEMO_ITEMS = [
   {
     name: '山崎 單一麥芽威士忌 700ml', nameJa: 'シングルモルトウイスキー 山崎 700ml', brand: 'SUNTORY',
-    category: 'liquor', priority: 3, qty: 1, price: 7700, priceIncludesTax: true, taxRate: 10, taxFree: true,
-    area: '羽田機場', store: '羽田機場 免稅店', weightKg: 1.4, luggage: 'carry', fragile: true, liquid: true,
-    purchased: true, note: '出境管制區購買，可隨身帶上機。',
+    category: 'liquor', priority: 3, qty: 1, price: 7700, priceIncludesTax: true, taxRate: 10,
+    area: '羽田機場', stores: ['羽田機場免稅店'], taxFree: false, weightKg: 1.4, luggage: 'carry', fragile: true, liquid: true,
+    purchased: true, purchasedStore: '羽田機場免稅店', note: '出境管制區購買，可隨身帶上機。',
   },
   {
     name: 'EVE QUICK 止痛錠 40 錠', nameJa: 'イブクイック頭痛薬DX 40錠', brand: 'SSP',
     category: 'beauty', priority: 3, qty: 3, price: 1480, priceIncludesTax: true, taxRate: 10, taxFree: true,
-    area: '新宿', store: '松本清 新宿東口店', weightKg: 0.05, luggage: 'checked',
+    area: '新宿', stores: ['松本清'], buyFor: '小美', weightKg: 0.05, luggage: 'checked',
   },
   {
     name: '參天眼藥水', nameJa: 'サンテ 目薬', brand: 'Santen',
     category: 'beauty', priority: 2, qty: 2, price: 1280, priceIncludesTax: true, taxRate: 10, taxFree: true,
-    area: '新宿', store: '松本清 新宿東口店', weightKg: 0.03, luggage: 'checked', liquid: true,
+    area: '新宿', stores: ['松本清', '大國藥妝'], weightKg: 0.03, luggage: 'checked', liquid: true,
+    note: '兩家都有賣，哪家便宜就在哪買。',
   },
   {
     name: '小形羊羹 10 入', nameJa: '小形羊羹 10本入', brand: '虎屋 TORAYA',
     category: 'souvenir', priority: 2, qty: 2, price: 3240, priceIncludesTax: true, taxRate: 8, taxFree: true,
-    area: '銀座', store: '銀座三越', weightKg: 0.6, luggage: 'checked', fragile: true,
+    area: '銀座', stores: ['伊勢丹'], buyFor: '媽媽', weightKg: 0.6, luggage: 'checked', fragile: true,
     note: '送禮用，請店家附紙袋。',
   },
   {
     name: '資生堂 精華液 30ml', nameJa: '資生堂 美容液 30ml', brand: 'SHISEIDO',
     category: 'luxury', priority: 3, qty: 1, price: 38500, priceIncludesTax: true, taxRate: 10, taxFree: true,
-    discountPct: 5, area: '銀座', store: '銀座三越', weightKg: 0.4, luggage: 'checked', fragile: true, liquid: true,
-    purchased: true,
+    discountPct: 5, area: '銀座', stores: ['伊勢丹'], buyFor: '小美', weightKg: 0.4, luggage: 'checked', fragile: true, liquid: true,
+    purchased: true, purchasedStore: '伊勢丹',
   },
   {
     name: 'Tanker 2Way 公事包', nameJa: 'タンカー 2WAYブリーフケース', brand: 'PORTER',
     category: 'fashion', priority: 2, qty: 1, price: 42000, priceIncludesTax: true, taxRate: 10, taxFree: true,
-    area: '澀谷', store: 'PORTER 澀谷', weightKg: 1.0, luggage: 'checked',
+    area: '澀谷', stores: ['PORTER 澀谷'], weightKg: 1.0, luggage: 'checked',
   },
   {
     name: 'nanocare 吹風機', nameJa: 'ヘアードライヤー ナノケア', brand: 'Panasonic',
     category: 'tech', priority: 2, qty: 1, price: 38610, priceIncludesTax: true, taxRate: 10, taxFree: true,
-    discountPct: 7, area: '銀座', store: 'Bic Camera 有樂町', weightKg: 0.9, luggage: 'checked',
+    discountPct: 7, area: '有樂町', stores: ['Bic Camera', 'Yodobashi（友都八喜）'], weightKg: 0.9, luggage: 'checked',
     note: '確認是否有海外電壓版本。',
   },
   {
     name: '任天堂 限定周邊', nameJa: 'Nintendo TOKYO 限定グッズ', brand: 'Nintendo TOKYO',
     category: 'anime', priority: 1, qty: 1, price: 5500, priceIncludesTax: true, taxRate: 10, taxFree: true,
-    area: '澀谷', store: 'Nintendo TOKYO 澀谷 PARCO', weightKg: 0.8, luggage: 'checked',
+    area: '澀谷', stores: ['任天堂商店'], buyFor: '阿哲', weightKg: 0.8, luggage: 'checked',
   },
   {
     name: '紅茶巧克力', nameJa: 'ロイヤルモンターニュ', brand: 'LeTAO',
-    category: 'souvenir', priority: 1, qty: 4, price: 918, priceIncludesTax: true, taxRate: 8, taxFree: true,
-    area: '羽田機場', store: '羽田機場 免稅店', weightKg: 0.15, luggage: 'carry',
-    purchased: true,
+    category: 'souvenir', priority: 1, qty: 4, price: 918, priceIncludesTax: true, taxRate: 8,
+    area: '羽田機場', stores: ['羽田機場免稅店'], taxFree: false, weightKg: 0.15, luggage: 'carry',
+    purchased: true, purchasedStore: '羽田機場免稅店',
   },
   {
     name: '抹茶粉 40g', nameJa: '抹茶 40g缶', brand: '一保堂茶舗',
     category: 'souvenir', priority: 2, qty: 2, price: 2160, priceIncludesTax: true, taxRate: 8, taxFree: false,
-    area: '京都', store: '一保堂茶舗 京都本店', weightKg: 0.12, luggage: 'checked',
+    area: '京都', stores: ['一保堂茶舗 京都本店'], weightKg: 0.12, luggage: 'checked',
     note: '單店未達免稅門檻也沒關係。',
+  },
+  {
+    name: '指甲剪', nameJa: '爪切り', brand: '貝印 KAI',
+    category: 'craft', priority: 2, qty: 2, price: 1100, priceIncludesTax: true, taxRate: 10, taxFree: true,
+    area: '澀谷', stores: ['Hands（東急手創館）', 'LoFt'], buyFor: '阿哲', weightKg: 0.05, luggage: 'checked', blade: true,
+    purchased: true, purchasedStore: 'Hands（東急手創館）',
+  },
+  {
+    name: '合利他命 EX Plus', nameJa: 'アリナミンEXプラス', brand: 'Alinamin',
+    category: 'beauty', priority: 3, qty: 1, price: 6578, priceIncludesTax: true, taxRate: 10, taxFree: true,
+    anyStore: true, weightKg: 0.2, luggage: 'checked', note: '到處都有，看到便宜就買。',
+  },
+  {
+    name: '休足時間 貼布', nameJa: '休足時間', brand: 'Lion',
+    category: 'beauty', priority: 1, qty: 3, price: 1078, priceIncludesTax: true, taxRate: 10, taxFree: true,
+    area: '澀谷', stores: ['唐吉訶德'], weightKg: 0.15, luggage: 'checked',
   },
 ];
 
 // 打包清單預設項目
 export const DEFAULT_PACKING = [
   { text: '護照', done: false },
-  { text: '行動電源（隨身，不可託運）', done: false },
+  { text: '行動電源（隨身、最多 2 顆，機上不能用）', done: false },
   { text: '行李秤', done: false },
   { text: '易碎品用氣泡袋', done: false },
 ];

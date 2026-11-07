@@ -26,7 +26,13 @@ function syncUI(theme) {
     btn.setAttribute('aria-label', `外觀：${cur.label}，按下切換為${next.label}`);
     btn.title = `外觀：${cur.label}（按下切換為${next.label}）`;
   }
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', isDark(theme) ? '#0b1422' : '#f4f7f9');
+  syncThemeColor(theme);
+}
+
+// 手機瀏覽器網址列的顏色：首頁永遠是深色的動畫畫面，其他頁面跟著主題
+export function syncThemeColor(theme = getTheme()) {
+  const home = document.body?.dataset.route === 'home';
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', home ? '#010104' : isDark(theme) ? '#0b1422' : '#f4f7f9');
 }
 
 export function setTheme(theme) {

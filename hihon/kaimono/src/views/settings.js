@@ -36,7 +36,7 @@ function body() {
           <div class="field">
             <label for="st-fee">預設退稅手續費 %</label>
             <input id="st-fee" name="refundFeePct" type="number" inputmode="decimal" min="0" max="20" step="0.01" value="${s.refundFeePct}" aria-describedby="hint-st-fee">
-            <p class="hint" id="hint-st-fee">部分百貨或退稅代辦會收手續費，依店家公告填寫</p>
+            <p class="hint" id="hint-st-fee">新制由店家決定，首日回報多在 0%～2.3%，也有每筆收固定金額的店；唐吉訶德、Bic Camera 為 0（已內建）。本網站以含稅價估算</p>
           </div>
           <div class="field">
             <label for="st-rebate">刷卡淨回饋 %</label>

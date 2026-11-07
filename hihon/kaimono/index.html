@@ -9,6 +9,16 @@
   <!-- 在畫面繪製前套用主題（預設淺色），避免閃一下深色 -->
   <script>
     try { document.documentElement.dataset.theme = localStorage.getItem('shopping-relics:theme') || 'light'; } catch (e) { /* 無痕模式維持淺色 */ }
+    // 程式載入前先預留內容高度、藏起頁尾，網路慢時頁尾才不會先出現再被推下去
+    document.documentElement.classList.add('booting');
+    // 開在首頁時，先把版面排成首頁的樣子（導覽列在下方；第一次看片頭時先藏起來），避免程式載入後畫面跳動
+    var h = location.hash;
+    if (!h || h === '#' || h.indexOf('#/home') === 0) {
+      document.documentElement.classList.add('boot-home');
+      try {
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches && sessionStorage.getItem('shopping-relics:intro-seen-session') !== '1') document.documentElement.classList.add('boot-intro');
+      } catch (e) { document.documentElement.classList.add('boot-intro'); }
+    }
     // 網頁應用設定檔只在網址開啟時載入（雙擊開啟的 file:// 不支援，避免主控台錯誤）
     if (/^https?:$/.test(location.protocol)) {
       var mf = document.createElement('link');
@@ -45,7 +55,11 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap"></noscript>
+  <!-- 首頁標題用的日文明體：只下載用到的字（text= 子集），約數 KB -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600&display=swap&text=%E6%97%85%E7%AB%8B%E3%81%A1%E3%81%AE%E5%89%8D%E3%81%AB%E3%80%81%E5%85%89%E3%81%AF%E6%BA%80%E3%82%8B%E3%80%82%E3%81%BB%E3%81%97%E3%81%84%E3%82%82%E3%81%93%E8%A8%98%E3%81%A6%E6%99%82%E9%96%93%E3%81%99%E3%81%B9%E3%81%9F%E3%82%81" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600&display=swap&text=%E6%97%85%E7%AB%8B%E3%81%A1%E3%81%AE%E5%89%8D%E3%81%AB%E3%80%81%E5%85%89%E3%81%AF%E6%BA%80%E3%82%8B%E3%80%82%E3%81%BB%E3%81%97%E3%81%84%E3%82%82%E3%81%93%E8%A8%98%E3%81%A6%E6%99%82%E9%96%93%E3%81%99%E3%81%B9%E3%81%9F%E3%82%81"></noscript>
   <link rel="stylesheet" href="css/style.css">
   <!-- js/app.js 由 src/ 打包而成（npm run build），一般 script 才能在雙擊開啟時執行 -->
   <script defer src="js/app.js"></script>
@@ -56,26 +70,28 @@
 
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand" href="#/list" aria-label="Shopping Relics 首頁">
+      <a class="brand" href="#/home" aria-label="Shopping Relics 首頁">
         <span class="brand-mark"><span class="ms" aria-hidden="true">auto_awesome</span></span>
         <span class="brand-text">
           <span class="brand-name">SHOPPING RELICS</span>
-          <span class="brand-sub">神域遺物庫 · JAPAN SHOPPING</span>
+          <span class="brand-sub">日本購物清單 · JAPAN SHOPPING</span>
         </span>
       </a>
 
       <nav class="nav-desktop" aria-label="主要分頁">
-        <a href="#/list" data-route="list">購物聖庫</a>
-        <a href="#/areas" data-route="areas">購買地區</a>
+        <a href="#/home" data-route="home">首頁</a>
+        <a href="#/list" data-route="list">採買清單</a>
+        <a href="#/split" data-route="split">代購分帳</a>
         <a href="#/budget" data-route="budget">預算匯率</a>
-        <a href="#/luggage" data-route="luggage">行程行李</a>
+        <a href="#/packing" data-route="packing">打包與海關</a>
       </nav>
 
       <div class="topbar-tools">
-        <a class="chip-stat chip-rate" href="#/budget" id="hdr-rate" aria-label="匯率">
+        <a class="chip-stat chip-rate" href="#/budget" id="hdr-rate">
           <span class="chip-k">匯率</span>
           <span class="chip-v chip-v-full">—</span>
-          <span class="chip-v chip-v-short" aria-hidden="true">—</span>
+          <span class="chip-v chip-v-short">—</span>
+          <span class="sr-only">（前往預算匯率頁）</span>
         </a>
         <div class="chip-stat chip-total" id="hdr-total">
           <span class="chip-k">清單總額</span>
@@ -97,7 +113,7 @@
 
   <footer class="site-footer">
     <div class="footer-inner">
-      <p class="footer-brand"><span class="ms" aria-hidden="true">auto_awesome</span> SHOPPING RELICS · 神域遺物庫</p>
+      <p class="footer-brand"><span class="ms" aria-hidden="true">auto_awesome</span> SHOPPING RELICS · 日本購物清單</p>
       <p class="footer-note">資料只存在你的瀏覽器裡。匯率與免稅計算僅供參考，實際以店家與海關為準。</p>
     </div>
   </footer>
@@ -107,10 +123,11 @@
   </button>
 
   <nav class="nav-mobile" aria-label="主要分頁">
-    <a href="#/list" data-route="list"><span class="ms" aria-hidden="true">temple_buddhist</span><span>購物聖庫</span></a>
-    <a href="#/areas" data-route="areas"><span class="ms" aria-hidden="true">map</span><span>購買地區</span></a>
+    <a href="#/home" data-route="home"><span class="ms" aria-hidden="true">movie</span><span>首頁</span></a>
+    <a href="#/list" data-route="list"><span class="ms" aria-hidden="true">shopping_bag</span><span>採買清單</span></a>
+    <a href="#/split" data-route="split"><span class="ms" aria-hidden="true">group</span><span>代購分帳</span></a>
     <a href="#/budget" data-route="budget"><span class="ms" aria-hidden="true">account_balance_wallet</span><span>預算匯率</span></a>
-    <a href="#/luggage" data-route="luggage"><span class="ms" aria-hidden="true">luggage</span><span>行程行李</span></a>
+    <a href="#/packing" data-route="packing"><span class="ms" aria-hidden="true">luggage</span><span>打包海關</span></a>
   </nav>
 
   <div id="toast-region" class="toast-region" aria-live="polite"></div>

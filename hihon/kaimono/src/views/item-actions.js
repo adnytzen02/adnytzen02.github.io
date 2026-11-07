@@ -4,22 +4,42 @@ import { analyze } from '../calc.js';
 import { confirmDialog, toast, esc, yen } from '../ui.js';
 import { openDetail } from './item-detail.js';
 import { openForm } from './item-form.js';
+import { pickPurchaseStore } from './store-picker.js';
+import { storeTodayExcl } from './store-groups.js';
+import { normStore } from '../storeMatch.js';
+import { TAX_FREE_MIN } from '../calc.js';
+import { stampChecked, celebrateTaxFree } from '../fx.js';
 
-export function togglePurchased(id) {
+// 勾選已入手：storeName 為在哪家店勾選（店鋪分組時會帶入）。
+// 沒指定、而商品有多家候選或「不限店鋪」時，先詢問在哪家買到。
+export async function togglePurchased(id, storeName) {
   const before = store.getItem(id);
   if (!before) return;
-  const item = store.togglePurchased(id);
+  let at = storeName;
+  if (!before.purchased && at === undefined) {
+    if (before.stores.length === 1) at = before.stores[0];
+    else if (before.stores.length > 1 || before.anyStore) {
+      at = await pickPurchaseStore(before);
+      if (at === null) return; // 取消
+    } else at = '';
+  }
+  // 勾選前後比較這家店今天的未稅金額：剛好跨過 ¥5,000 就慶祝一下
+  const exclBefore = !before.purchased && at && before.taxFree ? storeTodayExcl(store.state.items, store.state.settings, at) : 0;
+  const item = store.togglePurchased(id, undefined, at);
   if (!item.purchased) {
     toast({ title: '已改回待購買', message: esc(item.name), tone: 'muted', duration: 3000 });
     return;
   }
   const { byItem } = analyze(store.state.items, store.state.settings);
   const a = byItem.get(id);
-  const parts = [`支付 ${yen(a.pay)}`];
+  const parts = [item.purchasedStore ? `在 ${esc(item.purchasedStore)} 買到` : '', `支付 ${yen(a.pay)}`].filter(Boolean);
   if (a.refund) parts.push(`預估退稅 ${yen(a.refund)}`);
   if (a.group.eligible && a.group.store) parts.push(`${esc(a.group.store)} 已達免稅門檻`);
+  const justReached = Boolean(at) && exclBefore < TAX_FREE_MIN && storeTodayExcl(store.state.items, store.state.settings, at) >= TAX_FREE_MIN;
+  stampChecked(id);
+  if (justReached) celebrateTaxFree(normStore(at));
   toast({
-    title: '戰利品已入庫',
+    title: justReached ? `已買到・${esc(at)} 免稅達成` : '已買到',
     message: `「${esc(item.name)}」· ${parts.join(' · ')}`,
     actionText: '復原',
     onAction: () => store.togglePurchased(id, false),
@@ -56,7 +76,7 @@ export function bindItemActions(root) {
     if (!btn || !card || !root.contains(card)) return;
     const { id } = card.dataset;
     switch (btn.dataset.act) {
-      case 'toggle': togglePurchased(id); break;
+      case 'toggle': togglePurchased(id, btn.dataset.at); break;
       case 'open': openDetail(id); break;
       case 'edit': openForm(id); break;
       case 'delete': deleteItem(id); break;

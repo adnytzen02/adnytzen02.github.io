@@ -1,22 +1,29 @@
-// 購物聖庫：清單總覽、篩選、搜尋
+// 採買清單：店鋪／分類兩種視角、篩選、搜尋
 import { store } from '../store.js';
 import { CATEGORIES, categoryOf } from '../data.js';
-import { $, $$, esc, icon, yen, twd, kg, num, progress, stackBar, download, toast } from '../ui.js';
+import { $, $$, esc, icon, yen, twd, kg, num, progress, stackBar, download, toast, snapshotNumbers, countUp } from '../ui.js';
 import { itemCard, kpi, pageHead, emptyState } from './components.js';
 import { bindItemActions } from './item-actions.js';
 import { openForm } from './item-form.js';
+import { storeView, bindStoreView } from './store-groups.js';
+import { editStoreDialog } from './store-picker.js';
 
 // 篩選狀態保留在模組內，切頁回來仍記得
-const filter = { cat: 'all', status: 'all', area: 'all', q: '', sort: 'new', layout: 'grid' };
+const filter = { cat: 'all', status: 'all', area: 'all', who: 'all', q: '', sort: 'new', layout: 'grid' };
 try { filter.layout = localStorage.getItem('shopping-relics:layout') || 'grid'; } catch { /* 無痕模式 */ }
 
-function applyFilter(items, byItem) {
+// 搜尋與「幫誰買」篩選：兩種視角共用
+function baseMatch(i) {
   const q = filter.q.trim().toLowerCase();
-  let list = items.filter((i) =>
-    (filter.cat === 'all' || i.category === filter.cat)
+  return (filter.who === 'all' || (filter.who === '__self__' ? !i.buyFor : i.buyFor === filter.who))
+    && (!q || [i.name, i.nameJa, i.brand, ...i.stores, i.purchasedStore, i.area, i.note, i.jan, i.buyFor].join(' ').toLowerCase().includes(q));
+}
+
+function applyFilter(items, byItem) {
+  let list = items.filter((i) => baseMatch(i)
+    && (filter.cat === 'all' || i.category === filter.cat)
     && (filter.status === 'all' || (filter.status === 'done' ? i.purchased : !i.purchased))
-    && (filter.area === 'all' || (i.area || '未指定') === filter.area)
-    && (!q || [i.name, i.nameJa, i.brand, i.store, i.area, i.note, i.jan].join(' ').toLowerCase().includes(q)));
+    && (filter.area === 'all' || (i.area || '未指定') === filter.area));
   const sorters = {
     new: (a, b) => b.createdAt - a.createdAt,
     priority: (a, b) => b.priority - a.priority || b.createdAt - a.createdAt,
@@ -57,7 +64,30 @@ function kpis({ state, sum, rate }) {
     })}`;
 }
 
-function toolbar(items) {
+function whoSelect(items) {
+  const friends = [...new Set(items.map((i) => i.buyFor).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+  if (filter.who !== 'all' && filter.who !== '__self__' && !friends.includes(filter.who)) filter.who = 'all';
+  return `<div class="select-wrap">
+    <label for="f-who" class="sr-only">幫誰買</label>
+    <select id="f-who">
+      <option value="all">全部對象</option>
+      <option value="__self__" ${filter.who === '__self__' ? 'selected' : ''}>自用</option>
+      ${friends.map((f) => `<option value="${esc(f)}" ${filter.who === f ? 'selected' : ''}>@${esc(f)}</option>`).join('')}
+    </select></div>`;
+}
+
+function searchBox() {
+  return `<div class="search">
+    <label for="f-q" class="sr-only">搜尋商品</label>
+    ${icon('search')}
+    <input id="f-q" type="search" placeholder="搜尋品名、品牌、店家、朋友…" value="${esc(filter.q)}" autocomplete="off">
+  </div>`;
+}
+
+function toolbar(items, view) {
+  if (view === 'store') {
+    return `<div class="card toolbar"><div class="filters filters-store">${searchBox()}${whoSelect(items)}</div></div>`;
+  }
   const counts = Object.fromEntries(CATEGORIES.map((c) => [c.id, 0]));
   items.forEach((i) => { counts[i.category] = (counts[i.category] ?? 0) + 1; });
   const areas = [...new Set(items.map((i) => i.area || '未指定'))].sort((a, b) => a.localeCompare(b, 'zh-Hant'));
@@ -71,11 +101,8 @@ function toolbar(items) {
       ${cats.map((c) => `<button type="button" class="chip ${filter.cat === c.id ? 'on' : ''}" data-cat="${c.id}" aria-pressed="${filter.cat === c.id}">${icon(c.icon, 'sm')}${c.label} (${counts[c.id]})</button>`).join('')}
     </div>
     <div class="filters">
-      <div class="search">
-        <label for="f-q" class="sr-only">搜尋商品</label>
-        ${icon('search')}
-        <input id="f-q" type="search" placeholder="搜尋品名、品牌、店家…" value="${esc(filter.q)}" autocomplete="off">
-      </div>
+      ${searchBox()}
+      ${whoSelect(items)}
       <div class="select-wrap">
         <label for="f-status" class="sr-only">狀態</label>
         <select id="f-status">
@@ -108,6 +135,10 @@ function toolbar(items) {
   </div>`;
 }
 
+function content(ctx) {
+  return ctx.state.settings.listView === 'store' ? storeView(ctx, baseMatch) : grid(ctx);
+}
+
 function grid({ state, sum, rate }) {
   const list = applyFilter(state.items, sum.byItem);
   const status = `<p class="result-count" role="status">顯示 ${list.length} / ${state.items.length} 件</p>`;
@@ -119,11 +150,12 @@ function grid({ state, sum, rate }) {
 }
 
 function exportCSV({ state, sum }) {
-  const head = ['狀態', '品名', '日文名稱', '品牌', '分類', '數量', '地區', '店家', '預計日期', '店頭支付(JPY)', '預估退稅(JPY)', '實際成本(JPY)', '台幣(約)', '重量(kg)', '行李', 'JAN', '備註'];
+  const head = ['狀態', '品名', '日文名稱', '品牌', '分類', '數量', '幫誰買', '候選店鋪', '購買店家', '地區', '預計日期', '店頭支付(JPY)', '預估退稅(JPY)', '實際成本(JPY)', '台幣(約)', '重量(kg)', '行李', 'JAN', '備註'];
   const lug = { checked: '託運', carry: '隨身', none: '不放行李' };
   const rows = state.items.map((i) => {
     const a = sum.byItem.get(i.id);
-    return [i.purchased ? '已入手' : '待購', i.name, i.nameJa, i.brand, categoryOf(i.category).label, i.qty, i.area, i.store, i.planDate,
+    return [i.purchased ? '已入手' : '待購', i.name, i.nameJa, i.brand, categoryOf(i.category).label, i.qty, i.buyFor,
+      i.anyStore ? '不限店鋪' : i.stores.join('、'), i.purchasedStore, i.area, i.planDate,
       a.pay, a.refund, a.net, Math.round(a.pay * state.settings.rate), a.weight, lug[i.luggage], i.jan, i.note];
   });
   const csv = [head, ...rows].map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\r\n');
@@ -134,25 +166,31 @@ function exportCSV({ state, sum }) {
 export function mount(root, c) {
   let ctx = c;
   const render = () => {
+    root.dataset.view = ctx.state.settings.listView;
     const { state } = ctx;
+    const view = state.settings.listView;
     const hasItems = state.items.length > 0;
     const hasDemo = state.items.some((i) => i.demo);
     root.innerHTML = `
       ${pageHead({
-        eyebrow: `AETHER WISHLIST · ${esc(state.settings.tripName)}`,
-        title: '旅日必買願望清單',
-        sub: '記下想買的寶物，即時換算台幣、試算免稅退稅，逛街時一眼看清還差什麼。',
+        eyebrow: `SHOPPING LIST · ${esc(state.settings.tripName)}`,
+        title: '採買清單',
+        sub: '行前規劃、現場掃貨都在這頁：進店時切到「店鋪」打開該店清單邊拿邊勾，找東西用「分類」。',
         actions: hasItems ? `
+          <div class="seg seg-text view-switch" role="group" aria-label="清單視角">
+            <button type="button" data-view="store" class="${view === 'store' ? 'on' : ''}" aria-pressed="${view === 'store'}">${icon('storefront', 'sm')}店鋪</button>
+            <button type="button" data-view="category" class="${view === 'category' ? 'on' : ''}" aria-pressed="${view === 'category'}">${icon('category', 'sm')}分類</button>
+          </div>
           <button type="button" class="btn btn-ghost" data-export>${icon('download')}匯出 CSV</button>
           <button type="button" class="btn btn-gold" data-add>${icon('add_circle')}新增採購項目</button>` : '',
       })}
       ${hasDemo ? `<div class="notice notice-demo" role="note">${icon('info')}<p>目前清單含<strong>示範資料</strong>，價格為示意數字，不代表實際售價。</p>
         <button type="button" class="btn btn-sm btn-ghost" data-clear-demo>清除示範資料</button></div>` : ''}
       <div class="kpi-grid" data-region="kpi">${kpis(ctx)}</div>
-      ${hasItems ? `<div data-region="toolbar">${toolbar(state.items)}</div><div data-region="grid">${grid(ctx)}</div>`
+      ${hasItems ? `<div data-region="toolbar">${toolbar(state.items, view)}</div><div data-region="grid">${content(ctx)}</div>`
         : emptyState({
           title: '清單還是空的',
-          text: '先把想買的第一件寶物記下來吧。也可以載入示範資料，看看整個流程怎麼運作。',
+          text: '先記下第一件想買的商品吧。也可以載入示範資料，看看整個流程怎麼運作。',
           actions: `<button type="button" class="btn btn-gold" data-add>${icon('add_circle')}新增第一件</button>
                     <button type="button" class="btn btn-ghost" data-demo>${icon('auto_awesome')}載入示範資料</button>`,
         })}`;
@@ -160,11 +198,12 @@ export function mount(root, c) {
 
   const refreshGrid = () => {
     const g = $('[data-region="grid"]', root);
-    if (g) g.innerHTML = grid(ctx);
+    if (g) g.innerHTML = content(ctx);
   };
 
   render();
   bindItemActions(root);
+  bindStoreView(root, { onMeta: editStoreDialog, filterFn: baseMatch });
 
   root.addEventListener('click', (e) => {
     const t = e.target.closest('button');
@@ -173,6 +212,10 @@ export function mount(root, c) {
     else if (t.matches('[data-demo]')) { store.loadDemo(); toast({ title: '已載入示範資料', message: '價格為示意數字，可隨時清除。' }); }
     else if (t.matches('[data-clear-demo]')) { store.clearDemo(); toast({ title: '已清除示範資料', tone: 'muted', duration: 3000 }); }
     else if (t.matches('[data-export]')) exportCSV(ctx);
+    else if (t.matches('[data-view]')) {
+      store.updateSettings({ listView: t.dataset.view }); // 會觸發重繪
+      $(`[data-view="${t.dataset.view}"]`, root)?.focus();
+    }
     else if (t.matches('[data-cat]')) {
       filter.cat = t.dataset.cat;
       $$('[data-cat]', root).forEach((b) => { b.classList.toggle('on', b === t); b.setAttribute('aria-pressed', b === t); });
@@ -183,7 +226,7 @@ export function mount(root, c) {
       $$('[data-layout]', root).forEach((b) => { b.classList.toggle('on', b === t); b.setAttribute('aria-pressed', b === t); });
       refreshGrid();
     } else if (t.matches('[data-reset-filter]')) {
-      Object.assign(filter, { cat: 'all', status: 'all', area: 'all', q: '' });
+      Object.assign(filter, { cat: 'all', status: 'all', area: 'all', who: 'all', q: '' });
       render();
     }
   });
@@ -192,7 +235,7 @@ export function mount(root, c) {
     if (e.target.id === 'f-q') { filter.q = e.target.value; refreshGrid(); }
   });
   root.addEventListener('change', (e) => {
-    const map = { 'f-status': 'status', 'f-area': 'area', 'f-sort': 'sort' };
+    const map = { 'f-status': 'status', 'f-area': 'area', 'f-sort': 'sort', 'f-who': 'who' };
     if (map[e.target.id]) { filter[map[e.target.id]] = e.target.value; refreshGrid(); }
   });
 
@@ -201,17 +244,24 @@ export function mount(root, c) {
       ctx = next;
       const hadToolbar = Boolean($('[data-region="toolbar"]', root));
       const hasDemoBanner = Boolean($('.notice-demo', root));
-      const needsFull = hadToolbar !== next.state.items.length > 0
+      const viewChanged = root.dataset.view !== next.state.settings.listView;
+      const needsFull = viewChanged || hadToolbar !== next.state.items.length > 0
         || hasDemoBanner !== next.state.items.some((i) => i.demo);
       if (needsFull) { render(); return; }
       // 只更新數字與卡片，避免搜尋框失去焦點
-      $('[data-region="kpi"]', root).innerHTML = kpis(ctx);
+      const kpiEl = $('[data-region="kpi"]', root);
+      const before = snapshotNumbers(kpiEl, '.kpi-value');
+      kpiEl.innerHTML = kpis(ctx);
+      countUp(kpiEl, '.kpi-value', before); // 數字變動時滾動到新值
       const tb = $('[data-region="toolbar"]', root);
-      if (tb && !tb.contains(document.activeElement)) tb.innerHTML = toolbar(ctx.state.items);
-      // 保留觸發按鈕的焦點（例如勾選已入手）
+      if (tb && !tb.contains(document.activeElement)) tb.innerHTML = toolbar(ctx.state.items, ctx.state.settings.listView);
+      // 保留觸發按鈕的焦點（例如在某店勾選已入手）
       const active = document.activeElement;
       const card = active?.closest?.('[data-id]');
-      const sel = card ? `[data-id="${card.dataset.id}"] [data-act="${active.dataset.act}"]` : null;
+      const grp = active?.closest?.('[data-group]');
+      const scope = grp ? `[data-group="${CSS.escape(grp.dataset.group)}"] ` : '';
+      let sel = card ? `${scope}[data-id="${card.dataset.id}"] [data-act="${active.dataset.act}"]` : null;
+      if (!sel && active?.matches?.('[data-sg-open]')) sel = `${scope}[data-sg-open]`;
       refreshGrid();
       if (sel) $(sel, root)?.focus({ preventScroll: true });
     },

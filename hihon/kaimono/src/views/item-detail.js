@@ -1,6 +1,6 @@
 // 商品詳情抽屜：完整金額拆解、免稅門檻、操作按鈕
 import { store } from '../store.js';
-import { analyze, TAX_FREE_MIN } from '../calc.js';
+import { analyze, effLuggage, TAX_FREE_MIN } from '../calc.js';
 import { categoryOf, priorityOf } from '../data.js';
 import { createDialog, openDialog, closeDialog, esc, icon, yen, twd, kg, fmtDate, fmtTime, progress, validJan } from '../ui.js';
 import { thumb } from './components.js';
@@ -21,14 +21,14 @@ function body(item) {
 
   let thresholdText;
   if (!item.taxFree) thresholdText = '這件商品設定為不辦免稅。';
-  else if (!item.store) thresholdText = '填寫店家後，才能和同店商品合併計算免稅門檻。';
+  else if (!item.store) thresholdText = '選擇店鋪後，才能和同店商品合併計算免稅門檻。';
   else if (g.eligible) thresholdText = `${esc(g.store)}${g.date ? `（${fmtDate(g.date)}）` : ''} 免稅商品未稅合計 ${yen(g.eligibleExcl)}，已達 ${yen(TAX_FREE_MIN)} 門檻。`;
   else thresholdText = `${esc(g.store)} 目前未稅合計 ${yen(g.eligibleExcl)}，再 <strong>${yen(g.shortfall)}</strong>（未稅）即可退稅。`;
 
   return `
   <div class="dlg-shell drawer-shell">
     <header class="dlg-head">
-      <p class="eyebrow">${icon(cat.icon, 'sm')}${esc(cat.label)}${item.store ? ` · ${esc(item.store)}` : ''}</p>
+      <p class="eyebrow">${icon(cat.icon, 'sm')}${esc(cat.label)}${item.buyFor ? ` · @${esc(item.buyFor)}` : ''}</p>
       <h2 id="detail-title" class="dlg-title">${esc(item.name)}</h2>
       ${item.nameJa ? `<p class="dlg-ja" lang="ja">${esc(item.nameJa)}</p>` : ''}
       <div class="tag-row">
@@ -39,24 +39,30 @@ function body(item) {
       <button type="button" class="icon-btn dlg-close" aria-label="關閉詳情">${icon('close')}</button>
     </header>
 
-    <div class="dlg-scroll">
+    <div class="dlg-scroll" tabindex="0" role="region" aria-label="商品詳情內容">
       <div class="detail-hero">
         ${thumb(item, 'thumb-lg')}
         <dl class="info-grid">
           ${item.brand ? `<div><dt>品牌</dt><dd>${esc(item.brand)}</dd></div>` : ''}
           <div><dt>數量</dt><dd>${item.qty}</dd></div>
+          <div><dt>幫誰買</dt><dd>${item.buyFor ? `@${esc(item.buyFor)}` : '自用'}</dd></div>
+          <div class="span2"><dt>${item.purchased ? '購買店家' : '目標店鋪'}</dt><dd>${item.purchased
+            ? esc(item.purchasedStore || '未記錄')
+            : item.anyStore ? '不限店鋪（比價中）'
+              : item.stores.length ? item.stores.map((s, i) => `${esc(s)}${i === 0 && item.stores.length > 1 ? '<small>（主選）</small>' : ''}`).join('、') : '未選店鋪'}</dd></div>
           <div><dt>地區</dt><dd>${esc(item.area || '未指定')}</dd></div>
           <div><dt>預計日期</dt><dd>${item.planDate ? fmtDate(item.planDate) : '未定'}</dd></div>
           <div><dt>重量</dt><dd>${item.weightKg ? kg(a.weight) : '未填'}</dd></div>
-          <div><dt>行李</dt><dd>${LUGGAGE[item.luggage]}</dd></div>
+          <div><dt>行李</dt><dd>${LUGGAGE[effLuggage(item)]}${effLuggage(item) !== item.luggage ? '<small>（依包裝屬性）</small>' : ''}</dd></div>
           ${item.jan ? `<div class="span2"><dt>JAN 條碼</dt><dd class="mono">${esc(item.jan)}${validJan(item.jan) ? '' : ' <small class="text-warn">（檢查碼不符）</small>'}</dd></div>` : ''}
         </dl>
       </div>
 
-      ${item.fragile || item.liquid || item.battery ? `<div class="tag-row">
+      ${item.fragile || item.liquid || item.battery || item.blade ? `<div class="tag-row">
         ${item.fragile ? `<span class="badge badge-warn">${icon('wine_bar', 'sm')}易碎</span>` : ''}
         ${item.liquid ? `<span class="badge badge-cyan">${icon('water_drop', 'sm')}液體</span>` : ''}
         ${item.battery ? `<span class="badge badge-danger">${icon('battery_alert', 'sm')}含鋰電池</span>` : ''}
+        ${item.blade ? `<span class="badge badge-warn">${icon('content_cut', 'sm')}刀剪類</span>` : ''}
       </div>` : ''}
 
       <section class="ledger" aria-labelledby="ledger-title">

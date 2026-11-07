@@ -16,8 +16,19 @@ export function thumb(item, size = '') {
 export function taxBadge(item, a) {
   if (!item.taxFree) return `<span class="badge badge-muted">不辦免稅</span>`;
   if (a.refundable) return `<span class="badge badge-cyan">${icon('verified', 'sm')}可退稅 ${yen(a.refund)}</span>`;
-  if (!item.store) return `<span class="badge badge-muted">未填店家</span>`;
+  if (!item.store) return `<span class="badge badge-muted">未選店鋪</span>`;
   return `<span class="badge badge-warn">差 ${yen(a.group.shortfall)} 達標</span>`;
+}
+
+// 卡片上的店鋪標籤：已買顯示購買店家；未買顯示主選店＋備選數
+function storeTag(item) {
+  if (item.purchased && item.purchasedStore) {
+    return `<span class="tag tag-store" title="在 ${esc(item.purchasedStore)} 買到">${icon('storefront', 'sm')}<span class="tag-text">${esc(item.purchasedStore)}</span></span>`;
+  }
+  if (item.anyStore) return `<span class="tag tag-store">${icon('compare_arrows', 'sm')}<span class="tag-text">不限店鋪</span></span>`;
+  if (!item.stores.length) return '<span class="tag tag-store tag-empty">未選店鋪</span>';
+  const more = item.stores.length - 1;
+  return `<span class="tag tag-store" title="${esc(item.stores.join('、'))}">${icon('storefront', 'sm')}<span class="tag-text">${esc(item.stores[0])}</span>${more ? `<span class="tag-more">+${more}</span>` : ''}</span>`;
 }
 
 export function itemCard(item, a, rate, layout = 'grid') {
@@ -26,7 +37,7 @@ export function itemCard(item, a, rate, layout = 'grid') {
   return `
   <article class="card item-card ${item.purchased ? 'is-done' : ''} layout-${layout}" data-id="${item.id}">
     <div class="item-top">
-      ${item.store ? `<span class="tag tag-store" title="${esc(item.store)}">${icon('storefront', 'sm')}<span class="tag-text">${esc(item.store)}</span></span>` : '<span class="tag tag-store tag-empty">未填店家</span>'}
+      ${storeTag(item)}
       <span class="tag tag-prio p${pr.value}" title="${pr.label}"><span aria-hidden="true">${pr.stars}</span><span>${pr.label}</span></span>
       <button type="button" class="check ${item.purchased ? 'on' : ''}" data-act="toggle"
         role="checkbox" aria-checked="${item.purchased}" aria-label="已入手：${esc(item.name)}">${icon('check')}</button>
@@ -41,6 +52,7 @@ export function itemCard(item, a, rate, layout = 'grid') {
       </div>
     </div>
     <div class="item-meta">
+      ${item.buyFor ? `<span class="who-tag">@${esc(item.buyFor)}</span>` : ''}
       ${taxBadge(item, a)}
       ${item.weightKg ? `<span class="meta-text">${icon('luggage', 'sm')}${kg(a.weight)}</span>` : ''}
       ${item.planDate ? `<span class="meta-text">${icon('event', 'sm')}${fmtDate(item.planDate)}</span>` : ''}
@@ -62,7 +74,7 @@ export function kpi({ label, icon: ic, value, unit = '', foot = '', bar = '', to
   return `
   <section class="card kpi ${tone}">
     <div class="kpi-head"><h2 class="kpi-label">${label}</h2><span class="kpi-icon">${icon(ic)}</span></div>
-    <p class="kpi-value">${value}${unit ? `<small>${unit}</small>` : ''}</p>
+    <p class="kpi-value" data-count-key="${label}">${value}${unit ? `<small>${unit}</small>` : ''}</p>
     ${bar}
     ${foot ? `<div class="kpi-foot">${foot}</div>` : ''}
   </section>`;
@@ -72,12 +84,77 @@ export function pageHead({ eyebrow, title, sub, actions = '' }) {
   return `
   <header class="page-head">
     <div>
-      <p class="eyebrow">${icon('diamond', 'sm')}${eyebrow}</p>
+      <p class="eyebrow">${icon('auto_awesome', 'sm')}${eyebrow}</p>
       <h1 class="page-title">${title}</h1>
       ${sub ? `<p class="page-sub">${sub}</p>` : ''}
     </div>
     ${actions ? `<div class="page-actions">${actions}</div>` : ''}
   </header>`;
+}
+
+// 長頁面的快速跳轉列（手機上黏在頁首下方）。items：[{ id: 區塊標題的 id, label }]
+// 這個網站用 # 做換頁，所以不用 <a href="#...">（會被當成換頁），改用按鈕捲動
+export function jumpNav(items) {
+  return `
+  <nav class="jump-nav" aria-label="本頁區塊" data-jump-nav>
+    <div class="jump-track">
+      ${items.map((it) => `<button type="button" class="jump-chip" data-jump="${it.id}">${it.label}</button>`).join('')}
+    </div>
+  </nav>`;
+}
+
+// 綁定跳轉列：點了捲到該區塊並把焦點移到標題；捲動時標示目前所在的區塊。回傳 refresh（區塊重繪後呼叫）與 destroy
+export function bindJumpNav(root) {
+  const nav = root.querySelector('[data-jump-nav]');
+  if (!nav) return { refresh() {}, destroy() {} };
+  const chips = [...nav.querySelectorAll('[data-jump]')];
+  const target = (id) => root.querySelector(`#${CSS.escape(id)}`);
+  const sectionOf = (h) => h?.closest('section, .pack-weights, .card') ?? h;
+  const offset = () => (document.querySelector('.topbar')?.offsetHeight ?? 0) + nav.offsetHeight + 12;
+  let current = '';
+  const setCurrent = (id) => {
+    if (id === current) return;
+    current = id;
+    chips.forEach((c) => {
+      const on = c.dataset.jump === id;
+      if (on) c.setAttribute('aria-current', 'true'); else c.removeAttribute('aria-current');
+      // 只橫向捲動跳轉列本身，讓目前的標籤露出來（用 scrollIntoView 會打斷整頁正在進行的捲動）
+      if (on) { const track = c.parentElement; track.scrollLeft = c.offsetLeft - (track.clientWidth - c.offsetWidth) / 2; }
+    });
+  };
+  // 隱藏目前不存在的區塊（例如打包頁還沒有需要手提的商品）
+  const refresh = () => chips.forEach((c) => { c.hidden = !target(c.dataset.jump); });
+  // 目前所在區塊：最後一個頂端已經捲過跳轉列的區塊
+  let raf = 0;
+  const onScroll = () => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      const line = offset() + 4;
+      let id = '';
+      for (const c of chips) {
+        if (c.hidden) continue;
+        const el = sectionOf(target(c.dataset.jump));
+        if (el && el.getBoundingClientRect().top <= line) id = c.dataset.jump;
+      }
+      setCurrent(id || chips.find((c) => !c.hidden)?.dataset.jump || '');
+    });
+  };
+  nav.addEventListener('click', (e) => {
+    const chip = e.target.closest('[data-jump]');
+    if (!chip) return;
+    const h = target(chip.dataset.jump);
+    if (!h) return;
+    const el = sectionOf(h);
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    scrollTo({ top: el.getBoundingClientRect().top + scrollY - offset(), behavior: reduce ? 'auto' : 'smooth' });
+    if (!h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1');
+    h.focus({ preventScroll: true }); // 讓鍵盤、螢幕閱讀器使用者也跟著到該區塊
+    setCurrent(chip.dataset.jump);
+  });
+  addEventListener('scroll', onScroll, { passive: true });
+  refresh(); onScroll();
+  return { refresh() { refresh(); onScroll(); }, destroy() { removeEventListener('scroll', onScroll); } };
 }
 
 export function emptyState({ title, text, actions }) {

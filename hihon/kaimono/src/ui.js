@@ -15,6 +15,40 @@ export const kg = (n) => `${num(n, n >= 10 ? 1 : 2)} kg`;
 export const pct = (r) => `${Math.round((r || 0) * 100)}%`;
 
 // Material Symbols 圖示（裝飾用，對螢幕閱讀器隱藏）
+// 數字滾動：重繪前先記下舊數字，重繪後從舊值滾到新值（0.4 秒）。只改文字，不影響版面
+const firstNumber = (s) => {
+  const m = String(s).match(/-?\d[\d,]*(\.\d+)?/);
+  return m ? { str: m[0], val: parseFloat(m[0].replace(/,/g, '')) } : null;
+};
+export function snapshotNumbers(root, sel) {
+  const map = new Map();
+  root?.querySelectorAll(sel).forEach((el, i) => map.set(el.dataset.countKey ?? i, el.textContent));
+  return map;
+}
+export function countUp(root, sel, before) {
+  if (!root || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  root.querySelectorAll(sel).forEach((el, i) => {
+    const old = before.get(el.dataset.countKey ?? i);
+    if (old == null) return;
+    const a = firstNumber(old); const b = firstNumber(el.textContent);
+    if (!a || !b || a.val === b.val) return;
+    // 找到含新數字的那段文字
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let node = walker.nextNode();
+    while (node && !node.nodeValue.includes(b.str)) node = walker.nextNode();
+    if (!node) return;
+    const dec = (b.str.split('.')[1] || '').length;
+    const fmt = (v) => v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    const tpl = node.nodeValue; const start = performance.now();
+    const step = (now) => {
+      const k = Math.min(1, (now - start) / 400); const e = 1 - (1 - k) ** 3;
+      node.nodeValue = k < 1 ? tpl.replace(b.str, fmt(a.val + (b.val - a.val) * e)) : tpl;
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+}
+
 export const icon = (name, cls = '') => `<span class="ms ${cls}" aria-hidden="true">${name}</span>`;
 
 export function fmtDate(d) {

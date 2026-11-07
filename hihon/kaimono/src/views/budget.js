@@ -1,9 +1,10 @@
 // 預算匯率：匯率、預算進度、各店退稅、單筆試算盤、免稅新制說明
 import { store } from '../store.js';
-import { quickCalc, TAX_FREE_MIN, REFUND_SYSTEM_START } from '../calc.js';
+import { quickCalc, TAX_FREE_MIN } from '../calc.js';
 import { refreshRate, setManualRate } from '../rate.js';
 import { $, esc, icon, yen, twd, num, fmtTime, toast, progress } from '../ui.js';
-import { pageHead } from './components.js';
+import { pageHead, jumpNav, bindJumpNav } from './components.js';
+import { guideCard, bindGuide } from './refund-guide.js';
 
 // 試算盤狀態保留在模組內
 const calc = { price: 10000, includesTax: true, taxRate: 10, discountPct: 0, feePct: null };
@@ -15,7 +16,7 @@ function rateCard({ state }) {
   return `
   <section class="card rate-card" aria-labelledby="rate-title">
     <div class="rate-glow" aria-hidden="true"></div>
-    <p class="eyebrow eyebrow-light">${icon('currency_exchange', 'sm')}AETHER CURRENCY</p>
+    <p class="eyebrow eyebrow-light">${icon('currency_exchange', 'sm')}EXCHANGE RATE · 匯率</p>
     <h2 id="rate-title" class="sr-only">匯率</h2>
     <p class="rate-big"><span>1 JPY =</span> <strong>${num(s.rate, 4)}</strong> <span>TWD</span></p>
     <p class="rate-src">${esc(src)}${s.rateUpdatedAt ? ` · ${fmtTime(s.rateUpdatedAt)}` : ''}</p>
@@ -81,7 +82,7 @@ function refundCard({ state, sum, rate }) {
   <section class="card refund-card" aria-labelledby="refund-title">
     <div class="refund-hero">
       <div>
-        <p class="eyebrow eyebrow-light">${icon('savings', 'sm')}SACRED TAX RELIEF</p>
+        <p class="eyebrow eyebrow-light">${icon('savings', 'sm')}TAX REFUND · 退稅</p>
         <h2 id="refund-title" class="refund-big">預估退稅 ${yen(sum.refund)}</h2>
       </div>
       <p class="refund-twd">≈ ${twd(sum.refund, rate)}</p>
@@ -147,6 +148,7 @@ function calculator({ rate }) {
             <div class="seg-pills" role="radiogroup" aria-labelledby="qc-l2">
               <label class="pill"><input type="radio" name="taxRate" value="10" ${calc.taxRate === 10 ? 'checked' : ''}><span>10%</span></label>
               <label class="pill"><input type="radio" name="taxRate" value="8" ${calc.taxRate === 8 ? 'checked' : ''}><span>8% 食品</span></label>
+              <label class="pill"><input type="radio" name="taxRate" value="1" ${calc.taxRate === 1 ? 'checked' : ''}><span>1% 食品（2027/4 起，法案審議中）</span></label>
             </div></div>
         </div>
         <div class="field"><span class="label" id="qc-l3">折扣／優惠券</span>
@@ -164,32 +166,19 @@ function calculator({ rate }) {
   </section>`;
 }
 
-function rulesCard() {
-  const after = new Date() >= new Date(`${REFUND_SYSTEM_START}T00:00:00+09:00`);
-  return `
-  <section class="card rules-card" aria-labelledby="rules-title">
-    <p class="eyebrow">${icon('gavel', 'sm')}CUSTOMS COMPLIANCE</p>
-    <h2 id="rules-title" class="section-title-lg">日本免稅新制：2026/11/1 起改為「出境後退稅」</h2>
-    <p class="muted">${after ? '新制已上路。' : '新制即將上路。'}本頁的計算方式依新制設計：店頭先付含稅金額，出境查驗後再退回消費稅。</p>
-    <ol class="rules-list">
-      <li><strong>店頭先付含稅價</strong>：在免稅店購物時照常付含稅金額，並保留收據與相關資料。</li>
-      <li><strong>門檻</strong>：同一天、同一家店，未稅合計 ${yen(TAX_FREE_MIN)} 以上。一般品與消耗品不再分開計算。</li>
-      <li><strong>購買後 90 天內出境查驗</strong>：在機場<strong>託運行李之前</strong>，持護照與商品到免稅手續機台辦理，必要時由海關檢查實品。</li>
-      <li><strong>在日本用掉就不能退</strong>：消耗品的特殊密封包裝規定取消，但若在日本境內使用或食用，該筆就不能退稅。</li>
-      <li><strong>退款方式與手續費</strong>：由免稅店或其委託的退稅業者退款，方式與手續費依各店規定。</li>
-    </ol>
-    <p class="source">資料來源：<a href="https://www.mlit.go.jp/kankocho/tax-free/page01_000001_00028.html" target="_blank" rel="noopener">日本觀光廳〈What is the Refund Method?〉<span class="sr-only">（另開新視窗）</span></a></p>
-  </section>`;
-}
 
 export function mount(root, c) {
   let ctx = c;
   root.innerHTML = `
     ${pageHead({
-      eyebrow: 'AETHER CURRENCY VAULT · 預算・匯率・免稅',
+      eyebrow: 'BUDGET & TAX · 預算・匯率・免稅',
       title: '預算・匯率・免稅計算中心',
       sub: '即時換算台幣、掌握預算餘額，並預估每家店能退多少消費稅。',
     })}
+    ${jumpNav([
+      { id: 'rate-title', label: '匯率' }, { id: 'budget-title', label: '預算' }, { id: 'calc-title', label: '試算' },
+      { id: 'refund-title', label: '退稅' }, { id: 'guide-title', label: '退稅指南' },
+    ])}
     <div class="budget-layout">
       <div class="col">
         <div data-region="rate">${rateCard(ctx)}</div>
@@ -198,7 +187,7 @@ export function mount(root, c) {
       </div>
       <div class="col">
         <div data-region="refund">${refundCard(ctx)}</div>
-        ${rulesCard()}
+        ${guideCard()}
       </div>
     </div>`;
 
@@ -254,7 +243,10 @@ export function mount(root, c) {
     if (e.target.closest('[data-calc-form]')) e.target.dispatchEvent(new Event('input', { bubbles: true }));
   });
 
+  const jump = bindJumpNav(root);
+  bindGuide(root);
   return {
+    destroy() { jump.destroy(); },
     update(next) {
       ctx = next;
       // 正在輸入的區塊不重繪，避免打斷

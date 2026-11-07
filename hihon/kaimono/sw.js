@@ -1,7 +1,7 @@
 // 離線快取（Service Worker）
 // 只在 https（GitHub Pages）或 localhost 生效；雙擊開啟 index.html 時不會啟用。
 // 新增或改名「網站本體檔案」時，請同時更新 SHELL_FILES 並把 VERSION 改成新的值。
-const VERSION = '2026-10-31c';
+const VERSION = '2026-11-07f';
 const SHELL = `relics-shell-${VERSION}`;
 const RUNTIME = 'relics-runtime-v1';
 
@@ -55,7 +55,7 @@ async function staleWhileRevalidate(request, cacheName, event) {
 async function networkFirstPage(request) {
   const cache = await caches.open(SHELL);
   const timeout = new Promise((resolve) => setTimeout(resolve, 3000));
-  const network = fetch(request).then((res) => {
+  const network = fetch(request, { cache: 'no-cache' }).then((res) => {
     if (res.ok) cache.put('./index.html', res.clone());
     return res;
   });
@@ -65,6 +65,24 @@ async function networkFirstPage(request) {
     if (res) return res;
   } catch { /* 離線 */ }
   const cached = await cache.match('./index.html');
+  return cached ?? network;
+}
+
+// 網站本體檔案：優先連網（3 秒內沒回應或離線就用快取），拿到新版順便更新快取
+async function networkFirstAsset(request) {
+  const cache = await caches.open(SHELL);
+  const timeout = new Promise((resolve) => setTimeout(resolve, 3000));
+  // cache: 'no-cache'：每次都向伺服器確認有沒有新版（沒變只回 304，很快），不讓瀏覽器直接用舊檔
+  const network = fetch(request, { cache: 'no-cache' }).then((res) => {
+    if (res.ok) cache.put(request, res.clone());
+    return res;
+  });
+  network.catch(() => {}); // 逾時後才失敗時不要留下未處理的錯誤
+  try {
+    const res = await Promise.race([network, timeout]);
+    if (res) return res;
+  } catch { /* 離線 */ }
+  const cached = await cache.match(request, { ignoreSearch: true });
   return cached ?? network;
 }
 
@@ -78,7 +96,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   if (url.origin === location.origin) {
-    event.respondWith(staleWhileRevalidate(request, SHELL, event));
+    // 網站本體（JS、CSS、圖示）也優先連網：更新網站後第一次開啟就是新版，離線時才用快取
+    event.respondWith(networkFirstAsset(request));
     return;
   }
   if (FONT_HOSTS.includes(url.hostname)) {

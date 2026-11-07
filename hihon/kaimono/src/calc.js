@@ -1,10 +1,26 @@
 // 金額、免稅、行李相關計算（純函式，不碰 DOM）
 import { normStore } from './storeMatch.js';
+import { catalogOf } from './storeCatalog.js';
 
 export const TAX_FREE_MIN = 5000; // 同一天同一店家，未稅合計 ¥5,000 以上
 export const REFUND_SYSTEM_START = '2026-11-01'; // 日本改採「先付稅、出境後退稅」的リファンド方式
 
 const round = (n) => Math.round(n);
+
+// 實際要放哪個行李：鋰電池必須手提；液體、刀剪必須託運；其他依使用者設定
+export function effLuggage(item) {
+  if (item.battery) return 'carry';
+  if (item.blade) return 'checked';
+  // 出境管制區免稅店買的液體會裝在密封袋，可依規定手提，不強制託運
+  if (item.liquid && !(item.purchased && catalogOf(item.purchasedStore)?.dutyFree)) return 'checked';
+  return item.luggage;
+}
+
+// 本機日期（YYYY-MM-DD），用來判斷「同一天」
+export const dayKey = (ts) => {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 // 單一商品的金額拆解（不含店家門檻判斷）
 export function itemMoney(item, settings) {
@@ -14,7 +30,8 @@ export function itemMoney(item, settings) {
   const lineExcl = unitExcl * off * item.qty; // 折扣後未稅小計
   const tax = lineExcl * rate;
   const lineIncl = lineExcl + tax; // 店頭實付（含稅）
-  const feePct = item.refundFeePct ?? settings.refundFeePct ?? 0;
+  // 手續費：商品自訂 → 店家內建（例如唐吉訶德 0%）→ 設定的預設值
+  const feePct = item.refundFeePct ?? catalogOf(item.purchasedStore || item.store)?.refundFeePct ?? settings.refundFeePct ?? 0;
   const listIncl = unitExcl * (1 + rate) * item.qty; // 折扣前含稅
   return {
     unitExcl: round(unitExcl),
@@ -30,7 +47,8 @@ export function itemMoney(item, settings) {
 }
 
 // 店名用正規化後的值分組：全形半形、大小寫、空白不同仍算同一家
-const storeKey = (item) => `${normStore(item.store)}|${item.planDate || ''}`;
+// 已買用實際購買日；未買有填預計日期就用該日，沒填則視為「今天」，和今天已買的合併計算（邊買邊勾選時最直覺）
+const storeKey = (item) => `${normStore(item.store)}|${item.purchased && item.purchasedAt ? dayKey(item.purchasedAt) : (item.planDate || dayKey(Date.now()))}`;
 
 // 依「店家＋預計日期」分組，判斷每組是否達免稅門檻
 export function storeGroups(items, settings) {
@@ -40,7 +58,8 @@ export function storeGroups(items, settings) {
     const key = item.store.trim() ? storeKey(item) : `__solo__${item.id}`;
     if (!groups.has(key)) {
       groups.set(key, {
-        key, store: item.store.trim(), area: item.area, date: item.planDate || '',
+        key, store: item.store.trim(), area: item.area,
+        date: item.purchased && item.purchasedAt ? dayKey(item.purchasedAt) : (item.planDate || ''),
         items: [], eligibleExcl: 0, totalPay: 0,
       });
     }
@@ -98,7 +117,7 @@ export function summarize(state) {
     pay: 0, paid: 0, pending: 0,
     refund: 0, refundPaid: 0, net: 0,
     discount: 0,
-    weightChecked: 0, weightCarry: 0, // 全部買完的戰利品重量
+    weightChecked: 0, weightCarry: 0, // 全部買完的商品重量
     weightCheckedNow: 0, weightCarryNow: 0, // 只算已入手的
     packedCount: 0, packableCount: 0,
     groups, byItem,
@@ -117,11 +136,12 @@ export function summarize(state) {
       s.pendingCount += 1;
       s.pending += a.pay;
     }
-    if (item.luggage === 'checked') s.weightChecked += a.weight;
-    if (item.luggage === 'carry') s.weightCarry += a.weight;
-    if (item.purchased && item.luggage === 'checked') s.weightCheckedNow += a.weight;
-    if (item.purchased && item.luggage === 'carry') s.weightCarryNow += a.weight;
-    if (item.luggage !== 'none') {
+    const lug = effLuggage(item);
+    if (lug === 'checked') s.weightChecked += a.weight;
+    if (lug === 'carry') s.weightCarry += a.weight;
+    if (item.purchased && lug === 'checked') s.weightCheckedNow += a.weight;
+    if (item.purchased && lug === 'carry') s.weightCarryNow += a.weight;
+    if (lug !== 'none') {
       s.packableCount += 1;
       if (item.packed) s.packedCount += 1;
     }
