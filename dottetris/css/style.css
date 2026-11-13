@@ -1,0 +1,503 @@
+/* 點陣方塊：擬物化 + 點陣圖示 + 柔光光暈 */
+
+/* 把主題色註冊成可過場的顏色，切換主題時所有用到的地方一起漸變 */
+@property --bg      { syntax: '<color>'; inherits: true; initial-value: #efeae2; }
+@property --text    { syntax: '<color>'; inherits: true; initial-value: #2b2620; }
+@property --muted   { syntax: '<color>'; inherits: true; initial-value: #5c5447; }
+@property --groove  { syntax: '<color>'; inherits: true; initial-value: #ded7cb; }
+@property --key     { syntax: '<color>'; inherits: true; initial-value: #ffffff; }
+@property --dot     { syntax: '<color>'; inherits: true; initial-value: #d97706; }
+@property --dot-off { syntax: '<color>'; inherits: true; initial-value: rgba(90, 70, 40, .2); }
+@property --glow    { syntax: '<color>'; inherits: true; initial-value: #f59e0b; }
+@property --hi      { syntax: '<color>'; inherits: true; initial-value: #ffffff; }
+@property --shade   { syntax: '<color>'; inherits: true; initial-value: rgba(110, 85, 50, .4); }
+@property --lip     { syntax: '<color>'; inherits: true; initial-value: rgba(255, 255, 255, .9); }
+
+/* 白天：暖米色底、白色按鍵、琥珀橘點與光暈（獨立配色，不是深色版反轉） */
+:root {
+  color-scheme: light;
+  --bg: #efeae2;
+  --text: #2b2620;
+  --muted: #5c5447;
+  --groove: #ded7cb;
+  --key: #ffffff;
+  --key-grad: linear-gradient(145deg, rgba(255, 255, 255, 0) 30%, rgba(150, 120, 80, .2));
+  --key-drop: rgba(90, 65, 30, .32);
+  --dot: #d97706;
+  --dot-off: rgba(90, 70, 40, .2);
+  --glow: #f59e0b;
+  --hi: #ffffff;
+  --shade: rgba(110, 85, 50, .4);
+  --lip: rgba(255, 255, 255, .9);
+  --focus: #8a4a00;
+  --glow-mix: 46%;
+  --aura-mix: 30%;
+
+  --c-I: #d97706; --c-O: #b7791f; --c-T: #c2410c; --c-S: #a16207;
+  --c-Z: #b91c1c; --c-J: #92400e; --c-L: #ea580c;
+
+  /* 版面尺寸：格子大小同時受寬度與高度限制，確保整個盤面留在畫面內 */
+  --side: 4.25rem;
+  --gap: .5rem;
+  --reserve: 13rem;
+  --cell: min(calc((100vw - 2 * var(--side) - 4rem) / 10), calc((100dvh - var(--reserve)) / 20), 2rem);
+
+  transition: --bg .6s ease, --text .6s ease, --muted .6s ease, --groove .6s ease, --key .6s ease,
+    --dot .6s ease, --dot-off .6s ease, --glow .6s ease, --hi .6s ease, --shade .6s ease, --lip .6s ease;
+}
+
+/* 夜晚：近黑底、深色按鍵、淡紫白點與藍紫光暈 */
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0b0b12;
+  --text: #ecebf7;
+  --muted: #a7a4bf;
+  --groove: #06060b;
+  --key: #232333;
+  --key-grad: linear-gradient(145deg, rgba(255, 255, 255, .12), rgba(0, 0, 0, .28));
+  --key-drop: rgba(0, 0, 0, .6);
+  --dot: #e9e4ff;
+  --dot-off: rgba(233, 228, 255, .13);
+  --glow: #8f7dff;
+  --hi: rgba(255, 255, 255, .22);
+  --shade: rgba(0, 0, 0, .9);
+  --lip: rgba(255, 255, 255, .07);
+  --focus: #c9c0ff;
+  --glow-mix: 70%;
+  --aura-mix: 22%;
+
+  --c-I: #a5b4fc; --c-O: #f5f3ff; --c-T: #c4b5fd; --c-S: #93c5fd;
+  --c-Z: #f0abfc; --c-J: #818cf8; --c-L: #d8b4fe;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2, p, dl, dd, ul { margin: 0; padding: 0; }
+ul { list-style: none; }
+button { font: inherit; color: inherit; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+/* 背景中央跟著主題變色的放射光暈 */
+.aura {
+  position: fixed;
+  top: 50%; left: 50%;
+  width: min(120vmin, 60rem);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--glow) var(--aura-mix), transparent), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ---------- 共用質感 ---------- */
+
+/* 凹槽：inset 陰影做出凹陷，下緣一道反光 */
+.groove {
+  background-color: var(--groove);
+  box-shadow:
+    inset 0 .3rem .65rem var(--shade),
+    inset 0 -1px 0 var(--lip),
+    0 1px 0 var(--lip);
+}
+
+/* 按鍵：斜向漸層表面、頂緣高光、底緣發光細線、下方同色柔光 */
+.key {
+  position: relative;
+  border: 0;
+  background-color: var(--key);
+  background-image: var(--key-grad);
+  box-shadow:
+    inset 0 1px 0 var(--hi),
+    0 1px 2px var(--key-drop),
+    0 .45rem 1rem -.3rem color-mix(in srgb, var(--glow) var(--glow-mix), transparent);
+}
+.key::after {
+  content: '';
+  position: absolute;
+  left: 14%; right: 14%; bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--glow) 50%, transparent);
+  filter: drop-shadow(0 0 3px var(--glow));
+  pointer-events: none;
+}
+button.key { cursor: pointer; transition: filter .15s ease, scale .12s ease; }
+button.key:hover { filter: brightness(1.08); }
+button.key:active { scale: .95; }
+button.key:disabled { cursor: default; filter: none; scale: 1; opacity: .55; }
+button.key:disabled::after { opacity: 0; }
+
+/* ---------- 頂列 ---------- */
+
+.top {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem;
+  padding: .75rem max(.75rem, env(safe-area-inset-right)) .5rem max(.75rem, env(safe-area-inset-left));
+  width: 100%; max-width: 46rem; margin: 0 auto;
+}
+.logo {
+  font-size: 1.15rem;
+  letter-spacing: .15em;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.top-actions { display: flex; align-items: center; gap: .6rem; }
+
+/* 方塊樣式切換鍵：圓點 ↔ 點陣圖案 */
+.tile-btn {
+  flex: none;
+  width: 2.75rem; height: 2.75rem;
+  padding: 0;
+  border-radius: .9rem;
+  display: grid; place-items: center;
+}
+.tile-btn svg {
+  grid-area: 1 / 1;
+  width: 1.35rem; height: 1.35rem;
+  fill: var(--dot);
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--glow) 70%, transparent));
+}
+.tile-btn .ico-glyph, [data-tile='glyph'] .tile-btn .ico-dot { display: none; }
+[data-tile='glyph'] .tile-btn .ico-glyph { display: block; }
+
+.chip {
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border-radius: .9rem;
+  font-size: .9rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  white-space: nowrap;
+  flex: none;
+}
+
+/* 主題開關：依原規格 10 × 5.5 × 圓角 1.75 的比例，以 --u 等比縮小放進頂列 */
+.switch {
+  --u: .5rem;
+  position: relative;
+  flex: none;
+  width: calc(10 * var(--u));
+  height: calc(5.5 * var(--u));
+  padding: 0;
+  border: 0;
+  border-radius: calc(1.75 * var(--u));
+  background-color: var(--groove);
+  box-shadow:
+    inset 0 .25rem .5rem var(--shade),
+    inset 0 -1px 0 var(--lip),
+    0 1px 0 var(--lip);
+  cursor: pointer;
+}
+.thumb {
+  position: absolute;
+  top: calc(.5 * var(--u)); left: calc(.5 * var(--u));
+  width: calc(4.5 * var(--u)); height: calc(4.5 * var(--u));
+  border-radius: calc(1.25 * var(--u));
+  /* 夜晚在左、白天在右；帶彈性的滑動 */
+  translate: 0 0;
+  transition: translate .55s cubic-bezier(.34, 1.56, .64, 1), filter .15s ease, scale .12s ease;
+}
+[data-theme='light'] .thumb { translate: calc(4.5 * var(--u)) 0; }
+.switch:hover .thumb { filter: brightness(1.1); }
+.switch:active .thumb { scale: .93; }
+
+.theme-icon {
+  position: absolute; inset: 14%;
+  width: 72%; height: 72%;
+  overflow: visible;
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--glow) 80%, transparent));
+}
+.dot {
+  fill: var(--dot);
+  opacity: .1;
+  transition: opacity .35s ease; /* transition-delay 由 JS 依離中心距離設定 */
+}
+[data-theme='dark'] .dot.m,
+[data-theme='light'] .dot.s { opacity: 1; }
+
+.star {
+  position: absolute;
+  top: -12%; right: -12%;
+  width: 34%; height: 34%;
+  fill: var(--dot);
+  opacity: 0;
+  filter: drop-shadow(0 0 3px var(--glow));
+  transition: opacity .4s ease;
+  pointer-events: none;
+}
+[data-theme='dark'] .star {
+  opacity: 1;
+  animation: twinkle 3.6s ease-in-out infinite, spin 16s linear infinite;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: .45; scale: .8; }
+  50% { opacity: 1; scale: 1.1; }
+}
+@keyframes spin { to { rotate: 360deg; } }
+
+/* ---------- 遊戲舞台 ---------- */
+
+.stage {
+  position: relative; z-index: 1;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--gap);
+  padding: .25rem .75rem .5rem;
+}
+
+.panel {
+  width: var(--side);
+  flex: none;
+  display: flex; flex-direction: column;
+  gap: .75rem;
+}
+.label {
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  color: var(--muted);
+}
+.box { display: flex; flex-direction: column; gap: .3rem; }
+
+.stats { display: flex; flex-direction: column; gap: .5rem; }
+.stat dd {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.well {
+  position: relative;
+  flex: none;
+  padding: .375rem;
+  border-radius: .9rem;
+}
+/* 盤面底部透出的光線 */
+.well::after {
+  content: '';
+  position: absolute;
+  left: 12%; right: 12%; bottom: -1px;
+  height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--glow) 50%, transparent);
+  filter: drop-shadow(0 0 5px var(--glow));
+  pointer-events: none;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(10, var(--cell));
+  grid-auto-rows: var(--cell);
+  gap: 1px;
+  border-radius: .6rem;
+}
+
+/* 格子：空格是暗點；有方塊時變成一顆迷你按鍵，中央亮點、底緣透光 */
+.cell { position: relative; border-radius: 28%; }
+.cell::before {
+  content: '';
+  position: absolute; inset: 39%;
+  border-radius: 50%;
+  background: var(--dot-off);
+}
+.cell.f {
+  background-color: var(--key);
+  background-image: var(--key-grad);
+  box-shadow:
+    inset 0 1px 0 var(--hi),
+    0 1px 1.5px var(--key-drop),
+    0 calc(var(--cell) * .2) calc(var(--cell) * .4) calc(var(--cell) * -.12) color-mix(in srgb, var(--c) var(--glow-mix), transparent);
+}
+/* 圓點模式：中央一顆發光圓點 */
+.cell.f::before {
+  inset: 29%;
+  background: var(--c);
+  box-shadow: 0 0 calc(var(--cell) * .28) color-mix(in srgb, var(--c) 70%, transparent);
+}
+/* 圖案模式：中央改成 5×5 點陣圖，每種方塊一個圖案，遮罩由 JS 產生（--g-I ~ --g-L） */
+[data-tile='glyph'] .cell.f {
+  background-image: radial-gradient(closest-side, color-mix(in srgb, var(--c) 26%, transparent), transparent), var(--key-grad);
+}
+[data-tile='glyph'] .cell.f::before {
+  inset: 16%;
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-mask: var(--g) center / contain no-repeat;
+  mask: var(--g) center / contain no-repeat;
+}
+.cell.f::after {
+  content: '';
+  position: absolute;
+  left: 16%; right: 16%; bottom: 0;
+  height: max(1px, calc(var(--cell) * .06));
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--c) 50%, transparent);
+}
+/* 落點預覽：空心圓點 */
+.cell.g::before {
+  inset: 29%;
+  background: transparent;
+  border: max(1.5px, calc(var(--cell) * .07)) solid var(--dot);
+  opacity: .75;
+}
+/* 消行：從中央往兩側依序閃亮後熄滅（--d 為離中央的距離） */
+.cell.x {
+  animation: clear-row .2s ease-in forwards;
+  animation-delay: calc(var(--d) * 18ms);
+}
+@keyframes clear-row {
+  40% { filter: brightness(1.7); scale: 1.1; opacity: 1; }
+  100% { scale: .5; opacity: 0; }
+}
+
+.p-I { --c: var(--c-I); --g: var(--g-I); } .p-O { --c: var(--c-O); --g: var(--g-O); }
+.p-T { --c: var(--c-T); --g: var(--g-T); } .p-S { --c: var(--c-S); --g: var(--g-S); }
+.p-Z { --c: var(--c-Z); --g: var(--g-Z); } .p-J { --c: var(--c-J); --g: var(--g-J); }
+.p-L { --c: var(--c-L); --g: var(--g-L); }
+
+/* 預覽小盤 */
+.mini-wrap {
+  border-radius: .7rem;
+  padding: .45rem .3rem;
+  display: flex; flex-direction: column; align-items: center;
+  gap: .5rem;
+}
+.mini {
+  --cell: min(calc((var(--side) - 1rem) / 4), 1.25rem);
+  display: grid;
+  grid-template-columns: repeat(4, var(--cell));
+  grid-auto-rows: var(--cell);
+  gap: 1px;
+}
+
+/* 開始／暫停／結束的遮罩 */
+.overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .9rem;
+  padding: 1rem;
+  text-align: center;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.overlay[hidden] { display: none; }
+.overlay h2 { font-size: 1.25rem; letter-spacing: .1em; }
+.overlay p { font-size: .9rem; color: var(--muted); max-width: 16em; }
+.cta {
+  min-height: 3rem;
+  padding: 0 1.4rem;
+  border-radius: 1.1rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.help { display: none; }
+.help ul { display: flex; flex-direction: column; gap: .35rem; font-size: .8rem; color: var(--muted); }
+kbd {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 0 .35em;
+  margin-right: .2em;
+  border-radius: .35em;
+  background: var(--groove);
+  box-shadow: inset 0 1px 2px var(--shade), 0 1px 0 var(--lip);
+  color: var(--text);
+  font: 600 .75rem/1.6 ui-monospace, Menlo, Consolas, monospace;
+  text-align: center;
+}
+
+/* ---------- 觸控操作列 ---------- */
+
+.pad {
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: .5rem;
+  width: 100%; max-width: 30rem;
+  margin: 0 auto;
+  padding: .25rem .75rem max(.75rem, env(safe-area-inset-bottom));
+  touch-action: manipulation;
+  user-select: none; -webkit-user-select: none;
+}
+.pad-btn {
+  height: 3.25rem;
+  border-radius: 1rem;
+  padding: 0;
+  display: grid; place-items: center;
+  touch-action: manipulation;
+}
+.pad-btn svg {
+  width: 1.6rem; height: 1.6rem;
+  fill: var(--dot);
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--glow) 70%, transparent));
+}
+
+.noscript { position: relative; z-index: 1; text-align: center; padding: 1rem; }
+
+/* ---------- 窄螢幕：頂列收緊，四個元件排得下 ---------- */
+
+@media (max-width: 22.5rem) {
+  .top { gap: .5rem; }
+  .top-actions { gap: .45rem; }
+  .logo { font-size: 1rem; letter-spacing: .04em; }
+  .chip { padding: 0 .65rem; }
+}
+
+/* ---------- 寬螢幕 ---------- */
+
+@media (min-width: 48rem) {
+  :root { --side: 9rem; --gap: 1.25rem; }
+  .logo { font-size: 1.4rem; }
+  .label { font-size: .8rem; }
+  .stat dd { font-size: 1.35rem; }
+  .well { padding: .5rem; border-radius: 1.1rem; }
+  .board { gap: 2px; }
+  .help { display: flex; }
+  .mini-wrap { padding: .7rem .5rem; gap: .7rem; }
+}
+/* 有滑鼠與鍵盤的寬螢幕不需要觸控列 */
+@media (min-width: 48rem) and (hover: hover) and (pointer: fine) {
+  :root { --reserve: 6.5rem; }
+  .pad { display: none; }
+}
+
+/* ---------- 減少動態 ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  :root { transition: none; }
+  .thumb, .dot, .star, button.key { transition: none !important; }
+  .dot { transition-delay: 0s !important; }
+  [data-theme='dark'] .star { animation: none; }
+  .cell.x { animation: none; }
+  button.key:active, .switch:active .thumb { scale: 1; }
+}

@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>點陣方塊｜擬物風俄羅斯方塊</title>
+  <meta name="description" content="擬物化按鍵、點陣圖示與柔光光暈風格的俄羅斯方塊小遊戲，支援明暗模式、鍵盤與觸控操作。">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="點陣方塊｜擬物風俄羅斯方塊">
+  <meta property="og:description" content="擬物化按鍵、點陣圖示與柔光光暈風格的俄羅斯方塊小遊戲，支援明暗模式、鍵盤與觸控操作。">
+  <meta property="og:locale" content="zh_TW">
+  <meta name="theme-color" content="#0b0b12">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <!-- 先套用主題，避免載入時閃一下錯的顏色 -->
+  <script>
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('dot-tetris-theme'); } catch (e) {}
+      if (t !== 'dark' && t !== 'light') {
+        t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+      // 方塊樣式：glyph = 點陣圖案（預設）、dot = 圓點
+      var tile = null;
+      try { tile = localStorage.getItem('dot-tetris-tile'); } catch (e) {}
+      document.documentElement.setAttribute('data-tile', tile === 'dot' ? 'dot' : 'glyph');
+    })();
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+  <script defer src="js/main.js"></script>
+</head>
+<body>
+  <div class="aura" aria-hidden="true"></div>
+
+  <header class="top">
+    <h1 class="logo">點陣方塊</h1>
+    <div class="top-actions">
+      <button type="button" id="pauseBtn" class="key chip" aria-pressed="false" disabled>暫停</button>
+      <button type="button" id="tileSwitch" class="key tile-btn" role="switch" aria-checked="true"
+              aria-label="點陣圖案方塊" title="切換方塊樣式：圓點／點陣圖案"></button>
+      <button type="button" id="themeSwitch" class="switch" role="switch" aria-checked="true" aria-label="深色模式">
+        <span class="thumb key" aria-hidden="true">
+          <svg class="theme-icon" id="themeIcon" focusable="false"></svg>
+          <svg class="star" viewBox="0 0 10 10" focusable="false">
+            <path d="M5 0C5.4 3.2 6.8 4.6 10 5 6.8 5.4 5.4 6.8 5 10 4.6 6.8 3.2 5.4 0 5 3.2 4.6 4.6 3.2 5 0Z"/>
+          </svg>
+        </span>
+      </button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <aside class="panel" aria-label="保留與成績">
+      <section class="box">
+        <h2 class="label">保留</h2>
+        <div class="groove mini-wrap"><div class="mini" id="holdMini" aria-hidden="true"></div></div>
+        <p class="sr-only" id="holdText">保留：無</p>
+      </section>
+      <dl class="stats">
+        <div class="stat"><dt class="label">分數</dt><dd id="score">0</dd></div>
+        <div class="stat"><dt class="label">等級</dt><dd id="level">1</dd></div>
+        <div class="stat"><dt class="label">行數</dt><dd id="lines">0</dd></div>
+        <div class="stat"><dt class="label">最高</dt><dd id="best">0</dd></div>
+      </dl>
+    </aside>
+
+    <section class="well groove" aria-label="遊戲區">
+      <div class="board" id="board" tabindex="0" role="group"
+           aria-label="方塊盤面，10 欄 20 列" aria-describedby="keysHelp"></div>
+      <div class="overlay" id="overlay">
+        <h2 id="overlayTitle">準備好了嗎？</h2>
+        <p id="overlayText">把落下的方塊排滿整列就能消除。</p>
+        <button type="button" id="overlayBtn" class="key cta">開始遊戲</button>
+      </div>
+    </section>
+
+    <aside class="panel" aria-label="下一個方塊與操作說明">
+      <section class="box">
+        <h2 class="label">下一個</h2>
+        <div class="groove mini-wrap mini-stack">
+          <div class="mini" id="next0" aria-hidden="true"></div>
+          <div class="mini" id="next1" aria-hidden="true"></div>
+          <div class="mini" id="next2" aria-hidden="true"></div>
+        </div>
+        <p class="sr-only" id="nextText"></p>
+      </section>
+      <section class="box help" id="keysHelp">
+        <h2 class="label">鍵盤操作</h2>
+        <ul>
+          <li><kbd>←</kbd><kbd>→</kbd> 移動</li>
+          <li><kbd>↑</kbd> / <kbd>X</kbd> 順時針旋轉</li>
+          <li><kbd>Z</kbd> 逆時針旋轉</li>
+          <li><kbd>↓</kbd> 加速落下</li>
+          <li><kbd>空白鍵</kbd> 直接落底</li>
+          <li><kbd>C</kbd> 保留方塊</li>
+          <li><kbd>P</kbd> 暫停／繼續</li>
+        </ul>
+      </section>
+    </aside>
+  </main>
+
+  <div class="pad" role="group" aria-label="觸控操作">
+    <button type="button" class="key pad-btn" data-act="left" data-repeat aria-label="向左移動"></button>
+    <button type="button" class="key pad-btn" data-act="right" data-repeat aria-label="向右移動"></button>
+    <button type="button" class="key pad-btn" data-act="down" data-repeat aria-label="加速落下"></button>
+    <button type="button" class="key pad-btn" data-act="drop" aria-label="直接落底"></button>
+    <button type="button" class="key pad-btn" data-act="hold" aria-label="保留方塊"></button>
+    <button type="button" class="key pad-btn" data-act="rotate" aria-label="旋轉"></button>
+  </div>
+
+  <p class="sr-only" id="live" aria-live="polite"></p>
+  <noscript><p class="noscript">這個遊戲需要啟用 JavaScript 才能遊玩。</p></noscript>
+</body>
+</html>
