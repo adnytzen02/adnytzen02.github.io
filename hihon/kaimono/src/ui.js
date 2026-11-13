@@ -135,6 +135,29 @@ export function confirmDialog({ title, body, confirmText, danger = false }) {
   });
 }
 
+// 多選一對話框：回傳選到的 value，按取消或 Esc 回傳 null
+export function choiceDialog({ title, body, choices }) {
+  return new Promise((resolve) => {
+    let result = null;
+    const dlg = createDialog('dlg-confirm', `
+      <form method="dialog" class="confirm-body">
+        <h2 id="choice-title" class="confirm-title">${esc(title)}</h2>
+        <div class="confirm-text">${body}</div>
+        <div class="confirm-actions confirm-actions-stack">
+          ${choices.map((c) => `<button type="button" class="btn ${c.tone === 'danger' ? 'btn-danger' : c.tone === 'gold' ? 'btn-gold' : 'btn-ghost'}" data-choice="${esc(c.value)}">${esc(c.text)}</button>`).join('')}
+          <button type="button" class="btn btn-ghost" data-choice="" autofocus>取消</button>
+        </div>
+      </form>`, 'choice-title');
+    dlg.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-choice]');
+      if (!b) return;
+      result = b.dataset.choice || null;
+      closeDialog(dlg);
+    });
+    openDialog(dlg, { onClose: () => resolve(result) });
+  });
+}
+
 /* ---------- Toast 通知 ---------- */
 let toastTimer;
 export function toast({ title, message = '', actionText, onAction, tone = 'gold', duration = 5000 }) {

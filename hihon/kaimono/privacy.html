@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>隱私權說明｜Shopping Relics</title>
+  <meta name="description" content="Shopping Relics 日本購物清單的隱私權說明：只取得 Google 帳號識別碼，清單存在你自己 Google Drive 的應用程式專用資料夾，本網站沒有伺服器。">
+  <meta name="theme-color" content="#f4f7f9">
+  <script>
+    (function () {
+      var root = document.documentElement, theme = 'light', skin = 'relics';
+      try {
+        theme = localStorage.getItem('shopping-relics:theme') || 'light';
+        skin = localStorage.getItem('shopping-relics:skin') || 'relics';
+      } catch (e) { /* 無痕模式維持預設主題與淺色 */ }
+      root.dataset.theme = theme;
+      root.dataset.skin = skin;
+      // 把「跟隨系統」換算成實際的 light／dark，主題的 CSS 只看 data-scheme
+      root.dataset.scheme = theme === 'dark' || (theme === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    })();
+  </script>
+  <meta property="og:type" content="article">
+  <meta property="og:locale" content="zh_TW">
+  <meta property="og:site_name" content="Shopping Relics">
+  <meta property="og:url" content="https://adnytzen02.github.io/hihon/kaimono/privacy.html">
+  <meta property="og:title" content="隱私權說明｜Shopping Relics">
+  <meta property="og:description" content="只取得 Google 帳號識別碼，清單存在你自己的 Google Drive，本網站沒有伺服器。">
+  <meta property="og:image" content="https://adnytzen02.github.io/hihon/kaimono/assets/og-image.png">
+  <link rel="canonical" href="https://adnytzen02.github.io/hihon/kaimono/privacy.html">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- 主題樣式：先載入共用質感層 effects.css，再載入各主題（一個主題一個檔案，新增步驟見 README） -->
+  <link rel="stylesheet" href="css/themes/effects.css">
+  <link rel="stylesheet" href="css/themes/relics.css">
+  <link rel="stylesheet" href="css/themes/dotglow.css">
+  <link rel="stylesheet" href="css/themes/matcha.css">
+  <link rel="stylesheet" href="css/themes/sakura.css">
+  <style>
+    /* 本頁沿用全站色彩與字型，只補上長文版面 */
+    .policy { width: min(100% - 32px, 760px); margin: 0 auto; padding: 40px 0 64px; }
+    .policy h1 { font-size: clamp(26px, 6vw, 34px); margin: 8px 0 6px; color: var(--ink); }
+    .policy h2 { font-size: 19px; margin: 32px 0 8px; color: var(--ink); }
+    .policy p, .policy li { line-height: 1.8; color: var(--text); }
+    .policy ul { padding-left: 1.3em; }
+    .policy li::marker { color: var(--gold-text); }
+    .policy code { font-size: .92em; padding: 1px 6px; border-radius: 6px; background: var(--surface-3); overflow-wrap: anywhere; }
+    .policy .lead { padding: 16px 18px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); }
+    .policy .back { display: flex; align-items: center; width: fit-content; min-height: 44px; margin-bottom: 12px; font-weight: 700; color: var(--gold-text); }
+    .policy tbody th code { white-space: nowrap; overflow-wrap: normal; }
+    .policy table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    .policy th, .policy td { padding: 10px 8px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+    .policy thead th { font-size: 13px; color: var(--text-dim); }
+  </style>
+</head>
+<body>
+  <main class="policy">
+    <a class="back" href="./">← 回到購物清單</a>
+    <p class="eyebrow">PRIVACY</p>
+    <h1>隱私權說明</h1>
+    <p class="muted small">生效日期：2026 年 11 月 9 日</p>
+
+    <p class="lead">Shopping Relics 是放在 GitHub Pages 的純靜態網站，<strong>沒有自己的伺服器或資料庫</strong>。如果你選擇連結 Google，本網站<strong>只取得 Google 提供的帳號識別碼</strong>，清單存在<strong>你自己 Google Drive 的應用程式專用隱藏資料夾</strong>。網站作者看不到你的清單。</p>
+
+    <h2>不連結 Google 時</h2>
+    <p>清單、設定與照片只存在你這台裝置的瀏覽器（localStorage），不會傳到任何地方。清除瀏覽資料就會一起刪除，換裝置前請先在「設定 → 資料備份」匯出。</p>
+
+    <h2>連結 Google 時，取得哪些資料</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">權限</th><th scope="col">用途</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><code>openid</code></th><td>只取得 Google 帳號識別碼（一串數字），用來確認同步的是同一個帳號。<strong>不取得姓名、Email、大頭照</strong>。</td></tr>
+          <tr><th scope="row"><code>drive.appdata</code></th><td>在你的 Google Drive 建立一個應用程式專用的隱藏資料夾，存放同步檔 <code>shopping-relics.json</code>。這個權限<strong>看不到也改不了你 Drive 裡的其他檔案</strong>。</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>資料存在哪裡、誰看得到</h2>
+    <ul>
+      <li>同步檔存在你自己的 Google Drive，佔用你的 Drive 空間，受 Google 帳號的安全機制保護。</li>
+      <li>瀏覽器直接和 Google 連線，中間沒有本網站的伺服器。</li>
+      <li>登入用的存取權杖只放在瀏覽器記憶體，關閉分頁就消失，不會存到裝置或其他地方。</li>
+      <li>這台裝置會記住帳號識別碼與上次同步時間（localStorage），用來判斷是否需要同步。</li>
+    </ul>
+
+    <h2>怎麼停止或刪除</h2>
+    <ul>
+      <li><strong>中斷連結</strong>：設定 → 雲端同步 → 中斷連結。這台的清單和雲端同步檔都會保留。</li>
+      <li><strong>刪除雲端資料</strong>：設定 → 雲端同步 → 刪除雲端資料，會刪掉 Drive 隱藏資料夾裡的同步檔。</li>
+      <li><strong>撤銷授權</strong>：到 <a href="https://myaccount.google.com/connections" target="_blank" rel="noopener">Google 帳戶的「第三方應用程式和服務」<span class="sr-only">（另開新視窗）</span></a>移除本網站。也可以在 Google Drive 的「設定 → 管理應用程式」刪除本網站的隱藏資料。</li>
+    </ul>
+
+    <h2>其他會連線的服務</h2>
+    <ul>
+      <li><strong>匯率</strong>：向 open.er-api.com 或 jsDelivr 取得公開匯率，不會送出你的清單內容。</li>
+      <li><strong>字型</strong>：從 Google Fonts 載入。</li>
+      <li><strong>網站主機</strong>：GitHub Pages，可能依 GitHub 的政策記錄一般的連線紀錄（例如 IP 位址）。</li>
+    </ul>
+    <p>本網站不使用廣告、追蹤碼或分析工具。</p>
+
+    <h2>聯絡方式</h2>
+    <p>【待補：聯絡方式（例如 GitHub Issues 網址或 Email）】</p>
+  </main>
+</body>
+</html>

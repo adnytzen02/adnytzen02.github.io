@@ -4,14 +4,18 @@ import { summarize } from './calc.js';
 import { refreshRate } from './rate.js';
 import { $, $$, yen, num, toast, snapshotNumbers, countUp } from './ui.js';
 import { openForm } from './views/item-form.js';
-import { openSettings } from './views/settings.js';
-import { initTheme, cycleTheme, syncThemeColor } from './theme.js';
+import { openSettings, runSync } from './views/settings.js';
+import { cloudAvailable, cloudInfo, preloadCloud, syncNow } from './cloud.js';
+import { initTheme, syncThemeColor } from './theme.js';
+import { initThemeMenu } from './theme-menu.js';
 import { initOffline } from './offline.js';
 import * as homeView from './views/home.js';
 import * as listView from './views/list.js';
 import * as splitView from './views/split.js';
 import * as budgetView from './views/budget.js';
 import * as packingView from './views/packing.js';
+import * as guideView from './views/guide.js';
+import * as shareView from './views/share.js';
 
 const ROUTES = {
   home: { view: homeView, title: '首頁' },
@@ -19,6 +23,8 @@ const ROUTES = {
   split: { view: splitView, title: '代購分帳' },
   budget: { view: budgetView, title: '預算匯率' },
   packing: { view: packingView, title: '打包與海關' },
+  guide: { view: guideView, title: '退稅指南', nav: 'budget' }, // 不在導覽列，導覽標示在「預算匯率」
+  share: { view: shareView, title: '代購明細', nav: 'none' }, // 朋友打開的唯讀明細，資料在網址裡
 };
 
 let current = null; // { name, instance }
@@ -60,7 +66,7 @@ function renderRoute({ focus = true } = {}) {
   syncThemeColor(); // 首頁的網址列是深色，其他頁面跟著主題
   document.title = `${ROUTES[name].title}｜Shopping Relics 日本購物清單`;
   $$('[data-route]').forEach((a) => {
-    if (a.dataset.route === name) a.setAttribute('aria-current', 'page');
+    if (a.dataset.route === (ROUTES[name].nav || name)) a.setAttribute('aria-current', 'page');
     else a.removeAttribute('aria-current');
   });
   if (focus) {
@@ -84,6 +90,24 @@ function renderHeader() {
   const before = snapshotNumbers(totalEl, '.chip-v');
   $('#hdr-total .chip-v').innerHTML = `${yen(sum.pay)} <small>/ ${sum.count} 件</small>`;
   countUp(totalEl, '.chip-v', before);
+  // 導覽列的待辦數字：採買清單＝待買件數，代購分帳＝還沒收齊的朋友人數
+  setNavBadge('list', sum.pendingCount, `${sum.pendingCount} 件待買`);
+  const unpaid = splitView.unpaidFriendCount(state, sum);
+  setNavBadge('split', unpaid, `${unpaid} 位朋友尚未收齊`);
+}
+
+// 在桌機與手機的導覽連結上顯示數字；0 就拿掉。數字給看得到的人，括號裡的說明給螢幕閱讀器
+function setNavBadge(route, count, text) {
+  $$(`.nav-desktop [data-route="${route}"], .nav-mobile [data-route="${route}"]`).forEach((a) => {
+    let badge = a.querySelector('.nav-badge');
+    if (!count) { badge?.remove(); return; }
+    if (!badge) {
+      badge = document.createElement('span');
+      badge.className = 'nav-badge';
+      a.appendChild(badge);
+    }
+    badge.innerHTML = `<span aria-hidden="true">${count > 99 ? '99+' : count}</span><span class="sr-only">（${text}）</span>`;
+  });
 }
 
 store.subscribe(() => {
@@ -95,10 +119,7 @@ window.addEventListener('hashchange', () => { legacyRedirect(); renderRoute(); }
 
 $('#fab-add').addEventListener('click', () => openForm());
 $('#btn-settings').addEventListener('click', () => openSettings());
-$('#btn-theme').addEventListener('click', () => {
-  const t = cycleTheme();
-  toast({ title: `外觀：${t.label}`, message: t.id === 'auto' ? '會依照裝置的深淺色設定自動切換。' : '', tone: 'muted', duration: 2000 });
-});
+initThemeMenu($('#btn-theme')); // 右上角按鈕：開啟「外觀與主題」選單
 // 往下捲時把右下角的「＋」收起來（不擋內容），往上捲或回到頂端時再出現
 let lastY = scrollY;
 addEventListener('scroll', () => {
@@ -121,6 +142,20 @@ window.addEventListener('store:quota', () => {
 renderHeader();
 legacyRedirect();
 renderRoute({ focus: false });
+
+// 已連結 Google Drive 時，每次開網站提醒一次「同步最新清單」（首頁開場動畫時不打擾，進到其他頁再提示）
+const NUDGE_KEY = 'shopping-relics:cloud-nudged';
+function cloudNudge() {
+  if (!cloudAvailable().ok || !cloudInfo().linked || /^#\/home|^#?$/.test(location.hash)) return;
+  try { if (sessionStorage.getItem(NUDGE_KEY)) return; sessionStorage.setItem(NUDGE_KEY, '1'); } catch { /* 無法記住就每次提示 */ }
+  preloadCloud();
+  toast({
+    title: '同步 Google Drive 清單？', message: '取得其他裝置的最新修改，之後的修改也會自動上傳。',
+    actionText: '同步', onAction: () => runSync(() => syncNow({ interactive: true })), tone: 'muted', duration: 10000,
+  });
+}
+addEventListener('hashchange', cloudNudge);
+cloudNudge();
 
 // 啟動時更新匯率（6 小時內不重抓；手動匯率不覆蓋）
 refreshRate().then((r) => {

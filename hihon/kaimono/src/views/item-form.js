@@ -53,7 +53,7 @@ function formHTML(item, isEdit, extra = false) {
         <p class="quick-calc" aria-live="polite" data-quick></p>
         <label class="check-row check-quick">
           <input type="checkbox" name="purchased" ${item.purchased ? 'checked' : ''}>
-          <span><strong>已經買到了</strong><small>${extra ? '臨時加購的商品會直接列入已入手與代購分帳' : '勾選後會列入已入手；店家記為主選店鋪'}</small></span>
+          <span><strong>已經買到了</strong><small>${extra ? '臨時加購的商品會直接列入已買與代購分帳' : '勾選後會列入已買；店家記為主選店鋪'}</small></span>
         </label>
       </fieldset>
 
@@ -84,7 +84,7 @@ function formHTML(item, isEdit, extra = false) {
             </div>
             <div class="grid-2">
               <div class="field">
-                <span class="label" id="lb-prio">渴望等級</span>
+                <span class="label" id="lb-prio">優先度</span>
                 <div class="pills" role="radiogroup" aria-labelledby="lb-prio">
                   ${PRIORITIES.map((p) => radio('priority', p.value, item.priority, `<span aria-hidden="true">${p.stars}</span> ${p.label}`)).join('')}
                 </div>
@@ -101,7 +101,7 @@ function formHTML(item, isEdit, extra = false) {
           </fieldset>
 
           <fieldset class="fs">
-            <legend class="fs-title"><span class="fs-num">貳</span>價格與免稅試算</legend>
+            <legend class="fs-title"><span class="fs-num">貳</span>價格與退稅試算</legend>
             <div class="price-layout">
               <div>
                 <div class="grid-2 tight">
@@ -143,7 +143,7 @@ function formHTML(item, isEdit, extra = false) {
           </fieldset>
 
           <fieldset class="fs">
-            <legend class="fs-title"><span class="fs-num">參</span>採購地點</legend>
+            <legend class="fs-title"><span class="fs-num">參</span>採買地點</legend>
             <div class="grid-2">
               <div class="field">
                 <label for="fi-area">地區</label>
@@ -250,7 +250,7 @@ function calcPanel(draft, editingId) {
 
   return {
     html: `
-    <h3 class="calc-title">${icon('calculate', 'sm')}免稅精算明細</h3>
+    <h3 class="calc-title">${icon('calculate', 'sm')}退稅精算明細</h3>
     <dl class="ledger-rows">
       <div><dt>未稅小計</dt><dd>${yen(a.lineExcl)}</dd></div>
       ${a.discount ? `<div class="minus"><dt>折扣</dt><dd>− ${yen(a.discount)}</dd></div>` : ''}

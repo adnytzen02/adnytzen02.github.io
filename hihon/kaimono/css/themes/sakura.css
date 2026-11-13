@@ -1,0 +1,126 @@
+/* =========================================================
+   主題：夜櫻（sakura）
+   淺色：櫻花白底、櫻粉主色、藤紫副色；深色：深梅紫的夜色、粉色光暈。
+   立體凹槽、按鍵與光暈來自共用質感層 css/themes/effects.css，這裡只負責顏色與圓角。
+   ========================================================= */
+
+/* ---------- 淺色 ---------- */
+:root[data-skin="sakura"] {
+  color-scheme: light;
+  --bg: #f8f1f2;
+  --bg-2: #f1e6e9;
+  --surface: #fffbfb;
+  --surface-2: #fbf3f5;
+  --surface-3: #f0e4e8;
+  --surface-warm: #fff3f0;
+  --ink: #33202b;
+  --ink-2: #4a3040;
+  --text: #2b1d25;
+  --text-dim: #6b5260;
+  --gold: #ee86a4;           /* 主色：櫻粉（變數沿用 gold 的名稱） */
+  --gold-2: #f8b0c4;
+  --gold-dim: #e2708f;
+  --gold-text: #972c51;
+  --gold-soft: #fde3ea;
+  --gold-glow: rgba(232, 121, 154, .24);
+  --cyan: #6f7fd8;           /* 副色：藤紫 */
+  --cyan-text: #3f4aa8;
+  --cyan-soft: #e6e9fb;
+  --on-gold: #2e0a18;
+  --border: rgba(214, 93, 131, .2);
+  --line: #ecdde2;
+  --danger: #b3261e;
+  --danger-soft: #fbe0da;
+  --warn: #734a00;
+  --warn-soft: #fdecc8;
+  --muted-bg: rgba(111, 85, 99, .1);
+  --dark-panel:
+    radial-gradient(circle, rgba(255, 200, 215, .1) 1px, transparent 1.5px) 0 0 / 10px 10px,
+    linear-gradient(145deg, #2e1c2c 0%, #3a2438 60%, #472c42 100%);
+  --dark-text: #f7ecf1;
+  --dark-dim: #d2bdc9;
+
+  --r-btn: 18px;             /* 這個主題的圓角比較圓潤 */
+  --r-card: 26px;
+
+  --shadow-1: inset 0 1px 0 #fff, 0 1px 2px rgba(90, 40, 62, .07), 0 6px 20px rgba(90, 40, 62, .08);
+  --shadow-2: inset 0 1px 0 #fff, 0 12px 32px rgba(90, 40, 62, .15);
+  --shadow-gold: inset 0 1px 0 rgba(255, 255, 255, .55), 0 2px 5px rgba(90, 40, 62, .26), 0 12px 22px -8px #ee86a4;
+  --holo: linear-gradient(180deg, var(--gold-2) 0%, var(--gold) 45%, var(--cyan) 100%);
+  --rule: linear-gradient(90deg, transparent, var(--gold), var(--cyan), transparent);
+
+  /* 共用質感層（effects.css）的效果 token */
+  --fx-glow: #f08aa8;
+  --fx-glow-core: #fff0f4;
+  --fx-dot: #d65d83;
+  --fx-halo: rgba(240, 138, 168, .16);
+  --fx-halo-2: rgba(111, 127, 216, .07);
+  --fx-track: #ecdfe4;
+  --fx-field: #f4e9ed;
+  --fx-inset: inset 0 2px 5px rgba(90, 40, 62, .2), inset 0 -1px 0 rgba(255, 255, 255, .95);
+  --fx-knob: #ffffff;
+  --fx-knob-sheen: linear-gradient(145deg, #fff 0%, transparent 45%, rgba(190, 140, 160, .22) 100%);
+  --fx-edge: #fff;
+  --fx-drop: rgba(90, 40, 62, .24);
+  --fx-focus: #972c51;
+  --fx-on-dark: #f9b9cb;
+  --fx-backdrop: rgba(40, 22, 34, .5);
+  --fx-toast: rgba(46, 28, 44, .96);
+}
+
+/* ---------- 深色 ---------- */
+:root[data-skin="sakura"][data-scheme="dark"] {
+  color-scheme: dark;
+  --bg: #140d14;
+  --bg-2: #1a111a;
+  --surface: #201520;
+  --surface-2: #281b28;
+  --surface-3: #322232;
+  --surface-warm: #2b1c26;
+  --ink: #faeff4;
+  --ink-2: #ecd9e2;
+  --text: #eedde6;
+  --text-dim: #bba3b1;
+  --gold: #f08aa8;
+  --gold-2: #f9b9cb;
+  --gold-dim: #dd6f90;
+  --gold-text: #f9b9cb;
+  --gold-soft: rgba(240, 138, 168, .15);
+  --gold-glow: rgba(240, 138, 168, .24);
+  --cyan: #9aa6f0;
+  --cyan-text: #b9c2fa;
+  --cyan-soft: rgba(154, 166, 240, .14);
+  --on-gold: #2a0a17;
+  --border: rgba(240, 138, 168, .2);
+  --line: #3c2a3b;
+  --danger: #ffb4ab;
+  --danger-soft: rgba(255, 90, 80, .16);
+  --warn: #ffd27a;
+  --warn-soft: rgba(255, 196, 70, .14);
+  --muted-bg: rgba(187, 163, 177, .12);
+  --dark-panel:
+    radial-gradient(circle, rgba(255, 200, 215, .08) 1px, transparent 1.5px) 0 0 / 10px 10px,
+    linear-gradient(145deg, #2e1c2c 0%, #39233a 60%, #432a44 100%);
+  --dark-text: #f7ecf1;
+  --dark-dim: #d2bdc9;
+
+  --shadow-1: inset 0 1px 0 rgba(255, 255, 255, .07), 0 4px 20px rgba(0, 0, 0, .4);
+  --shadow-2: inset 0 1px 0 rgba(255, 255, 255, .07), 0 14px 36px rgba(0, 0, 0, .52);
+  --shadow-gold: inset 0 1px 0 rgba(255, 255, 255, .4), 0 2px 5px rgba(0, 0, 0, .55), 0 12px 22px -8px #f08aa8;
+
+  --fx-glow: #f08aa8;
+  --fx-glow-core: #fff0f4;
+  --fx-dot: #f9b9cb;
+  --fx-halo: rgba(240, 138, 168, .13);
+  --fx-halo-2: rgba(154, 166, 240, .07);
+  --fx-track: #0a060a;
+  --fx-field: #120b12;
+  --fx-inset: inset 0 2px 6px rgba(0, 0, 0, .8), inset 0 -1px 0 rgba(255, 255, 255, .06);
+  --fx-knob: #3a283a;
+  --fx-knob-sheen: linear-gradient(145deg, rgba(255, 255, 255, .16) 0%, transparent 45%, rgba(0, 0, 0, .32) 100%);
+  --fx-edge: rgba(255, 255, 255, .28);
+  --fx-drop: rgba(0, 0, 0, .55);
+  --fx-focus: #f9b9cb;
+  --fx-on-dark: #f9b9cb;
+  --fx-backdrop: rgba(8, 4, 8, .66);
+}

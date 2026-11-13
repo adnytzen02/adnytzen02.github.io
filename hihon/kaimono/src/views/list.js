@@ -31,7 +31,7 @@ function applyFilter(items, byItem) {
     area: (a, b) => (a.area || '~').localeCompare(b.area || '~', 'zh-Hant') || a.store.localeCompare(b.store, 'zh-Hant'),
   };
   list = [...list].sort(sorters[filter.sort]);
-  // 已入手的排到後面
+  // 已買的排到後面
   return list.sort((a, b) => Number(a.purchased) - Number(b.purchased));
 }
 
@@ -40,9 +40,9 @@ function kpis({ state, sum, rate }) {
   const done = sum.count ? sum.purchasedCount / sum.count : 0;
   return `
     ${kpi({
-      label: '採購完成進度', icon: 'verified', value: sum.purchasedCount, unit: ` / ${sum.count} 件`,
-      bar: progress(done, { label: '採購完成進度' }),
-      foot: `<span>${sum.purchasedCount} 件已入手</span><span>${sum.pendingCount} 件待購</span>`,
+      label: '採買進度', icon: 'verified', value: sum.purchasedCount, unit: ` / ${sum.count} 件`,
+      bar: progress(done, { label: '採買進度' }),
+      foot: `<span>${sum.purchasedCount} 件已買</span><span>${sum.pendingCount} 件待買</span>`,
     })}
     ${kpi({
       // 已花（實際）與全部買完（預估）分開顯示
@@ -52,7 +52,7 @@ function kpis({ state, sum, rate }) {
       foot: `<span>全部買完 ${yen(sum.pay)}</span><span class="${sum.remaining < 0 ? 'text-danger' : ''}">${sum.remaining < 0 ? '將超支' : '買完剩'} ${yen(Math.abs(sum.remaining))}</span>`,
     })}
     ${kpi({
-      label: '預估免稅退稅', icon: 'price_check', value: yen(sum.refund),
+      label: '預估退稅', icon: 'price_check', value: yen(sum.refund),
       foot: `<span>${sum.eligibleStores} / ${sum.taxFreeStores} 家店達門檻</span><span>≈ ${twd(sum.refund, rate)}</span>`,
       tone: 'kpi-cyan',
     })}
@@ -107,8 +107,8 @@ function toolbar(items, view) {
         <label for="f-status" class="sr-only">狀態</label>
         <select id="f-status">
           <option value="all">全部狀態</option>
-          <option value="todo" ${filter.status === 'todo' ? 'selected' : ''}>待購買</option>
-          <option value="done" ${filter.status === 'done' ? 'selected' : ''}>已入手</option>
+          <option value="todo" ${filter.status === 'todo' ? 'selected' : ''}>待買</option>
+          <option value="done" ${filter.status === 'done' ? 'selected' : ''}>已買</option>
         </select>
       </div>
       <div class="select-wrap">
@@ -122,7 +122,7 @@ function toolbar(items, view) {
         <label for="f-sort" class="sr-only">排序</label>
         <select id="f-sort">
           <option value="new">最新加入</option>
-          <option value="priority" ${filter.sort === 'priority' ? 'selected' : ''}>渴望等級</option>
+          <option value="priority" ${filter.sort === 'priority' ? 'selected' : ''}>優先度</option>
           <option value="price" ${filter.sort === 'price' ? 'selected' : ''}>價格高到低</option>
           <option value="area" ${filter.sort === 'area' ? 'selected' : ''}>地區與店家</option>
         </select>
@@ -154,7 +154,7 @@ function exportCSV({ state, sum }) {
   const lug = { checked: '託運', carry: '隨身', none: '不放行李' };
   const rows = state.items.map((i) => {
     const a = sum.byItem.get(i.id);
-    return [i.purchased ? '已入手' : '待購', i.name, i.nameJa, i.brand, categoryOf(i.category).label, i.qty, i.buyFor,
+    return [i.purchased ? '已買' : '待買', i.name, i.nameJa, i.brand, categoryOf(i.category).label, i.qty, i.buyFor,
       i.anyStore ? '不限店鋪' : i.stores.join('、'), i.purchasedStore, i.area, i.planDate,
       a.pay, a.refund, a.net, Math.round(a.pay * state.settings.rate), a.weight, lug[i.luggage], i.jan, i.note];
   });
@@ -176,17 +176,18 @@ export function mount(root, c) {
         eyebrow: `SHOPPING LIST · ${esc(state.settings.tripName)}`,
         title: '採買清單',
         sub: '行前規劃、現場掃貨都在這頁：進店時切到「店鋪」打開該店清單邊拿邊勾，找東西用「分類」。',
+        subShort: '進店切到「店鋪」邊拿邊勾，找東西用「分類」。',
         actions: hasItems ? `
           <div class="seg seg-text view-switch" role="group" aria-label="清單視角">
             <button type="button" data-view="store" class="${view === 'store' ? 'on' : ''}" aria-pressed="${view === 'store'}">${icon('storefront', 'sm')}店鋪</button>
             <button type="button" data-view="category" class="${view === 'category' ? 'on' : ''}" aria-pressed="${view === 'category'}">${icon('category', 'sm')}分類</button>
           </div>
           <button type="button" class="btn btn-ghost" data-export>${icon('download')}匯出 CSV</button>
-          <button type="button" class="btn btn-gold" data-add>${icon('add_circle')}新增採購項目</button>` : '',
+          <button type="button" class="btn btn-gold" data-add>${icon('add_circle')}新增商品</button>` : '',
       })}
       ${hasDemo ? `<div class="notice notice-demo" role="note">${icon('info')}<p>目前清單含<strong>示範資料</strong>，價格為示意數字，不代表實際售價。</p>
         <button type="button" class="btn btn-sm btn-ghost" data-clear-demo>清除示範資料</button></div>` : ''}
-      <div class="kpi-grid" data-region="kpi">${kpis(ctx)}</div>
+      <div class="kpi-grid" data-region="kpi" role="group" aria-label="清單統計">${kpis(ctx)}</div>
       ${hasItems ? `<div data-region="toolbar">${toolbar(state.items, view)}</div><div data-region="grid">${content(ctx)}</div>`
         : emptyState({
           title: '清單還是空的',
@@ -255,7 +256,7 @@ export function mount(root, c) {
       countUp(kpiEl, '.kpi-value', before); // 數字變動時滾動到新值
       const tb = $('[data-region="toolbar"]', root);
       if (tb && !tb.contains(document.activeElement)) tb.innerHTML = toolbar(ctx.state.items, ctx.state.settings.listView);
-      // 保留觸發按鈕的焦點（例如在某店勾選已入手）
+      // 保留觸發按鈕的焦點（例如在某店勾選已買）
       const active = document.activeElement;
       const card = active?.closest?.('[data-id]');
       const grp = active?.closest?.('[data-group]');

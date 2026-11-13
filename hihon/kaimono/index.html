@@ -1,14 +1,24 @@
 <!doctype html>
-<html lang="zh-TW" data-theme="light">
+<html lang="zh-TW" data-theme="light" data-skin="relics" data-scheme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Shopping Relics｜日本購物清單</title>
-  <meta name="description" content="旅日購物清單：記錄想買的商品、店家與日幣價格，自動換算台幣、試算免稅退稅門檻、追蹤預算與行李重量，還能一鍵出示日文給店員看。">
+  <meta name="description" content="旅日購物清單：記錄想買的商品、店家與日幣價格，自動換算台幣、試算免稅門檻與退稅金額、追蹤預算與行李重量，還能一鍵出示日文給店員看。">
   <meta name="theme-color" content="#f4f7f9">
-  <!-- 在畫面繪製前套用主題（預設淺色），避免閃一下深色 -->
+  <!-- 在畫面繪製前套用主題與外觀（預設金色遺物、淺色），避免閃一下別的樣子 -->
   <script>
-    try { document.documentElement.dataset.theme = localStorage.getItem('shopping-relics:theme') || 'light'; } catch (e) { /* 無痕模式維持淺色 */ }
+    (function () {
+      var root = document.documentElement, theme = 'light', skin = 'relics';
+      try {
+        theme = localStorage.getItem('shopping-relics:theme') || 'light';
+        skin = localStorage.getItem('shopping-relics:skin') || 'relics';
+      } catch (e) { /* 無痕模式維持預設主題與淺色 */ }
+      root.dataset.theme = theme;
+      root.dataset.skin = skin;
+      // 把「跟隨系統」換算成實際的 light／dark，主題的 CSS 只看 data-scheme
+      root.dataset.scheme = theme === 'dark' || (theme === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+    })();
     // 程式載入前先預留內容高度、藏起頁尾，網路慢時頁尾才不會先出現再被推下去
     document.documentElement.classList.add('booting');
     // 開在首頁時，先把版面排成首頁的樣子（導覽列在下方；第一次看片頭時先藏起來），避免程式載入後畫面跳動
@@ -39,15 +49,15 @@
   <meta property="og:site_name" content="Shopping Relics">
   <meta property="og:url" content="https://adnytzen02.github.io/hihon/kaimono/">
   <meta property="og:title" content="Shopping Relics｜日本購物清單">
-  <meta property="og:description" content="旅日必買清單、匯率換算、免稅退稅試算、預算與行李重量管理，一個頁面搞定。">
+  <meta property="og:description" content="旅日必買清單、匯率換算、退稅試算、預算與行李重量管理，一個頁面搞定。">
   <meta property="og:image" content="https://adnytzen02.github.io/hihon/kaimono/assets/og-image.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Shopping Relics 旅日必買願望清單：匯率換算、免稅退稅試算、預算與行李管理">
+  <meta property="og:image:alt" content="Shopping Relics 旅日必買願望清單：匯率換算、退稅試算、預算與行李管理">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Shopping Relics｜日本購物清單">
-  <meta name="twitter:description" content="旅日必買清單、匯率換算、免稅退稅試算、預算與行李重量管理，一個頁面搞定。">
+  <meta name="twitter:description" content="旅日必買清單、匯率換算、退稅試算、預算與行李重量管理，一個頁面搞定。">
   <meta name="twitter:image" content="https://adnytzen02.github.io/hihon/kaimono/assets/og-image.png">
 
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
@@ -61,6 +71,12 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600&display=swap&text=%E6%97%85%E7%AB%8B%E3%81%A1%E3%81%AE%E5%89%8D%E3%81%AB%E3%80%81%E5%85%89%E3%81%AF%E6%BA%80%E3%82%8B%E3%80%82%E3%81%BB%E3%81%97%E3%81%84%E3%82%82%E3%81%93%E8%A8%98%E3%81%A6%E6%99%82%E9%96%93%E3%81%99%E3%81%B9%E3%81%9F%E3%82%81" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600&display=swap&text=%E6%97%85%E7%AB%8B%E3%81%A1%E3%81%AE%E5%89%8D%E3%81%AB%E3%80%81%E5%85%89%E3%81%AF%E6%BA%80%E3%82%8B%E3%80%82%E3%81%BB%E3%81%97%E3%81%84%E3%82%82%E3%81%93%E8%A8%98%E3%81%A6%E6%99%82%E9%96%93%E3%81%99%E3%81%B9%E3%81%9F%E3%82%81"></noscript>
   <link rel="stylesheet" href="css/style.css">
+  <!-- 主題樣式：先載入共用質感層 effects.css，再載入各主題（一個主題一個檔案，新增步驟見 README） -->
+  <link rel="stylesheet" href="css/themes/effects.css">
+  <link rel="stylesheet" href="css/themes/relics.css">
+  <link rel="stylesheet" href="css/themes/dotglow.css">
+  <link rel="stylesheet" href="css/themes/matcha.css">
+  <link rel="stylesheet" href="css/themes/sakura.css">
   <!-- js/app.js 由 src/ 打包而成（npm run build），一般 script 才能在雙擊開啟時執行 -->
   <script defer src="js/app.js"></script>
 </head>
@@ -93,11 +109,12 @@
           <span class="chip-v chip-v-short">—</span>
           <span class="sr-only">（前往預算匯率頁）</span>
         </a>
-        <div class="chip-stat chip-total" id="hdr-total">
+        <a class="chip-stat chip-total" href="#/budget" id="hdr-total">
           <span class="chip-k">清單總額</span>
           <span class="chip-v">—</span>
-        </div>
-        <button type="button" class="icon-btn icon-btn-line" id="btn-theme" aria-label="切換外觀" title="切換外觀">
+          <span class="sr-only">（前往預算匯率頁）</span>
+        </a>
+        <button type="button" class="icon-btn icon-btn-line" id="btn-theme" aria-label="外觀與主題" title="外觀與主題" aria-haspopup="dialog" aria-expanded="false">
           <span class="ms" aria-hidden="true">light_mode</span>
         </button>
         <button type="button" class="icon-btn icon-btn-gold" id="btn-settings" aria-label="設定與資料備份" title="設定與資料備份">
@@ -114,11 +131,11 @@
   <footer class="site-footer">
     <div class="footer-inner">
       <p class="footer-brand"><span class="ms" aria-hidden="true">auto_awesome</span> SHOPPING RELICS · 日本購物清單</p>
-      <p class="footer-note">資料只存在你的瀏覽器裡。匯率與免稅計算僅供參考，實際以店家與海關為準。</p>
+      <p class="footer-note">資料預設只存在這台裝置的瀏覽器；開啟雲端同步後，會另存一份到你自己的 Google 雲端硬碟。匯率與退稅試算僅供參考，實際以店家與海關為準。</p>
     </div>
   </footer>
 
-  <button type="button" class="fab" id="fab-add" aria-label="新增採購項目">
+  <button type="button" class="fab" id="fab-add" aria-label="新增商品">
     <span class="ms" aria-hidden="true">add</span>
   </button>
 
@@ -127,7 +144,7 @@
     <a href="#/list" data-route="list"><span class="ms" aria-hidden="true">shopping_bag</span><span>採買清單</span></a>
     <a href="#/split" data-route="split"><span class="ms" aria-hidden="true">group</span><span>代購分帳</span></a>
     <a href="#/budget" data-route="budget"><span class="ms" aria-hidden="true">account_balance_wallet</span><span>預算匯率</span></a>
-    <a href="#/packing" data-route="packing"><span class="ms" aria-hidden="true">luggage</span><span>打包海關</span></a>
+    <a href="#/packing" data-route="packing"><span class="ms" aria-hidden="true">luggage</span><span>打包與海關</span></a>
   </nav>
 
   <div id="toast-region" class="toast-region" aria-live="polite"></div>

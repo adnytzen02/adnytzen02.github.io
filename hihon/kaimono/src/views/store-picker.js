@@ -1,4 +1,4 @@
-// 店鋪選單：常用通路快選、自訂店鋪、複選（最多 3 家）；以及勾選已入手時詢問「在哪家買到」
+// 店鋪選單：常用通路快選、自訂店鋪、複選（最多 3 家）；以及勾選已買時詢問「在哪家買到」
 import { store } from '../store.js';
 import { STORE_GROUPS, ANY_STORE, storeInfo, catalogOf, CATALOG_VERIFIED } from '../storeCatalog.js';
 import { normStore, findSimilarStores } from '../storeMatch.js';
@@ -183,7 +183,7 @@ export function bindStorePicker(root, initial, onChange) {
   };
 }
 
-/* ---------- 勾選已入手時：詢問在哪家買到 ---------- */
+/* ---------- 勾選已買時：詢問在哪家買到 ---------- */
 export function pickPurchaseStore(item) {
   return new Promise((resolve) => {
     let result = null; // null = 取消

@@ -20,7 +20,10 @@ const DEFAULT_SETTINGS = {
   ignoredStorePairs: [], // 使用者標記「不是同一家」的相似店名
   customStores: [], // 自訂店鋪標籤（輸入一次就記住）
   storeMeta: {}, // 各店自訂設定：{ [正規化店名]: { couponUrl, couponNote } }
-  paidFriends: {}, // 代購已收款：{ 朋友名: true }
+  paidFriends: {}, // 代購已收款總額：{ 朋友名: 金額 }（舊版只記 true）
+  payLog: {}, // 代購分次收款記錄：{ 朋友名: [{ amount, at }] }
+  inspectedGroups: {}, // 已查驗的免稅收據（同店同日）：{ 群組 key: true }
+  friendMeta: {}, // 代購對象的個別設定：{ 朋友名: { feePct, feeFixed, rate, rateAt } }（rate 有值＝已鎖定匯率）
   listView: 'store', // 採買清單視角：store 店鋪｜category 分類
 };
 
@@ -53,7 +56,7 @@ export function normalizeItem(raw = {}) {
     // 候選店鋪（最多 3 家，第一家為主選）；舊資料只有單一 store 時自動轉換
     stores,
     anyStore,
-    // 實際購買的店家（勾選已入手時記錄）
+    // 實際購買的店家（勾選已買時記錄）
     purchasedStore,
     // 計算用的「有效店家」：已買用購買店家，未買用主選店家
     store: purchased ? (purchasedStore || stores[0] || '') : (stores[0] || ''),
@@ -139,7 +142,7 @@ export const store = {
     state.items = items;
     commit();
   },
-  // 勾選已入手時記錄在哪家買到（storeName）；取消勾選則清除
+  // 勾選已買時記錄在哪家買到（storeName）；取消勾選則清除
   togglePurchased(id, value, storeName) {
     const item = this.getItem(id);
     if (!item) return null;
@@ -199,8 +202,12 @@ export const store = {
   exportJSON() {
     return JSON.stringify({ app: 'shopping-relics', version: 1, exportedAt: new Date().toISOString(), ...state }, null, 2);
   },
+  // 目前資料的 JSON（雲端同步用來比對與上傳）
+  dataJSON() { return JSON.stringify(state); },
   importJSON(text) {
-    const data = JSON.parse(text);
+    this.importData(JSON.parse(text));
+  },
+  importData(data) {
     if (!data || !Array.isArray(data.items)) throw new Error('檔案格式不符');
     state = {
       items: data.items.map(normalizeItem),

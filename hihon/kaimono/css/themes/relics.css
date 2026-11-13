@@ -1,0 +1,56 @@
+/* =========================================================
+   主題：金色遺物（relics，預設）
+   顏色、字型、圓角都維持 css/style.css 的原始設計，這裡只調整
+   共用質感層（effects.css）用到的效果 token，讓光暈與凹槽貼合金色與深藍的色調。
+   ========================================================= */
+
+/* ---------- 淺色 ---------- */
+:root[data-skin="relics"] {
+  --dark-panel:
+    radial-gradient(circle, rgba(240, 210, 122, .1) 1px, transparent 1.5px) 0 0 / 10px 10px,
+    linear-gradient(145deg, #1a2a40 0%, #22364f 60%, #2c3e50 100%);
+  /* 原本的陰影加上一道頂緣高光 */
+  --shadow-1: inset 0 1px 0 #fff, 0 4px 20px rgba(26, 42, 64, 0.05);
+  --shadow-2: inset 0 1px 0 #fff, 0 10px 30px rgba(26, 42, 64, 0.09);
+  --shadow-gold: inset 0 1px 0 rgba(255, 255, 255, .55), 0 2px 5px rgba(26, 42, 64, .2), 0 12px 22px -8px #d4af37;
+
+  --fx-glow: #d4af37;
+  --fx-glow-core: #fff3c4;
+  --fx-dot: #b89328;
+  --fx-halo: rgba(212, 175, 55, .1);              /* 再濃的話次要文字的對比會低於 AA */
+  --fx-halo-2: rgba(0, 242, 255, .05);    /* 保留原設計的青色折射光 */
+  --fx-track: #e9eef3;
+  --fx-field: #edf2f6;
+  --fx-inset: inset 0 2px 5px rgba(26, 42, 64, .16), inset 0 -1px 0 rgba(255, 255, 255, .95);
+  --fx-knob: #ffffff;
+  --fx-knob-sheen: linear-gradient(145deg, #fff 0%, transparent 45%, rgba(26, 42, 64, .08) 100%);
+  --fx-edge: #fff;
+  --fx-drop: rgba(26, 42, 64, .2);
+  --fx-focus: #735c00;
+  --fx-on-dark: #f0d27a;
+}
+
+/* ---------- 深色 ---------- */
+:root[data-skin="relics"][data-scheme="dark"] {
+  --dark-panel:
+    radial-gradient(circle, rgba(240, 210, 122, .08) 1px, transparent 1.5px) 0 0 / 10px 10px,
+    linear-gradient(145deg, #1b2c47 0%, #213656 60%, #263e60 100%);
+  --shadow-1: inset 0 1px 0 rgba(255, 255, 255, .06), 0 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-2: inset 0 1px 0 rgba(255, 255, 255, .06), 0 12px 34px rgba(0, 0, 0, 0.45);
+  --shadow-gold: inset 0 1px 0 rgba(255, 255, 255, .45), 0 2px 5px rgba(0, 0, 0, .55), 0 12px 22px -8px #e2bd45;
+
+  --fx-glow: #e2bd45;
+  --fx-glow-core: #fff3c4;
+  --fx-dot: #f0d27a;
+  --fx-halo: rgba(226, 189, 69, .13);
+  --fx-halo-2: rgba(62, 232, 242, .08);
+  --fx-track: #060d18;
+  --fx-field: #0d1829;
+  --fx-inset: inset 0 2px 6px rgba(0, 0, 0, .75), inset 0 -1px 0 rgba(255, 255, 255, .06);
+  --fx-knob: #233757;
+  --fx-knob-sheen: linear-gradient(145deg, rgba(255, 255, 255, .15) 0%, transparent 45%, rgba(0, 0, 0, .3) 100%);
+  --fx-edge: rgba(255, 255, 255, .26);
+  --fx-drop: rgba(0, 0, 0, .55);
+  --fx-focus: #f0d27a;
+  --fx-on-dark: #f0d27a;
+}

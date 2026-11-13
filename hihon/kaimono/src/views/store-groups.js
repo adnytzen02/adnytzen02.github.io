@@ -147,7 +147,7 @@ function row({ item, role }, g, settings, rate) {
   return `
   <li class="sg-row ${item.purchased ? 'is-done' : ''}" data-id="${item.id}">
     <button type="button" class="check ${item.purchased ? 'on' : ''}" data-act="toggle"${at}
-      role="checkbox" aria-checked="${item.purchased}" aria-label="${item.purchased ? '已入手' : `在${esc(g.name)}買到`}：${esc(item.name)}">${icon('check')}</button>
+      role="checkbox" aria-checked="${item.purchased}" aria-label="${item.purchased ? '已買' : `在${esc(g.name)}買到`}：${esc(item.name)}">${icon('check')}</button>
     <div class="sg-main">
       <button type="button" class="sg-name-btn" data-act="open">${esc(item.name)}</button>
       ${meta.length ? `<p class="sg-meta">${meta.join('<span aria-hidden="true">·</span>')}</p>` : ''}

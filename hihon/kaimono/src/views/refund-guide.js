@@ -1,4 +1,4 @@
-// 預算匯率頁的「退稅指南」小分頁：流程｜退稅公司｜機場現金｜信用卡｜手續費｜新制度
+// 退稅指南頁（#/guide）的小分頁：流程｜退稅公司｜機場現金｜信用卡｜手續費｜新制度
 // 只放說明文字，不碰任何計算。資料查證日：2026/11/7（新制 11/1 上路，各公司細節仍可能調整）
 import { icon, yen } from '../ui.js';
 import { TAX_FREE_MIN } from '../calc.js';
@@ -329,12 +329,13 @@ const TABS = [
 
 const savedTab = () => { try { return localStorage.getItem(TAB_KEY); } catch { return null; } };
 
-export function guideCard() {
+// heading：false 時不輸出卡片自己的小標與標題（獨立頁面已有 h1）
+export function guideCard({ heading = true } = {}) {
   const current = TABS.some((t) => t.id === savedTab()) ? savedTab() : 'flow';
   return `
-  <section class="card guide-card" aria-labelledby="guide-title">
-    <p class="eyebrow">${icon('payments', 'sm')}TAX REFUND GUIDE</p>
-    <h2 id="guide-title" class="section-title-lg">退稅指南：2026/11 新制怎麼退</h2>
+  <section class="card guide-card" ${heading ? 'aria-labelledby="guide-title"' : 'aria-label="退稅指南內容"'}>
+    ${heading ? `<p class="eyebrow">${icon('payments', 'sm')}TAX REFUND GUIDE</p>
+    <h2 id="guide-title" class="section-title-lg">退稅指南：2026/11 新制怎麼退</h2>` : ''}
     <p class="muted small">資料查證日 ${VERIFIED}。新制剛上路，費率與流程以各店、各退稅公司公告為準。</p>
     <div class="g-tabs" role="tablist" aria-label="退稅指南分頁">
       ${TABS.map((t) => `<button type="button" role="tab" id="gtab-${t.id}" aria-controls="gpanel-${t.id}" aria-selected="${t.id === current}" tabindex="${t.id === current ? 0 : -1}" class="g-tab">${t.label}</button>`).join('')}

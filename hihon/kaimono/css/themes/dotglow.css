@@ -1,0 +1,140 @@
+/* =========================================================
+   主題：點陣柔光（dotglow）
+   白天：暖米色底、白色按鍵、琥珀橘光暈；夜晚：近黑底、深紫按鍵、藍紫光暈。
+   立體凹槽、按鍵與光暈來自共用質感層 css/themes/effects.css，這裡只負責顏色。
+
+   這個檔案分兩部分：
+   ① 設計 token：覆寫 css/style.css 的顏色、陰影、圓角，以及 --fx-* 效果 token（每個主題必填顏色）
+   ② 主題專屬的修飾：只有這個主題才有的造型（選填）
+   選擇器固定用 :root[data-skin="dotglow"]；深色用 [data-scheme="dark"]
+   （「跟隨系統」已由 JS 換算成 light／dark，不需要另外寫 @media）。
+   新增主題的步驟見 README「主題與外觀」。
+   ========================================================= */
+
+/* ---------- ① 設計 token：白天 ---------- */
+:root[data-skin="dotglow"] {
+  color-scheme: light;
+  --bg: #efeae2;
+  --bg-2: #e7e0d5;
+  --surface: #fbf8f3;
+  --surface-2: #f5f0e8;
+  --surface-3: #e6dfd3;
+  --surface-warm: #fff4e2;
+  --ink: #2a251e;
+  --ink-2: #40382e;
+  --text: #2a251e;
+  --text-dim: #62574a;
+  --gold: #f0921e;           /* 主色：琥珀橘（變數沿用 gold 的名稱） */
+  --gold-2: #ffb347;
+  --gold-dim: #d9700a;
+  --gold-text: #8f4700;
+  --gold-soft: #ffe7c7;
+  --gold-glow: rgba(255, 154, 31, .26);
+  --cyan: #8c82ff;           /* 副色：夜晚的藍紫 */
+  --cyan-text: #4e40c4;
+  --cyan-soft: #ebe8ff;
+  --on-gold: #2a1a04;
+  --border: rgba(170, 120, 60, .24);
+  --line: #dcd3c5;
+  --danger: #b3261e;
+  --danger-soft: #fbe0da;
+  --warn: #764700;
+  --warn-soft: #ffeccc;
+  --muted-bg: rgba(98, 87, 74, .1);
+  /* 深色面板＝夜晚的按鍵表面，疊一層點陣 */
+  --dark-panel:
+    radial-gradient(circle, rgba(231, 226, 255, .1) 1px, transparent 1.5px) 0 0 / 10px 10px,
+    linear-gradient(145deg, #2c2b49 0%, #1d1c31 60%, #131221 100%);
+  --dark-text: #ebe8f7;
+  --dark-dim: #b9b5d0;
+
+  --font-serif: var(--font-sans);   /* 這個主題標題與數字都用黑體 */
+  --r-btn: 14px;
+  --r-card: 22px;
+  --r-full: 13px;                    /* 膠囊改成圓角方形的按鍵 */
+
+  /* 陰影帶一道頂緣高光，卡片看起來像浮起的面板 */
+  --shadow-1: inset 0 1px 0 rgba(255, 255, 255, .95), 0 1px 2px rgba(120, 92, 52, .1), 0 6px 20px rgba(120, 92, 52, .09);
+  --shadow-2: inset 0 1px 0 rgba(255, 255, 255, .95), 0 12px 32px rgba(120, 92, 52, .16);
+  --shadow-gold: inset 0 1px 0 rgba(255, 255, 255, .5), 0 2px 5px rgba(120, 92, 52, .3), 0 12px 22px -8px #ff9a1f;
+  --holo: linear-gradient(180deg, var(--gold-2) 0%, var(--gold) 45%, var(--cyan) 100%);
+  --rule: linear-gradient(90deg, transparent, var(--gold), var(--cyan), transparent);
+
+  /* 共用質感層（effects.css）的效果 token */
+  --fx-glow: #ff9a1f;
+  --fx-glow-core: #ffd9a0;
+  --fx-dot: #d9700a;
+  --fx-halo: rgba(255, 176, 74, .3);
+  --fx-track: #dcd4c7;
+  --fx-field: #e9e2d6;
+  --fx-inset: inset 0 2px 5px rgba(108, 84, 50, .3), inset 0 -1px 0 rgba(255, 255, 255, .9);
+  --fx-knob: #ffffff;
+  --fx-knob-sheen: linear-gradient(145deg, #fff 0%, transparent 45%, rgba(196, 176, 146, .34) 100%);
+  --fx-edge: rgba(255, 255, 255, 1);
+  --fx-drop: rgba(120, 92, 52, .3);
+  --fx-focus: #8a4b00;
+  --fx-on-dark: #ffc978;             /* 深色面板、提示訊息上的強調色 */
+  --fx-backdrop: rgba(42, 37, 30, .5);
+  --fx-toast: rgba(27, 26, 44, .96);
+}
+
+/* ---------- ① 設計 token：夜晚（另外配色，不是把白天反轉） ---------- */
+:root[data-skin="dotglow"][data-scheme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0b12;
+  --bg-2: #101019;
+  --surface: #181826;
+  --surface-2: #1e1d30;
+  --surface-3: #25243a;
+  --surface-warm: #211f36;
+  --ink: #f1effa;
+  --ink-2: #dcd8ee;
+  --text: #e4e1f2;
+  --text-dim: #aaa6c2;
+  --gold: #8c82ff;           /* 主色：藍紫 */
+  --gold-2: #b1a9ff;
+  --gold-dim: #7c72f6;
+  --gold-text: #c3bcff;
+  --gold-soft: rgba(140, 130, 255, .16);
+  --gold-glow: rgba(140, 130, 255, .28);
+  --cyan: #ffb347;           /* 副色：白天的琥珀橘 */
+  --cyan-text: #ffc978;
+  --cyan-soft: rgba(255, 170, 60, .14);
+  --on-gold: #0b0b12;
+  --border: rgba(140, 130, 255, .22);
+  --line: #2b2a44;
+  --danger: #ffb4ab;
+  --danger-soft: rgba(255, 90, 80, .16);
+  --warn: #ffd27a;
+  --warn-soft: rgba(255, 196, 70, .14);
+  --muted-bg: rgba(170, 166, 194, .12);
+  --dark-panel:
+    radial-gradient(circle, rgba(231, 226, 255, .09) 1px, transparent 1.5px) 0 0 / 10px 10px,
+    linear-gradient(145deg, #2c2b49 0%, #201f36 60%, #181729 100%);
+  --dark-text: #ebe8f7;
+  --dark-dim: #b9b5d0;
+
+  --shadow-1: inset 0 1px 0 rgba(255, 255, 255, .07), 0 4px 20px rgba(0, 0, 0, .4);
+  --shadow-2: inset 0 1px 0 rgba(255, 255, 255, .07), 0 14px 36px rgba(0, 0, 0, .55);
+  --shadow-gold: inset 0 1px 0 rgba(255, 255, 255, .4), 0 2px 5px rgba(0, 0, 0, .6), 0 12px 22px -8px #8c82ff;
+
+  --fx-glow: #8c82ff;
+  --fx-glow-core: #efecff;
+  --fx-dot: #e7e2ff;
+  --fx-halo: rgba(112, 98, 255, .2);
+  --fx-track: #06060b;
+  --fx-field: #0f0f19;
+  --fx-inset: inset 0 2px 6px rgba(0, 0, 0, .85), inset 0 -1px 0 rgba(255, 255, 255, .07);
+  --fx-knob: #29283f;
+  --fx-knob-sheen: linear-gradient(145deg, rgba(255, 255, 255, .17) 0%, transparent 45%, rgba(0, 0, 0, .34) 100%);
+  --fx-edge: rgba(255, 255, 255, .3);
+  --fx-drop: rgba(0, 0, 0, .6);
+  --fx-focus: #c3bcff;
+  --fx-on-dark: #c3bcff;
+  --fx-backdrop: rgba(4, 4, 10, .66);
+}
+
+/* ---------- ② 主題專屬的修飾 ---------- */
+/* 右上角的按鈕改成圓角方形，呼應開關的按鍵 */
+:root[data-skin="dotglow"] .icon-btn-line,
+:root[data-skin="dotglow"] .icon-btn-gold { border-radius: 14px; }

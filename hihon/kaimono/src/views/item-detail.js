@@ -32,7 +32,7 @@ function body(item) {
       <h2 id="detail-title" class="dlg-title">${esc(item.name)}</h2>
       ${item.nameJa ? `<p class="dlg-ja" lang="ja">${esc(item.nameJa)}</p>` : ''}
       <div class="tag-row">
-        <span class="badge ${item.purchased ? 'badge-gold' : 'badge-muted'}">${icon(item.purchased ? 'verified' : 'pending', 'sm')}${item.purchased ? `已入手${item.purchasedAt ? ` · ${fmtTime(item.purchasedAt)}` : ''}` : '待購買'}</span>
+        <span class="badge ${item.purchased ? 'badge-gold' : 'badge-muted'}">${icon(item.purchased ? 'verified' : 'pending', 'sm')}${item.purchased ? `已買${item.purchasedAt ? ` · ${fmtTime(item.purchasedAt)}` : ''}` : '待買'}</span>
         <span class="badge badge-prio">${pr.stars} ${pr.label}</span>
         ${item.demo ? '<span class="badge badge-muted">示範資料</span>' : ''}
       </div>
@@ -66,7 +66,7 @@ function body(item) {
       </div>` : ''}
 
       <section class="ledger" aria-labelledby="ledger-title">
-        <h3 id="ledger-title" class="section-title">${icon('account_balance_wallet', 'sm')}金額與免稅試算</h3>
+        <h3 id="ledger-title" class="section-title">${icon('account_balance_wallet', 'sm')}金額與退稅試算</h3>
         <dl class="ledger-rows">
           <div><dt>定價（含稅 ${item.taxRate}%）× ${item.qty}</dt><dd>${yen(a.listIncl)}</dd></div>
           ${a.discount ? `<div class="minus"><dt>折扣 ${item.discountPct}%</dt><dd>− ${yen(a.discount)}</dd></div>` : ''}
@@ -97,7 +97,7 @@ function body(item) {
       <button type="button" class="btn btn-ghost" data-d="edit">${icon('edit')}編輯</button>
       <button type="button" class="btn btn-slate" data-d="counter">${icon('translate')}出示給店員</button>
       <button type="button" class="btn ${item.purchased ? 'btn-ghost' : 'btn-gold'} grow" data-d="toggle">
-        ${icon(item.purchased ? 'undo' : 'check_circle')}${item.purchased ? '改回待購買' : '標記已入手'}
+        ${icon(item.purchased ? 'undo' : 'check_circle')}${item.purchased ? '改回待買' : '標記已買'}
       </button>
     </footer>
   </div>`;

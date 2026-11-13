@@ -1,10 +1,10 @@
-// 預算匯率：匯率、預算進度、各店退稅、單筆試算盤、免稅新制說明
+// 預算匯率：匯率、預算進度、各店退稅、單筆試算盤；退稅指南已獨立成一頁（views/guide.js）
 import { store } from '../store.js';
-import { quickCalc, TAX_FREE_MIN } from '../calc.js';
+import { quickCalc, TAX_FREE_MIN, dayKey } from '../calc.js';
+import { categoryOf } from '../data.js';
 import { refreshRate, setManualRate } from '../rate.js';
-import { $, esc, icon, yen, twd, num, fmtTime, toast, progress } from '../ui.js';
+import { $, esc, icon, yen, twd, num, fmtTime, toast, progress, stackBar } from '../ui.js';
 import { pageHead, jumpNav, bindJumpNav } from './components.js';
-import { guideCard, bindGuide } from './refund-guide.js';
 
 // 試算盤狀態保留在模組內
 const calc = { price: 10000, includesTax: true, taxRate: 10, discountPct: 0, feePct: null };
@@ -56,13 +56,13 @@ function budgetCard({ state, sum, rate }) {
       <div><span class="k">全部買完預估</span><span class="v">${yen(sum.pay)}</span>
         <span class="s">≈ ${twd(sum.pay, rate)} · 預算的 ${Math.round(sum.budgetPlannedPct * 100)}%</span></div>
     </div>
-    <div class="stack-bar" role="img" aria-label="已支付 ${yen(sum.paid)}，待購 ${yen(sum.pending)}，預算 ${yen(s.budget)}">
+    <div class="stack-bar" role="img" aria-label="已支付 ${yen(sum.paid)}，待買 ${yen(sum.pending)}，預算 ${yen(s.budget)}">
       <span class="seg-paid" style="--w:${Math.min(100, paidPct)}%"></span>
       <span class="seg-later" style="--w:${Math.max(0, Math.min(100 - Math.min(100, paidPct), pendPct))}%"></span>
     </div>
     <dl class="legend-grid">
       <div><dt><i class="dot dot-gold"></i>已支付（${sum.purchasedCount} 件）</dt><dd>${yen(sum.paid)}</dd></div>
-      <div><dt><i class="dot dot-later"></i>待購（${sum.pendingCount} 件）</dt><dd>${yen(sum.pending)}</dd></div>
+      <div><dt><i class="dot dot-later"></i>待買（${sum.pendingCount} 件）</dt><dd>${yen(sum.pending)}</dd></div>
       <div class="${over ? 'text-danger' : ''}"><dt><i class="dot dot-slate"></i>${over ? '買完超支' : '買完剩餘'}</dt><dd>${yen(Math.abs(sum.remaining))} <small>(${twd(Math.abs(sum.remaining), rate)})</small></dd></div>
     </dl>
     <form class="inline-form" data-budget>
@@ -70,6 +70,66 @@ function budgetCard({ state, sum, rate }) {
       <div class="input-affix"><span aria-hidden="true">¥</span><input id="budget-input" type="number" inputmode="numeric" min="0" step="1000" value="${s.budget}"></div>
       <button type="submit" class="btn btn-slate btn-sm">儲存</button>
     </form>
+    <form class="inline-form" data-rebate>
+      <label for="rebate-input">刷卡淨回饋 %</label>
+      <input id="rebate-input" type="number" inputmode="decimal" min="0" max="30" step="0.1" value="${s.cardRebatePct}">
+      <button type="submit" class="btn btn-slate btn-sm">儲存</button>
+      ${s.cardRebatePct ? `<p class="muted small grow">全部刷卡約可回饋 ${twd(sum.rebate, rate)}</p>` : ''}
+    </form>
+  </section>`;
+}
+
+const NO_DATE = '未記錄日期';
+
+// 花費分析：依分類、依對象、依購買日期，看錢花在哪裡（金額是店頭支付的含稅價）
+function analysisCard({ state, sum, rate }) {
+  if (!state.items.length) return '';
+  const cats = new Map();
+  const days = new Map();
+  const who = { self: { paid: 0, pending: 0 }, proxy: { paid: 0, pending: 0 } };
+  for (const item of state.items) {
+    const pay = sum.byItem.get(item.id).pay;
+    const c = cats.get(item.category) ?? { paid: 0, pending: 0 };
+    c[item.purchased ? 'paid' : 'pending'] += pay;
+    cats.set(item.category, c);
+    who[item.buyFor ? 'proxy' : 'self'][item.purchased ? 'paid' : 'pending'] += pay;
+    if (item.purchased) {
+      const k = item.purchasedAt ? dayKey(item.purchasedAt) : NO_DATE; // 沒記錄購買時間的歸在一起
+      days.set(k, (days.get(k) ?? 0) + pay);
+    }
+  }
+  const catRows = [...cats.entries()].map(([id, v]) => ({ ...categoryOf(id), ...v, all: v.paid + v.pending })).sort((a, b) => b.all - a.all);
+  const maxCat = Math.max(...catRows.map((r) => r.all), 1);
+  const dayRows = [...days.entries()].sort((a, b) => (a[0] === NO_DATE) - (b[0] === NO_DATE) || a[0].localeCompare(b[0]));
+  const dayLabel = (d) => (d === NO_DATE ? d : d.slice(5).replace('-', '/'));
+  const maxDay = Math.max(...dayRows.map((r) => r[1]), 1);
+  const whoRow = (label, v) => `<div><dt>${label}</dt><dd>${yen(v.paid)}<small>已付${v.pending ? `，待買 ${yen(v.pending)}` : ''}</small></dd></div>`;
+  return `
+  <section class="card analysis-card" aria-labelledby="analysis-title">
+    <div class="card-head">
+      <h2 id="analysis-title" class="section-title">${icon('category', 'sm')}花費分析</h2>
+      <span class="legend"><i class="dot dot-gold"></i>已付<i class="dot dot-later"></i>待買</span>
+    </div>
+    <h3 class="analysis-sub">依分類</h3>
+    <ul class="analysis-list">
+      ${catRows.map((r) => `<li>
+        <p class="row-between"><span>${icon(r.icon, 'sm')}${esc(r.label)}</span><span><strong>${yen(r.paid)}</strong>${r.pending ? `<small> ＋待買 ${yen(r.pending)}</small>` : ''}</span></p>
+        ${stackBar([{ value: r.paid, tone: 'paid' }, { value: r.pending, tone: 'later' }], maxCat, `${r.label}：已付 ${yen(r.paid)}，待買 ${yen(r.pending)}`)}
+      </li>`).join('')}
+    </ul>
+    <h3 class="analysis-sub">自用與代購</h3>
+    <dl class="analysis-dl">
+      ${whoRow('自用', who.self)}
+      ${whoRow('幫朋友代購', who.proxy)}
+    </dl>
+    <h3 class="analysis-sub">依購買日期</h3>
+    ${dayRows.length ? `<ul class="analysis-list">
+      ${dayRows.map(([d, v]) => `<li>
+        <p class="row-between"><span>${dayLabel(d)}</span><span><strong>${yen(v)}</strong><small> ≈ ${twd(v, rate)}</small></span></p>
+        ${stackBar([{ value: v, tone: 'paid' }], maxDay, `${dayLabel(d)} 花費 ${yen(v)}`)}
+      </li>`).join('')}
+    </ul>` : '<p class="muted small">還沒有已買的商品。</p>'}
+    <p class="muted small">金額為店頭支付的含稅價，尚未扣除退稅。</p>
   </section>`;
 }
 
@@ -96,12 +156,6 @@ function refundCard({ state, sum, rate }) {
           <p class="muted small">未稅合計 ${yen(g.eligibleExcl)} / ${yen(TAX_FREE_MIN)}</p>
         </li>`).join('')}
     </ul>` : '<p class="muted pad">還沒有勾選「辦理免稅」且填了店家的商品。</p>'}
-    <form class="inline-form" data-rebate>
-      <label for="rebate-input">刷卡淨回饋 %</label>
-      <input id="rebate-input" type="number" inputmode="decimal" min="0" max="30" step="0.1" value="${s.cardRebatePct}">
-      <button type="submit" class="btn btn-slate btn-sm">儲存</button>
-      ${s.cardRebatePct ? `<p class="muted small grow">全部刷卡約可回饋 ${twd(sum.rebate, rate)}</p>` : ''}
-    </form>
   </section>`;
 }
 
@@ -130,7 +184,6 @@ function calculator({ rate }) {
   <section class="card calc-card" aria-labelledby="calc-title">
     <div class="card-head">
       <h2 id="calc-title" class="section-title">${icon('calculate', 'sm')}單筆退稅試算盤</h2>
-      <span class="badge badge-muted">即時計算</span>
     </div>
     <div class="calc-layout">
       <form class="calc-form" data-calc-form>
@@ -148,8 +201,9 @@ function calculator({ rate }) {
             <div class="seg-pills" role="radiogroup" aria-labelledby="qc-l2">
               <label class="pill"><input type="radio" name="taxRate" value="10" ${calc.taxRate === 10 ? 'checked' : ''}><span>10%</span></label>
               <label class="pill"><input type="radio" name="taxRate" value="8" ${calc.taxRate === 8 ? 'checked' : ''}><span>8% 食品</span></label>
-              <label class="pill"><input type="radio" name="taxRate" value="1" ${calc.taxRate === 1 ? 'checked' : ''}><span>1% 食品（2027/4 起，法案審議中）</span></label>
-            </div></div>
+              <label class="pill"><input type="radio" name="taxRate" value="1" ${calc.taxRate === 1 ? 'checked' : ''}><span>1% 食品</span></label>
+            </div>
+            <p class="hint">1% 食品為 2027/4 起的稅率，法案審議中。</p></div>
         </div>
         <div class="field"><span class="label" id="qc-l3">折扣／優惠券</span>
           <div class="seg-pills" role="radiogroup" aria-labelledby="qc-l3">
@@ -167,27 +221,42 @@ function calculator({ rate }) {
 }
 
 
+// 退稅指南的入口卡片（指南本身在 #/guide）
+function guideLink() {
+  return `
+  <section class="card guide-link" aria-labelledby="guide-title">
+    <div>
+      <p class="eyebrow">${icon('payments', 'sm')}TAX REFUND GUIDE</p>
+      <h2 id="guide-title" class="section-title-lg">退稅指南：2026/11 新制怎麼退</h2>
+      <p class="muted small">流程、退稅公司、機場現金、信用卡、手續費與新制度，整理在獨立的一頁。</p>
+    </div>
+    <a class="btn btn-ghost" href="#/guide">${icon('payments')}打開退稅指南</a>
+  </section>`;
+}
+
 export function mount(root, c) {
   let ctx = c;
   root.innerHTML = `
     ${pageHead({
-      eyebrow: 'BUDGET & TAX · 預算・匯率・免稅',
-      title: '預算・匯率・免稅計算中心',
+      eyebrow: `BUDGET & TAX · ${esc(store.state.settings.tripName)}`,
+      title: '預算匯率',
       sub: '即時換算台幣、掌握預算餘額，並預估每家店能退多少消費稅。',
+      subShort: '換算台幣、掌握預算，預估每家店能退多少稅。',
     })}
     ${jumpNav([
-      { id: 'rate-title', label: '匯率' }, { id: 'budget-title', label: '預算' }, { id: 'calc-title', label: '試算' },
+      { id: 'rate-title', label: '匯率' }, { id: 'budget-title', label: '預算' }, { id: 'analysis-title', label: '分析' }, { id: 'calc-title', label: '試算' },
       { id: 'refund-title', label: '退稅' }, { id: 'guide-title', label: '退稅指南' },
     ])}
     <div class="budget-layout">
       <div class="col">
         <div data-region="rate">${rateCard(ctx)}</div>
         <div data-region="budget">${budgetCard(ctx)}</div>
+        <div data-region="analysis">${analysisCard(ctx)}</div>
         ${calculator(ctx)}
       </div>
       <div class="col">
         <div data-region="refund">${refundCard(ctx)}</div>
-        ${guideCard()}
+        ${guideLink()}
       </div>
     </div>`;
 
@@ -244,13 +313,12 @@ export function mount(root, c) {
   });
 
   const jump = bindJumpNav(root);
-  bindGuide(root);
   return {
     destroy() { jump.destroy(); },
     update(next) {
       ctx = next;
       // 正在輸入的區塊不重繪，避免打斷
-      for (const [name, fn] of [['rate', rateCard], ['budget', budgetCard], ['refund', refundCard]]) {
+      for (const [name, fn] of [['rate', rateCard], ['budget', budgetCard], ['analysis', analysisCard], ['refund', refundCard]]) {
         const el = $(`[data-region="${name}"]`, root);
         if (!el.contains(document.activeElement) || document.activeElement.tagName === 'BUTTON') {
           const focusSel = document.activeElement?.matches?.('[data-sync]') && el.contains(document.activeElement) ? '[data-sync]' : null;

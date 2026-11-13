@@ -1,0 +1,169 @@
+/* =========================================================
+   共用質感層：擬物化凹槽與按鍵＋點陣紋理＋底部柔光
+   所有主題共用同一套立體效果，顏色由各主題的 token 決定。
+   - 預設值直接取自主題的基本色（--gold、--surface…），新主題不必另外設定也能運作
+   - 想微調就在主題檔裡覆寫 --fx-* 變數（參考 relics.css、dotglow.css）
+   - 某個主題不要這層效果：在 src/skins.js 該主題加上 fx: false
+   這個檔案要放在 style.css 之後、各主題檔之前。
+   ========================================================= */
+
+/* ---------- 效果用的 token（預設值） ---------- */
+:root {
+  --fx-glow: var(--gold);                 /* 光暈顏色 */
+  --fx-glow-core: var(--gold-2);          /* 發光細線最亮的中心 */
+  --fx-dot: var(--gold-dim);              /* 背景點陣 */
+  --fx-halo: var(--gold-glow);            /* 頁面上方的柔光 */
+  --fx-halo-2: transparent;               /* 第二道柔光（選用） */
+  --fx-track: var(--surface-3);           /* 凹槽底色 */
+  --fx-field: var(--surface-2);           /* 輸入框底色 */
+  --fx-inset: inset 0 2px 5px rgb(0 0 0 / .16), inset 0 -1px 0 rgb(255 255 255 / .7);
+  --fx-knob: var(--surface);              /* 按鍵表面 */
+  --fx-knob-sheen: linear-gradient(145deg, rgb(255 255 255 / .9) 0%, transparent 45%, rgb(0 0 0 / .07) 100%);
+  --fx-edge: rgb(255 255 255 / .9);       /* 頂緣高光 */
+  --fx-drop: rgb(0 0 0 / .2);             /* 貼地陰影 */
+  --fx-focus: var(--gold-text);           /* 鍵盤焦點外框 */
+  --fx-on-dark: var(--gold-2);            /* 深色面板上的強調色 */
+  --fx-backdrop: rgba(12, 14, 22, .55);   /* 對話框後方的遮罩 */
+  --fx-toast: rgba(24, 24, 34, .96);      /* 提示訊息底色（永遠是深色） */
+  --fx-cta: linear-gradient(145deg, var(--gold-2), var(--gold) 55%, var(--gold-dim));
+  /* 底緣發光細線：中間最亮、往兩側淡出 */
+  --fx-glowline: linear-gradient(90deg, transparent 6%, var(--fx-glow) 30%, var(--fx-glow-core) 50%, var(--fx-glow) 70%, transparent 94%);
+}
+:root[data-scheme="dark"] {
+  --fx-track: var(--bg);
+  --fx-field: var(--bg-2);
+  --fx-inset: inset 0 2px 6px rgb(0 0 0 / .7), inset 0 -1px 0 rgb(255 255 255 / .06);
+  --fx-knob: var(--surface-3);
+  --fx-knob-sheen: linear-gradient(145deg, rgb(255 255 255 / .14) 0%, transparent 45%, rgb(0 0 0 / .3) 100%);
+  --fx-edge: rgb(255 255 255 / .25);
+  --fx-drop: rgb(0 0 0 / .55);
+}
+
+/* ---------- 背景：頁面上方的柔光，疊上往外淡出的點陣 ---------- */
+:root:not([data-fx="off"]) .aura {
+  inset: 0; height: auto; filter: none; animation: none;
+  background:
+    radial-gradient(circle at 50% 22%, var(--fx-halo) 0, transparent min(36rem, 95vmin)),
+    radial-gradient(circle at 86% 4%, var(--fx-halo-2) 0, transparent min(26rem, 70vmin));
+}
+:root:not([data-fx="off"]) .aura::after {
+  content: ''; position: absolute; inset: 0; opacity: .16;
+  background: radial-gradient(circle, var(--fx-dot) 1px, transparent 1.6px) 0 0 / 13px 13px;
+  -webkit-mask-image: radial-gradient(circle at 50% 12%, #000 0, transparent min(30rem, 80vmin));
+  mask-image: radial-gradient(circle at 50% 12%, #000 0, transparent min(30rem, 80vmin));
+}
+
+/* ---------- 焦點外框：用對比足夠的顏色；深色面板上換成亮色 ---------- */
+:root:not([data-fx="off"]) :focus-visible,
+:root:not([data-fx="off"]) .file-btn:focus-within,
+:root:not([data-fx="off"]) .card-link:focus-visible::after,
+:root:not([data-fx="off"]) .card-link-sg:focus-visible::after,
+:root:not([data-fx="off"]) .pill input:focus-visible + span,
+:root:not([data-fx="off"]) .skin-card input:focus-visible + .skin-body,
+:root:not([data-fx="off"]) .jump-chip:focus-visible { outline-color: var(--fx-focus); }
+:root:not([data-fx="off"]) :is(.rate-card, .dark-card, .refund-hero, .counter-banner, .toast) { --fx-focus: var(--fx-on-dark); }
+/* 深色面板上的標籤文字也換成亮色，維持對比 */
+:root:not([data-fx="off"]) :is(.rate-card, .refund-hero, .counter-banner) { --gold-text: var(--fx-on-dark); }
+
+/* ---------- 凹槽：分段選擇、進度條、導覽列都是往內陷的軌道 ---------- */
+:root:not([data-fx="off"]) :is(.seg, .seg-pills, .bar) { background: var(--fx-track); box-shadow: var(--fx-inset); }
+:root:not([data-fx="off"]) .seg-pills { padding: 4px; }
+:root:not([data-fx="off"]) .nav-desktop { padding: 4px; border-radius: 15px; background: var(--fx-track); box-shadow: var(--fx-inset); }
+:root:not([data-fx="off"]) .nav-desktop a { border-radius: 11px; }
+:root:not([data-fx="off"]) .nav-desktop a:hover { background: color-mix(in srgb, var(--fx-knob) 45%, transparent); }
+
+/* 輸入框也是凹槽 */
+:root:not([data-fx="off"]) .field input:not([type="radio"]):not([type="checkbox"]),
+:root:not([data-fx="off"]) .field textarea,
+:root:not([data-fx="off"]) .input-affix,
+:root:not([data-fx="off"]) .search,
+:root:not([data-fx="off"]) select {
+  background-color: var(--fx-field); border-color: transparent; box-shadow: var(--fx-inset);
+}
+:root:not([data-fx="off"]) .field input:not([type="radio"]):not([type="checkbox"]):focus,
+:root:not([data-fx="off"]) .field textarea:focus,
+:root:not([data-fx="off"]) .input-affix:focus-within,
+:root:not([data-fx="off"]) .search:focus-within,
+:root:not([data-fx="off"]) select:focus-visible {
+  background-color: var(--fx-field); border-color: var(--fx-focus);
+  box-shadow: var(--fx-inset), 0 0 0 3px var(--gold-glow);
+}
+:root:not([data-fx="off"]) .field input[aria-invalid="true"] { border-color: var(--danger); }
+:root:not([data-fx="off"]) .check { border-color: transparent; background: var(--fx-field); box-shadow: var(--fx-inset); }
+
+/* ---------- 按鍵（選取中的狀態）：浮起的方塊，底緣透出光 ---------- */
+:root:not([data-fx="off"]) .chip.on,
+:root:not([data-fx="off"]) .pill input:checked + span,
+:root:not([data-fx="off"]) .nav-desktop a[aria-current="page"],
+:root:not([data-fx="off"]) .jump-chip[aria-current="true"],
+:root:not([data-fx="off"]) .seg-text button.on,
+:root:not([data-fx="off"]) .g-tab[aria-selected="true"],
+:root:not([data-fx="off"]) .icon-btn-line,
+:root:not([data-fx="off"]) .fab {
+  background: var(--fx-glowline) bottom / 100% 2px no-repeat, var(--fx-knob-sheen), var(--fx-knob);
+  color: var(--ink); border-color: transparent;
+  box-shadow: inset 0 1px 0 var(--fx-edge), 0 1px 3px var(--fx-drop), 0 9px 16px -7px var(--fx-glow);
+}
+:root:not([data-fx="off"]) .icon-btn-line { color: var(--gold-text); }
+:root:not([data-fx="off"]) .icon-btn-line:hover { border-color: transparent; filter: brightness(1.06); }
+:root:not([data-fx="off"]) .fab { color: var(--gold-text); border: 0; box-shadow: inset 0 1px 0 var(--fx-edge), 0 2px 6px var(--fx-drop), 0 16px 26px -8px var(--fx-glow); }
+:root:not([data-fx="off"]) .fab:hover { box-shadow: inset 0 1px 0 var(--fx-edge), 0 2px 6px var(--fx-drop), 0 18px 32px -6px var(--fx-glow); }
+:root:not([data-fx="off"]) .nav-mobile a[aria-current="page"] {
+  background: var(--fx-glowline) bottom / 100% 2px no-repeat, var(--gold-soft);
+}
+
+/* ---------- 主要按鈕：主色填滿，同樣有頂緣高光與底部光暈 ---------- */
+:root:not([data-fx="off"]) .btn-gold,
+:root:not([data-fx="off"]) .icon-btn-gold,
+:root:not([data-fx="off"]) .brand-mark,
+:root:not([data-fx="off"]) .check.on,
+:root:not([data-fx="off"]) .toast:not(.toast-muted) .toast-icon {
+  background: var(--fx-glowline) bottom / 100% 2px no-repeat, var(--fx-cta);
+  color: var(--on-gold); border-color: transparent; box-shadow: var(--shadow-gold);
+}
+:root:not([data-fx="off"]) .btn-gold:hover { box-shadow: var(--shadow-gold), 0 16px 30px -8px var(--fx-glow); }
+:root:not([data-fx="off"]) .icon-btn-gold:hover { background: var(--fx-glowline) bottom / 100% 2px no-repeat, var(--fx-cta); filter: brightness(1.06); }
+
+/* ---------- 卡片、頁首、提示訊息的光暈 ---------- */
+:root:not([data-fx="off"]) .item-card:hover { box-shadow: var(--shadow-1), 0 18px 30px -12px var(--fx-glow); }
+/* 頁首下方：底緣發光細線 */
+:root:not([data-fx="off"]) .page-head::after { background: var(--fx-glowline) center 10px / 100% 2px no-repeat; }
+:root:not([data-fx="off"]) .page-head::before { background: radial-gradient(closest-side, color-mix(in srgb, var(--fx-glow) 30%, transparent), transparent); }
+:root:not([data-fx="off"]) .toast { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 16px 40px rgba(0, 0, 0, .3), 0 14px 26px -10px var(--fx-glow); }
+
+/* ---------- 改色：把原始設計寫死的金色、深藍換成主題的 token ----------
+   金色遺物本來就是這些顏色，所以排除；其他主題（包含之後新增的）自動套用。 */
+:root:not([data-skin="relics"]) .bar-gold > span { background: linear-gradient(90deg, var(--gold-dim), var(--gold), var(--fx-glow-core)); }
+:root:not([data-skin="relics"]) .bar-split .bar-goods { background: linear-gradient(90deg, var(--gold-dim), var(--gold)); }
+:root:not([data-skin="relics"]) .brand-mark .ms { color: var(--on-gold); }
+:root:not([data-skin="relics"]) .btn-slate { background: var(--dark-panel); border-color: var(--gold); }
+:root:not([data-skin="relics"]) .btn-slate:hover { background: var(--dark-panel); filter: brightness(1.2); }
+:root:not([data-skin="relics"]) :is(.rate-card, .dark-card, .counter-banner) { border-color: color-mix(in srgb, var(--fx-glow) 45%, transparent); }
+:root:not([data-skin="relics"]) .rate-glow { background: radial-gradient(circle, color-mix(in srgb, var(--fx-glow) 34%, transparent), transparent 60%); }
+:root:not([data-skin="relics"]) .thumb-icon { background: linear-gradient(135deg, var(--gold-soft), var(--cyan-soft)); }
+:root:not([data-skin="relics"]) .dlg::backdrop { background: var(--fx-backdrop); }
+:root:not([data-skin="relics"]) .dlg-shell { border: 1px solid var(--border); box-shadow: var(--shadow-2), 0 30px 60px rgba(0, 0, 0, .28); }
+:root:not([data-skin="relics"]) .toast { background: var(--fx-toast); border-color: color-mix(in srgb, var(--fx-glow) 60%, transparent); }
+:root:not([data-skin="relics"]) .toast-muted .toast-icon { background: rgba(255, 255, 255, .12); color: var(--fx-on-dark); box-shadow: none; }
+:root:not([data-skin="relics"]) .toast-text strong { color: var(--fx-on-dark); }
+:root:not([data-skin="relics"]) .toast-action { color: var(--fx-on-dark); border-color: var(--fx-on-dark); }
+
+/* ---------- 首頁的導覽列永遠是深色玻璃樣式：效果 token 也要換成深色版 ----------
+   （顏色 token 已在 style.css 的同一組選擇器裡換過；主題檔排在後面，所以這段用 body／html 開頭維持較高的優先度） */
+html.boot-home .topbar, html.boot-home .nav-mobile,
+body[data-route="home"] .topbar, body[data-route="home"] .nav-mobile {
+  --fx-glow: #f1c35a;
+  --fx-glow-core: #fff3c4;
+  --fx-track: rgba(0, 0, 0, .38);
+  --fx-field: rgba(0, 0, 0, .3);
+  --fx-inset: inset 0 2px 6px rgba(0, 0, 0, .6), inset 0 -1px 0 rgba(255, 255, 255, .08);
+  --fx-knob: rgba(255, 236, 200, .16);
+  --fx-knob-sheen: linear-gradient(145deg, rgba(255, 255, 255, .16) 0%, transparent 45%, rgba(0, 0, 0, .3) 100%);
+  --fx-edge: rgba(255, 255, 255, .28);
+  --fx-drop: rgba(0, 0, 0, .5);
+  --fx-focus: #ffd77a;
+  --fx-on-dark: #ffdc86;
+  --fx-cta: linear-gradient(145deg, var(--gold-2), var(--gold) 55%, var(--gold-dim));
+  --fx-glowline: linear-gradient(90deg, transparent 6%, var(--fx-glow) 30%, var(--fx-glow-core) 50%, var(--fx-glow) 70%, transparent 94%);
+  --shadow-gold: inset 0 1px 0 rgba(255, 255, 255, .45), 0 2px 5px rgba(0, 0, 0, .5), 0 12px 22px -8px #f1c35a;
+}

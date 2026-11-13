@@ -118,7 +118,7 @@ export function summarize(state) {
     refund: 0, refundPaid: 0, net: 0,
     discount: 0,
     weightChecked: 0, weightCarry: 0, // 全部買完的商品重量
-    weightCheckedNow: 0, weightCarryNow: 0, // 只算已入手的
+    weightCheckedNow: 0, weightCarryNow: 0, // 只算已買的
     packedCount: 0, packableCount: 0,
     groups, byItem,
   };
@@ -175,4 +175,29 @@ export function quickCalc({ price, includesTax, taxRate, discountPct, feePct }) 
     refund: round(refund), net: round(pay - refund), eligible,
     saved: round(listIncl - (pay - refund)),
   };
+}
+
+// 回台灣入境的行李免稅額（每人，完稅價格總值；菸酒與管制品另計）
+// 依據：入境旅客攜帶行李物品報驗稅放辦法第 11 條，查證日見 CUSTOMS_VERIFIED
+export const TW_DUTY_FREE_TWD = 35000;
+export const CUSTOMS_VERIFIED = '2026/11/11';
+
+// 入境免稅額試算：以「退稅後的實際成本 × 目前匯率」估算會帶回台灣的商品總值。
+// 酒類不計入（另有 1.5 公升的免稅量）；設定為「不放行李」的商品也不計入。
+// 海關是以完稅價格認定，這裡只是估算。
+export function customsEstimate(state, sum) {
+  const { rate } = state.settings;
+  const r = { now: 0, planned: 0, count: 0, liquorCount: 0, limit: TW_DUTY_FREE_TWD };
+  for (const item of state.items) {
+    if (effLuggage(item) === 'none') continue;
+    if (item.category === 'liquor') { if (item.purchased) r.liquorCount += 1; continue; }
+    const value = sum.byItem.get(item.id).net * rate;
+    r.planned += value;
+    if (item.purchased) { r.now += value; r.count += 1; }
+  }
+  r.now = Math.round(r.now);
+  r.planned = Math.round(r.planned);
+  r.over = Math.max(0, r.now - r.limit);
+  r.plannedOver = Math.max(0, r.planned - r.limit);
+  return r;
 }

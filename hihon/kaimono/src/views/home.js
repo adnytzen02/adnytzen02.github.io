@@ -8,21 +8,26 @@
 // 每次打開網站都會播；同一次瀏覽中回到首頁直接顯示最後畫面（可按「重播片頭」）；減少動態時只畫一張靜態畫面
 import { icon, yen } from '../ui.js';
 import { groupModel } from './store-groups.js';
+import { sceneGL } from './home-gl.js';
 
-// 這次瀏覽是否已看過片頭：每次打開網站都會播；同一次瀏覽中從其他頁回首頁才直接顯示最後畫面
-const SEEN_KEY = 'shopping-relics:intro-seen-session';
-try { localStorage.removeItem('shopping-relics:intro-seen'); } catch { /* 舊版存在 localStorage 的紀錄，清掉 */ }
+// 完整的片頭只在這台裝置第一次打開時播；之後直接顯示最後畫面（短暫淡入），想再看可以按「重播片頭」
+const SEEN_KEY = 'shopping-relics:intro-played';
+try { localStorage.removeItem('shopping-relics:intro-seen'); sessionStorage.removeItem('shopping-relics:intro-seen-session'); } catch { /* 清掉舊版的紀錄 */ }
+// 片頭版本：'gl'＝華麗版（WebGL，預設）、'2d'＝輕量版（原本的 2D 版）。記在這台裝置
+const MODE_KEY = 'shopping-relics:intro-mode';
+export const getIntroMode = () => { try { return localStorage.getItem(MODE_KEY) === '2d' ? '2d' : 'gl'; } catch { return 'gl'; } };
+export const setIntroMode = (mode) => { try { localStorage.setItem(MODE_KEY, mode === '2d' ? '2d' : 'gl'); } catch { /* 無法記錄：維持預設 */ } };
 const TL = { comet: 1.9, start: 1.95, span: 5.2 }; // 時間軸（秒）：光流落下多久、之後的演出從何時開始、長度
 const DONE_AT = 0.94; // 進度到這裡標題已完整浮出，導覽列滑出
 const LAND_Y = 0.75; // 開場光流落下的位置（畫面高度的比例）：落在畫面下方、地平線之下的海面上
 const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-const seen = () => { try { return sessionStorage.getItem(SEEN_KEY) === '1'; } catch { return false; } };
-const markSeen = () => { try { sessionStorage.setItem(SEEN_KEY, '1'); } catch { /* 無法記錄：每次都播 */ } };
-const addLabel = (state) => (state.items.length ? '再添一個心願' : '寫下第一個心願');
+const seen = () => { try { return localStorage.getItem(SEEN_KEY) === '1'; } catch { return false; } };
+const markSeen = () => { try { localStorage.setItem(SEEN_KEY, '1'); } catch { /* 無法記錄：每次都播 */ } };
+const addLabel = (state) => (state.items.length ? '再加一件商品' : '新增第一件商品');
 
 // 標題下方的清單概況
 function statsLine({ state, sum }) {
-  if (!state.items.length) return ['<li>清單還是空的，從第一個心願開始</li>'];
+  if (!state.items.length) return ['<li>清單還是空的，從第一件商品開始</li>'];
   const stores = groupModel(state, () => true).filter((g) => !g.special).length;
   return [
     `<li>待買 <b>${sum.pendingCount}</b> 件</li>`,
@@ -588,9 +593,9 @@ export function mount(root, ctx) {
     <canvas class="aw-canvas" aria-hidden="true"></canvas>
     <div class="aw-cap">
       <p class="aw-kicker">SHOPPING RELICS</p>
-      <h1 class="aw-title" id="aw-title" lang="ja"><span class="nw">旅立ちの前に、</span><span class="nw">光は満ちる。</span></h1>
-      <p class="aw-sub" lang="ja"><span class="nw">ほしいものは、ここに記して。</span><span class="nw">時間はすべて、旅のために。</span></p>
-      <p class="aw-zh" lang="zh-TW"><span class="nw">出發之前，光已滿溢。</span><span class="nw">想要的都寫在這裡，時間全留給旅程。</span></p>
+      <h1 class="aw-title" id="aw-title"><span class="nw">出發之前，</span><span class="nw">光已滿溢。</span></h1>
+      <p class="aw-sub"><span class="nw">想要的都寫在這裡，</span><span class="nw">時間全留給旅程。</span></p>
+      <p class="aw-alt" lang="ja"><span class="nw">旅立ちの前に、光は満ちる。</span><span class="nw">ほしいものは、ここに記して。</span><span class="nw">時間はすべて、旅のために。</span></p>
       <ul class="aw-stats" aria-label="清單概況" data-stats>${statsLine(ctx).join('')}</ul>
       <div class="aw-cta" data-cta>
         <a class="btn btn-gold" href="#/list">${icon('auto_awesome')}開啟清單</a>
@@ -628,7 +633,19 @@ export function mount(root, ctx) {
   const quick = live && seen();
   document.body.classList.toggle('home-intro', live && !quick);
   if (quick) sec.classList.add('is-quick');
-  const field = scene(root.querySelector('.aw-canvas'), onFrame);
+  // 先試華麗版（WebGL）；裝置不支援、設定選了輕量版、或跑到一半太慢，就改用原本的 2D 版
+  let field = null;
+  const use2D = () => {
+    const old = root.querySelector('.aw-canvas');
+    const fresh = old.cloneNode(false); // 同一張畫布不能換繪圖方式，所以換一張新的
+    old.replaceWith(fresh);
+    sec.classList.remove('is-gl');
+    field = scene(fresh, onFrame);
+  };
+  if (getIntroMode() === 'gl') {
+    field = sceneGL(root.querySelector('.aw-canvas'), onFrame, reduceMotion, () => { field.destroy(); use2D(); field.finish(); });
+  }
+  if (field) sec.classList.add('is-gl'); else use2D();
   if (quick) field.finish();
 
   // 系統的「減少動態」設定改變時同步
@@ -657,7 +674,7 @@ export function mount(root, ctx) {
   // 點畫面（不是按鈕或文字）：水面泛起漣漪、天空灑出金粉
   sec.addEventListener('pointerdown', (e) => {
     if (!done || reduceMotion() || e.button > 0) return;
-    if (e.target.closest('a, button, .aw-title, .aw-sub, .aw-zh, .aw-stats, .aw-kicker')) return;
+    if (e.target.closest('a, button, .aw-title, .aw-sub, .aw-alt, .aw-stats, .aw-kicker')) return;
     const r = sec.getBoundingClientRect();
     field.tap(e.clientX - r.left, e.clientY - r.top);
   });

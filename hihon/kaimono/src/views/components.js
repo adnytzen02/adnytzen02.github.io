@@ -40,7 +40,7 @@ export function itemCard(item, a, rate, layout = 'grid') {
       ${storeTag(item)}
       <span class="tag tag-prio p${pr.value}" title="${pr.label}"><span aria-hidden="true">${pr.stars}</span><span>${pr.label}</span></span>
       <button type="button" class="check ${item.purchased ? 'on' : ''}" data-act="toggle"
-        role="checkbox" aria-checked="${item.purchased}" aria-label="已入手：${esc(item.name)}">${icon('check')}</button>
+        role="checkbox" aria-checked="${item.purchased}" aria-label="已買：${esc(item.name)}">${icon('check')}</button>
     </div>
     <div class="item-body">
       ${thumb(item)}
@@ -80,13 +80,14 @@ export function kpi({ label, icon: ic, value, unit = '', foot = '', bar = '', to
   </section>`;
 }
 
-export function pageHead({ eyebrow, title, sub, actions = '' }) {
+// subShort（選填）：手機寬度改顯示的短版說明，桌機仍顯示完整的 sub
+export function pageHead({ eyebrow, title, sub, subShort = '', actions = '' }) {
   return `
   <header class="page-head">
     <div>
       <p class="eyebrow">${icon('auto_awesome', 'sm')}${eyebrow}</p>
       <h1 class="page-title">${title}</h1>
-      ${sub ? `<p class="page-sub">${sub}</p>` : ''}
+      ${sub ? `<p class="page-sub">${subShort ? `<span class="sub-full">${sub}</span><span class="sub-short">${subShort}</span>` : sub}</p>` : ''}
     </div>
     ${actions ? `<div class="page-actions">${actions}</div>` : ''}
   </header>`;

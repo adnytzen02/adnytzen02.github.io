@@ -1407,7 +1407,7 @@ body[data-route="home"] { --dock-h: calc(56px + 68px + env(safe-area-inset-botto
   text-shadow: 0 0 28px rgba(255, 200, 100, .55), 0 2px 18px rgba(4, 4, 22, .9);
 }
 .aw-sub { margin: 14px 0 0; max-width: 30em; text-wrap: balance; font: 400 clamp(15px, 1.7vw, 19px)/1.85 "Noto Serif JP", var(--font-serif); letter-spacing: .14em; color: #f4e9d2; text-shadow: 0 1px 12px rgba(4, 4, 22, .95); }
-.aw-zh { margin: 4px 0 0; font-size: 13.5px; line-height: 1.8; letter-spacing: .06em; color: #e8dcc2; text-shadow: 0 1px 10px rgba(4, 4, 22, .95); }
+.aw-alt { margin: 4px 0 0; font-family: "Noto Serif JP", var(--font-serif); font-size: 13.5px; line-height: 1.8; letter-spacing: .06em; color: #e8dcc2; text-shadow: 0 1px 10px rgba(4, 4, 22, .95); }
 
 /* 清單概況：毛玻璃小膠囊 */
 .aw-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
@@ -1453,7 +1453,7 @@ body[data-route="home"] { --dock-h: calc(56px + 68px + env(safe-area-inset-botto
 }
 @media (max-height: 700px) and (max-width: 959.98px) {
   .aw-cap { padding-top: 28px; }
-  .aw-zh { display: none; } /* 矮螢幕：省略中文譯文，讓按鈕留在畫面內 */
+  .aw-alt { display: none; } /* 矮螢幕：省略日文對照，讓按鈕留在畫面內 */
 }
 
 /* ---------- 首頁的導覽列：移到畫面下方，換成金色夜色的玻璃樣式 ---------- */
@@ -1736,3 +1736,246 @@ body.fab-hide .fab:not(:focus-visible) { transform: translateY(16px) scale(.6); 
   .g-tab, .g-op-chev { transition: none; }
 }
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; } /* 窄螢幕時表格可橫向捲動，不撐破版面 */
+
+/* ---------- 設定：雲端同步 ---------- */
+.cloud-account { display: flex; align-items: flex-start; gap: 6px; margin: 10px 0 0; font-size: 15px; font-weight: 700; color: var(--ink); }
+.cloud-account .ms { color: var(--gold-text); }
+.cloud-status { display: flex; align-items: flex-start; gap: 6px; margin: 6px 0 0; font-size: 14px; color: var(--text-dim); }
+.cloud-status .ms { margin-top: 2px; flex: none; }
+.cloud-status.is-ok .ms { color: var(--gold-text); }
+.cloud-status.is-warn { color: var(--ink); }
+.cloud-status.is-warn .ms { color: var(--warn); }
+.cloud-status.is-error { color: var(--danger); }
+.cloud-status.is-off { padding: 10px 12px; border-radius: 12px; background: var(--surface-3); color: var(--ink); }
+[data-cloud-region] .btn-row { margin-top: 12px; }
+[data-cloud][aria-busy="true"] .ms { animation: cloud-spin 1s linear infinite; }
+@keyframes cloud-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { [data-cloud][aria-busy="true"] .ms { animation: none; } }
+
+/* 多選一對話框 */
+.confirm-actions-stack { flex-direction: column; }
+.confirm-actions-stack .btn { width: 100%; }
+.confirm-text .choice-facts { margin: 8px 0; padding-left: 1.2em; color: var(--ink); }
+.confirm-text p { margin: 8px 0 0; }
+
+/* ---------- 設定：主題選擇（卡片式單選；只用共用 token，所有主題通用） ---------- */
+.skin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.skin-card { position: relative; display: block; cursor: pointer; }
+.skin-card input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; appearance: none; -webkit-appearance: none; }
+.skin-body {
+  display: flex; flex-direction: column; gap: 8px; height: 100%; padding: 10px;
+  border-radius: 16px; border: 1.5px solid var(--line); background: var(--surface-2);
+  transition: border-color .2s, box-shadow .2s, background .2s;
+}
+.skin-card:hover .skin-body { border-color: var(--gold); }
+.skin-card input:checked + .skin-body { border-color: var(--gold); background: var(--surface); box-shadow: 0 0 0 3px var(--gold-glow); }
+.skin-card input:focus-visible + .skin-body { outline: 3px solid var(--gold); outline-offset: 2px; }
+/* 預覽：左半淺色、右半深色，各放一顆該主題的按鍵 */
+.skin-preview { display: grid; grid-template-columns: 1fr 1fr; height: 56px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
+.skin-half { display: grid; place-items: center; background: var(--p-bg); }
+.skin-key { position: relative; width: 36px; height: 24px; border-radius: 8px; background: var(--p-surface); box-shadow: 0 0 0 1px rgb(0 0 0 / .08), 0 7px 10px -5px var(--p-accent); }
+.skin-key::after { content: ''; position: absolute; left: 7px; right: 7px; bottom: 5px; height: 3px; border-radius: 2px; background: var(--p-accent); }
+.skin-name { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-weight: 700; color: var(--ink); }
+.skin-name .ms { color: var(--gold-text); visibility: hidden; }
+.skin-card input:checked + .skin-body .skin-name .ms { visibility: visible; }
+.skin-desc { font-size: 12.5px; line-height: 1.45; color: var(--text-dim); }
+
+/* ---------- 手機第一屏精簡 ---------- */
+/* 頁首說明：手機顯示短版，桌機顯示完整版 */
+.sub-short { display: none; }
+@media (max-width: 639.98px) {
+  .sub-full { display: none; }
+  .sub-short { display: inline; }
+  /* 統計卡改成可橫向滑動的一列，露出下一張的邊緣提示還有內容 */
+  .kpi-grid {
+    display: flex; gap: 10px; overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity; scrollbar-width: none;
+    margin-inline: calc(var(--gutter) * -1); padding: 4px var(--gutter) 12px; scroll-padding-inline: var(--gutter);
+  }
+  .kpi-grid::-webkit-scrollbar { display: none; }
+  .kpi-grid > * { flex: 0 0 min(70%, 250px); scroll-snap-align: start; }
+}
+
+/* ---------- 浮動的「＋」只在採買清單與代購分帳出現，其他頁面不擋內容 ---------- */
+body:not([data-route="list"]):not([data-route="split"]) .fab { display: none; }
+
+/* ---------- 手機：提示訊息改從頂部出現，不蓋住正在操作的清單與底部導覽 ---------- */
+@media (max-width: 959.98px) {
+  body:not([data-route="home"]) .toast-region,
+  body.fab-hide:not([data-route="home"]) .toast-region {
+    top: calc(var(--topbar-h) + 8px + env(safe-area-inset-top)); bottom: auto;
+  }
+}
+
+/* 手機的採買清單：右下角已有「＋」，頁首的「新增商品」就不重複佔一列 */
+@media (max-width: 639.98px) {
+  body[data-route="list"] .page-actions [data-add] { display: none; }
+}
+/* 底部導覽的文字不換行；很窄的螢幕把字縮小一級 */
+.nav-mobile a > span:last-child { white-space: nowrap; }
+@media (max-width: 359.98px) {
+  .nav-mobile a { font-size: 11px; letter-spacing: -.02em; }
+}
+
+/* ---------- 代購分帳：收款狀態併到應收金額旁；說明可展開 ---------- */
+.friend-total .pay-state { justify-content: flex-end; margin-top: 6px; }
+.notice-more { flex: 1 1 100%; }
+.notice-more summary { display: inline-flex; align-items: center; min-height: 32px; cursor: pointer; font-weight: 700; color: var(--gold-text); }
+.notice-more p { margin-top: 4px; color: var(--text-dim); }
+
+/* ---------- 預算匯率：退稅指南入口卡片 ---------- */
+.guide-link { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; }
+.guide-link > div { flex: 1 1 240px; min-width: 0; }
+
+/* ---------- 打包與海關：提醒收合成標題，展開後是條列 ---------- */
+.rule { display: block; padding: 0; }
+.rule details { min-width: 0; }
+.rule summary { display: flex; align-items: center; gap: 12px; padding: 12px; cursor: pointer; list-style: none; border-radius: 14px; }
+.rule summary::-webkit-details-marker { display: none; }
+.rule summary strong { flex: 1; }
+.rule summary:hover { background: rgba(255, 255, 255, .05); }
+.rule-chevron { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; background: rgba(255, 255, 255, .1); color: var(--dark-text); transition: transform .2s var(--ease); }
+.rule details[open] .rule-chevron { transform: rotate(45deg); }
+.rule-points { margin: 0; padding: 0 14px 14px 68px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--dark-dim); }
+.rule-points strong { color: var(--dark-text); }
+.rule-hint { margin-top: 6px; font-size: 13px; color: var(--dark-dim); }
+.pack-limits-link { grid-column: 1 / -1; justify-self: start; display: inline-flex; align-items: center; gap: 4px; min-height: 32px; }
+@media (prefers-reduced-motion: reduce) { .rule-chevron { transition: none; } }
+@media (max-width: 479.98px) { .rule-points { padding-left: 30px; } }
+button.link-btn { background: none; border: 0; padding: 0; cursor: pointer; font-family: inherit; }
+
+/* ---------- 代購分帳：分次收款 ---------- */
+.pay-block { margin-top: 4px; }
+.pay-log { list-style: none; margin: 0; padding: 0; }
+.pay-log li { display: flex; align-items: center; gap: 10px; min-height: 40px; border-top: 1px solid var(--line); }
+.pay-log li > span { flex: 1; }
+.pay-log strong { font-variant-numeric: tabular-nums; color: var(--ink); }
+.pay-form { margin-top: 8px; }
+
+/* ---------- 打包與海關：免稅品查驗清單、入境免稅額試算 ---------- */
+.inspect-list { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.inspect-group { padding: 12px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2); }
+.inspect-group.is-done { opacity: .72; }
+.inspect-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.inspect-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--ink); }
+.inspect-title small { color: var(--text-dim); }
+.inspect-check { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 700; cursor: pointer; }
+.inspect-check input { width: 22px; height: 22px; accent-color: var(--gold-dim); }
+.inspect-items { list-style: none; margin: 6px 0 0; padding: 0; }
+.inspect-items li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; border-top: 1px dashed var(--line); font-size: 14.5px; }
+.allow-now { margin: 6px 0 8px; color: var(--text-dim); }
+.allow-now strong { font: 700 24px/1.2 var(--font-serif); color: var(--ink); font-variant-numeric: tabular-nums; }
+.allow-dl { margin: 10px 0; display: flex; flex-direction: column; gap: 4px; }
+.allow-dl > div { display: flex; justify-content: space-between; gap: 12px; font-size: 14.5px; }
+.allow-dl dt { color: var(--text-dim); }
+.allow-dl dd { margin: 0; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.allow-card .notice { margin-bottom: 8px; }
+/* 卡片欄寬不被輸入框的預設寬度撐開（避免手機出現水平捲動） */
+.friend-grid { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 960px) { .friend-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pay-form .input-affix input { width: 0; }
+
+/* ---------- 代購分帳：代購費、匯率鎖定 ---------- */
+.fee-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 0; border-top: 1px dashed var(--line); color: var(--ink-2); }
+.fee-row span { display: inline-flex; align-items: center; gap: 6px; }
+.fee-row strong { font-variant-numeric: tabular-nums; color: var(--ink); }
+.friend-more { margin: 10px 0; border: 1px dashed var(--line); border-radius: 14px; }
+.friend-more[open] { border-style: solid; }
+.friend-more summary { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-height: 44px; padding: 6px 12px; cursor: pointer; font-weight: 700; color: var(--ink-2); list-style: none; border-radius: 14px; }
+.friend-more summary::-webkit-details-marker { display: none; }
+.friend-more summary:hover { background: var(--surface-warm); }
+.friend-more > :not(summary) { margin-inline: 12px; }
+.friend-more > .hint { margin-bottom: 10px; }
+.fee-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: end; padding-top: 4px; }
+.fee-form .field { margin: 0; min-width: 0; }
+.fee-form input { width: 100%; }
+.fee-form button { grid-column: 1 / -1; justify-self: start; }
+.rate-lock { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 14.5px; }
+.rate-lock p { flex: 1 1 200px; }
+
+/* ---------- 唯讀的代購明細（分享連結） ---------- */
+body[data-route="share"] .chip-stat { display: none; } /* 訪客自己的匯率與清單總額和這份明細無關 */
+.share-card { max-width: 640px; width: 100%; margin-inline: auto; }
+.share-list { margin: 0; padding: 0 0 0 1.4em; }
+.share-list li { padding: 10px 0; border-top: 1px solid var(--line); }
+.share-list li::marker { color: var(--text-dim); }
+.share-list li > span { display: inline-block; max-width: calc(100% - 7.5em); vertical-align: top; }
+.share-list li > strong { float: right; font-variant-numeric: tabular-nums; color: var(--ink); }
+.share-sum { margin: 6px 0 12px; padding-top: 10px; border-top: 2px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.share-sum > div { display: flex; justify-content: space-between; gap: 12px; }
+.share-sum dt { color: var(--text-dim); }
+.share-sum dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); }
+.share-sum dd small { display: block; font-weight: 400; color: var(--text-dim); }
+.share-sum .strong dt { color: var(--ink); font-weight: 700; }
+.share-sum .strong dd { font: 700 22px/1.25 var(--font-serif); }
+.share-sum .strong dd small { font: 400 13px/1.4 var(--font-sans); }
+.share-pending { margin-top: 10px; display: flex; gap: 6px; align-items: flex-start; color: var(--ink-2); font-size: 14.5px; }
+
+/* ---------- 預算匯率：花費分析 ---------- */
+.legend { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-dim); }
+.legend .dot + .dot, .legend i:nth-of-type(2) { margin-left: 8px; }
+.analysis-sub { margin: 14px 0 6px; font: 700 13px/1.4 var(--font-sans); letter-spacing: .06em; color: var(--text-dim); }
+.analysis-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.analysis-list p > span:first-child { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); }
+.analysis-list strong { font-variant-numeric: tabular-nums; color: var(--ink); }
+.analysis-list small { color: var(--text-dim); }
+.analysis-list .stack-bar { margin: 6px 0 0; height: 8px; }
+.analysis-dl { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.analysis-dl > div { padding: 10px 12px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--line); }
+.analysis-dl dt { font-size: 13px; color: var(--text-dim); }
+.analysis-dl dd { margin: 2px 0 0; font: 700 18px/1.3 var(--font-serif); color: var(--ink); font-variant-numeric: tabular-nums; }
+.analysis-dl dd small { display: block; font: 400 12.5px/1.4 var(--font-sans); color: var(--text-dim); }
+.analysis-card > .muted { margin-top: 12px; }
+
+/* ---------- 設定：多趟旅程 ---------- */
+.trip-list { list-style: none; margin: 10px 0 0; padding: 0; }
+.trip-list li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid var(--line); }
+.trip-list li > div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.trip-list strong { color: var(--ink); overflow-wrap: anywhere; }
+
+/* ---------- 導覽列：清單總額可點、待辦數字 ---------- */
+a.chip-total { text-decoration: none; }
+a.chip-total:hover { border-color: var(--gold); }
+.nav-badge {
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px;
+  background: var(--gold-text); color: var(--surface); font: 700 12px/1 var(--font-sans); font-variant-numeric: tabular-nums;
+}
+.nav-desktop a { display: inline-flex; align-items: center; gap: 6px; }
+.nav-mobile a { position: relative; }
+.nav-mobile .nav-badge { position: absolute; top: 2px; left: calc(50% + 6px); min-width: 18px; height: 18px; padding: 0 5px; font-size: 11px; }
+
+/* ---------- 外觀與主題選單 ---------- */
+.theme-pop {
+  position: fixed; z-index: 80; width: min(280px, calc(100vw - 24px)); padding: 14px;
+  border-radius: 18px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-2);
+}
+.theme-pop[hidden] { display: none; }
+.theme-pop-title { margin: 0 0 6px; font: 700 12.5px/1.4 var(--font-sans); letter-spacing: .08em; color: var(--text-dim); }
+.theme-pop .seg-pills { margin-bottom: 14px; width: 100%; }
+.theme-pop .seg-pills .pill { flex: 1; }
+.theme-pop .seg-pills .pill > span { justify-content: center; width: 100%; padding-inline: 6px; font-size: 13.5px; }
+.theme-pop-skins { display: flex; flex-direction: column; gap: 4px; }
+.theme-pop-skin { position: relative; display: block; cursor: pointer; }
+.theme-pop-skin input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; appearance: none; -webkit-appearance: none; }
+.theme-pop-skin > span { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 10px; border-radius: 12px; font-weight: 700; color: var(--ink-2); }
+.theme-pop-skin > span .ms { margin-left: auto; color: var(--gold-text); visibility: hidden; }
+.theme-pop-skin:hover > span { background: var(--surface-3); }
+.theme-pop-skin input:checked + span { background: var(--gold-soft); color: var(--ink); }
+.theme-pop-skin input:checked + span .ms { visibility: visible; }
+.theme-pop-skin input:focus-visible + span { outline: 3px solid var(--fx-focus, var(--gold)); outline-offset: 2px; }
+/* 主題的代表色：左半是主色，右半是深色模式的底色 */
+.skin-dot { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(90deg, var(--c1) 50%, var(--c2) 50%); box-shadow: 0 0 0 1px var(--line); }
+.theme-pop { width: min(304px, calc(100vw - 24px)); }
+.theme-pop .seg-pills .pill > span { white-space: nowrap; gap: 4px; padding-inline: 4px; }
+
+/* 首頁標題改以中文為主：中文字體排在前面（日文對照是下方的小字 .aw-alt） */
+.aw-title, .aw-sub { font-family: var(--font-serif); }
+.aw-title { letter-spacing: .08em; } /* 中文的全形標點本身已有留白，字距收一點 */
+.aw-sub { letter-spacing: .1em; }
+
+/* ---------- 首頁：WebGL 片頭 ---------- */
+/* 金色的海比較亮，標題後面的暗色壓深一點，文字才清楚 */
+.aw.is-gl .aw-cap::before { background: radial-gradient(closest-side, rgba(4, 4, 22, .74), rgba(4, 4, 22, .3) 70%, transparent); height: 82%; }
+.aw.is-gl .aw-title, .aw.is-gl .aw-sub, .aw.is-gl .aw-alt, .aw.is-gl .aw-stats { text-shadow: 0 1px 12px rgba(4, 4, 22, .85), 0 0 2px rgba(4, 4, 22, .6); }
+.aw.is-gl .btn-ghost-light { background: rgba(8, 8, 26, .6); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.aw.is-gl .aw-replay { background: rgba(8, 8, 26, .6); }

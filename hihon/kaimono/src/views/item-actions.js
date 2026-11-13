@@ -10,7 +10,7 @@ import { normStore } from '../storeMatch.js';
 import { TAX_FREE_MIN } from '../calc.js';
 import { stampChecked, celebrateTaxFree } from '../fx.js';
 
-// 勾選已入手：storeName 為在哪家店勾選（店鋪分組時會帶入）。
+// 勾選已買：storeName 為在哪家店勾選（店鋪分組時會帶入）。
 // 沒指定、而商品有多家候選或「不限店鋪」時，先詢問在哪家買到。
 export async function togglePurchased(id, storeName) {
   const before = store.getItem(id);
@@ -27,7 +27,7 @@ export async function togglePurchased(id, storeName) {
   const exclBefore = !before.purchased && at && before.taxFree ? storeTodayExcl(store.state.items, store.state.settings, at) : 0;
   const item = store.togglePurchased(id, undefined, at);
   if (!item.purchased) {
-    toast({ title: '已改回待購買', message: esc(item.name), tone: 'muted', duration: 3000 });
+    toast({ title: '已改回待買', message: esc(item.name), tone: 'muted', duration: 3000 });
     return;
   }
   const { byItem } = analyze(store.state.items, store.state.settings);
@@ -39,7 +39,7 @@ export async function togglePurchased(id, storeName) {
   stampChecked(id);
   if (justReached) celebrateTaxFree(normStore(at));
   toast({
-    title: justReached ? `已買到・${esc(at)} 免稅達成` : '已買到',
+    title: justReached ? `已買・${esc(at)} 免稅達成` : '已買',
     message: `「${esc(item.name)}」· ${parts.join(' · ')}`,
     actionText: '復原',
     onAction: () => store.togglePurchased(id, false),
