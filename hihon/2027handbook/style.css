@@ -438,7 +438,7 @@ mark { background: #ffe58a; color: inherit; padding: 0 2px; border-radius: 3px; 
 .toc details { background: none; border: 0; border-radius: 0; margin: 0; box-shadow: none; }
 
 /* =====================================================================
-   離線 / 地圖 / 收藏 / 篩選 / 工具 / 我的行程
+   離線 / 地圖 / 篩選 / 工具
    ===================================================================== */
 [hidden] { display: none !important; }
 
@@ -448,19 +448,12 @@ mark { background: #ffe58a; color: inherit; padding: 0 2px; border-radius: 3px; 
 .toast button { flex: none; background: transparent; color: var(--gold); border: 1px solid rgba(201,162,39,.6); border-radius: 999px; padding: 6px 14px; font: inherit; font-weight: 700; cursor: pointer; min-height: 36px; }
 .toast:has(+ .to-top) { bottom: 80px; }
 
-/* ===== 導覽列收藏數量 ===== */
-.nav-count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; margin-left: 4px; border-radius: 999px; background: var(--gold); color: var(--navy-deep); font-size: 12px; font-weight: 800; }
 
-/* ===== 地圖連結 / 收藏按鈕 ===== */
-.map-link, .fav-btn { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--navy); font: inherit; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; white-space: nowrap; }
-.map-link:hover, .fav-btn:hover { border-color: var(--navy); background: #eef3fa; }
-.fav-btn[aria-pressed="true"] { background: var(--gold-soft); border-color: var(--gold); color: #7a5f0c; }
-.fav-btn__icon { font-size: 16px; line-height: 1; }
-.spot-card header .fav-btn { margin-left: auto; }
-.spot-card header .fav-btn + .map-link { margin-left: 0; }
-.spot-card header .map-link:first-of-type:not(.fav-btn + .map-link) { margin-left: auto; }
+/* ===== 地圖連結 ===== */
+.map-link { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--navy); font: inherit; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; white-space: nowrap; }
+.map-link:hover { border-color: var(--navy); background: #eef3fa; }
+.spot-card header .map-link:first-of-type { margin-left: auto; }
 .map-link--inline { min-height: 32px; padding: 2px 10px; font-size: 13px; margin: 2px 0 0 4px; }
-td .fav-btn { display: flex; margin-top: 6px; min-height: 32px; padding: 2px 10px; font-size: 13px; }
 
 /* ===== 動物園卡片 ===== */
 .spot-card--aquarium { border-left-color: #2a7bb5; }
@@ -485,7 +478,7 @@ td .fav-btn { display: flex; margin-top: 6px; min-height: 32px; padding: 2px 10p
 .filterbar__reset { background: none; border: 0; color: var(--crimson); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; min-height: 40px; padding: 0 8px; }
 
 /* ===== 工具頁 ===== */
-.tools, .trip { max-width: 920px; margin: 0 auto; padding: 40px 24px 80px; }
+.tools { max-width: 920px; margin: 0 auto; padding: 40px 24px 80px; }
 .tool { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; margin-bottom: 32px; }
 .tool h2 { margin: 0 0 14px; font-family: var(--font-serif); color: var(--navy); font-size: 24px; }
 .tool__lead { margin: 0 0 16px; color: var(--muted); font-size: 15.5px; }
@@ -526,18 +519,6 @@ button.btn.btn--ghost { border: 1px solid var(--navy); }
 .tax-sum__main dt { color: var(--ink); font-weight: 700; }
 .tax-sum__main small { font-size: 14px; color: var(--muted); font-weight: 400; }
 
-/* ===== 我的行程 ===== */
-.trip__empty { text-align: center; padding: 40px 12px; background: #fff; border: 1px dashed var(--line); border-radius: var(--radius); }
-.trip__group { margin-bottom: 32px; }
-.trip__group h2 { font-family: var(--font-serif); color: var(--navy); font-size: 22px; margin: 0 0 12px; display: flex; align-items: center; gap: 10px; }
-.trip__n { font-family: var(--font); font-size: 13px; background: var(--crimson-soft); color: var(--crimson); padding: 2px 10px; border-radius: 999px; }
-.trip__group ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
-.trip__group li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
-.trip__main { display: grid; gap: 2px; min-width: 0; }
-.trip__title { font-weight: 700; color: var(--navy); font-size: 17px; }
-.trip__jp, .trip__area { font-size: 14px; color: var(--muted); }
-.trip__btns { display: flex; gap: 8px; }
-.fav-remove { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: #9c1f25; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
 .install { margin-top: 48px; padding: 20px 24px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
 .install h2 { margin-bottom: 6px; }
 
@@ -550,8 +531,7 @@ button.btn.btn--ghost { border: 1px solid var(--navy); }
   .filterbar__status { margin-left: 0; width: 100%; }
 }
 @media print {
-  .no-print, .fav-btn, .map-link, .filterbar, .toast, .fav-remove { display: none !important; }
-  .trip__group li { break-inside: avoid; box-shadow: none; }
+  .no-print, .map-link, .filterbar, .toast { display: none !important; }
 }
 
 /* 退稅列：兩列排版，避免日期與下拉被截斷 */
@@ -587,7 +567,7 @@ button.btn.btn--ghost { border: 1px solid var(--navy); }
 .nav-toggle[aria-expanded="true"] .nav-toggle__bars::before { transform: translateY(6px) rotate(45deg); }
 .nav-toggle[aria-expanded="true"] .nav-toggle__bars::after { transform: translateY(-6px) rotate(-45deg); }
 
-/* 導覽列 10 項：桌機縮小左右留白，避免溢出（含收藏數字徽章） */
+/* 導覽列 10 項：桌機縮小左右留白，避免溢出 */
 @media (min-width: 1200px) { .site-header nav a { padding-left: 8px; padding-right: 8px; } }
 /* 導覽列 10 項，1200px 以下改用漢堡選單 */
 @media (max-width: 1199px) {

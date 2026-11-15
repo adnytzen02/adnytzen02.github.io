@@ -1,4 +1,4 @@
-// 水族館與動物園：夜色光場、航路篩選（舊稱禮賓台）、星の林地圖、月の船渡口、物種銘牌介紹、收藏長明燈
+// 水族館與動物園：夜色光場、航路篩選（舊稱禮賓台）、星の林地圖、月の船渡口、物種銘牌介紹
 // 一般 defer 腳本（不用 type="module"），直接打開本機檔案時也能執行
 (() => {
 'use strict';
@@ -292,7 +292,7 @@ if (root) {
   }
   root.addEventListener('click', e => {
     const head = e.target.closest('.gh-row__head'); if (!head) return;
-    if (e.target.closest('a, .fav-btn')) return;             // 地圖、收藏按鈕各做各的事
+    if (e.target.closest('a')) return;                       // 地圖連結照常開啟，不觸發展開
     const r = head.closest('.gh-row'); setOpen(r, !r.classList.contains('is-open'));
     syncExpandAll();
   });
@@ -314,6 +314,7 @@ if (root) {
   const [hallPrev, hallNext] = $$('[data-hall-dir]', hallBar), hallNow = $('.gh-hallbar__now', hallBar);
   const visRooms = () => rooms.filter(r => !r.hidden);
   let curRoom = rooms[0], hallRaf = 0, lastW = 0;
+  let mapRegion = '';                                   // 地圖目前顯示的地區；列表換渡口時讓地圖跟上
   function syncHalls() {
     hallRaf = 0;
     const vis = visRooms();
@@ -321,6 +322,7 @@ if (root) {
     const i = Math.min(vis.length - 1, Math.max(0, Math.round(hallTrack.scrollLeft / Math.max(1, hallTrack.clientWidth))));
     curRoom = vis[i];
     hallTrack.style.height = curRoom.offsetHeight + 'px';      // 不讓最長的那座渡口撐高整條軌道
+    if (mapRegion && mapRegion !== curRoom.dataset.room) switchRegion(curRoom.dataset.room);   // 列表 → 地圖
     hallLinks.forEach(a => a.setAttribute('aria-current', a.dataset.hallnav === curRoom.dataset.room ? 'true' : 'false'));
     hallPrev.disabled = i === 0; hallNext.disabled = i === vis.length - 1;
     const label = `${$('.gh-room__no span', curRoom).textContent}・${$('h3', curRoom).textContent}`;
@@ -396,19 +398,26 @@ if (root) {
     else setTimeout(() => panel.classList.add('is-settled'), n * 85 + 1500);
   }
   function switchRegion(k, focus = false) {
+    mapRegion = k;
     tabs.forEach(t => { const on = t.dataset.regionTab === k; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; if (on && focus) t.focus(); });
     marks.forEach(m => m.setAttribute('aria-pressed', m.dataset.regionTab === k));
     panels.forEach(p => { p.hidden = p.dataset.regionPanel !== k; });
     if (hallSeen) ignite(panels.find(p => p.dataset.regionPanel === k));
   }
-  tabs.forEach(t => t.addEventListener('click', () => switchRegion(t.dataset.regionTab)));
-  marks.forEach(m => m.addEventListener('click', () => switchRegion(m.dataset.regionTab)));
+  // 使用者在地圖選地區：下方列表也切到同一座渡口（該地區被篩選條件清空時不動）
+  function pickRegion(k, focus = false) {
+    switchRegion(k, focus);
+    const room = rooms.find(r => r.dataset.room === k);
+    if (room && !room.hidden && room !== curRoom) goHall(room, false);
+  }
+  tabs.forEach(t => t.addEventListener('click', () => pickRegion(t.dataset.regionTab)));
+  marks.forEach(m => m.addEventListener('click', () => pickRegion(m.dataset.regionTab)));
   $('.gh-tabs').addEventListener('keydown', e => {            // 左右鍵、Home／End 切換分頁
     const f = tabs.indexOf(document.activeElement);            // 以目前有焦點的分頁為準
     const i = f >= 0 ? f : tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
     const d = { ArrowRight: 1, ArrowLeft: -1, Home: -i, End: tabs.length - 1 - i }[e.key];
     if (d === undefined) return;
-    e.preventDefault(); switchRegion(tabs[(i + d + tabs.length) % tabs.length].dataset.regionTab, true);
+    e.preventDefault(); pickRegion(tabs[(i + d + tabs.length) % tabs.length].dataset.regionTab, true);
   });
   switchRegion('關東');
   if ('IntersectionObserver' in window) {
@@ -476,7 +485,7 @@ if (root) {
     if (!lightOf(r.id).length) return;
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'gh-link-btn gh-row__tomap';
-    b.innerHTML = `${icon('zi-pin')}在星の林裡找到它`;
+    b.innerHTML = `${icon('zi-pin')}在星の林地圖上找到它`;
     b.addEventListener('click', () => showOnMap(r.id));
     $('.gh-row__body', r).prepend(b);
   });
@@ -536,19 +545,27 @@ if (root) {
     });
   }
 
-  // ---------- 收藏：地圖上的長明燈 ----------
-  const page = location.pathname.split('/').pop() || 'index.html';
-  function syncFav() {
-    let ids = new Set();
-    try { ids = new Set(JSON.parse(localStorage.getItem('jp-handbook-favs-v1') || '[]').filter(f => f.page === page).map(f => f.fid)); } catch (_) { /* 讀不到就當作沒有收藏 */ }
-    [...lights, ...keys].forEach(el => el.classList.toggle('is-fav', ids.has(el.dataset.light || el.dataset.key)));
-    $$('[data-fav-lit]').forEach(el => (el.textContent = [...ids].filter(id => byId.has(id)).length));
+  // ---------- 物種銘牌：手機上先顯示前 8 塊，按鈕展開全部 ----------
+  const foldList = $('[data-plaques-fold]'), foldBtn = $('[data-plaques-more]');
+  if (foldList && foldBtn) {
+    const total = $$('.gh-plaque', foldList).length, mq = matchMedia('(max-width: 640px)');
+    const setFold = on => {
+      foldList.classList.toggle('is-folded', on);
+      foldBtn.setAttribute('aria-expanded', String(!on));
+      foldBtn.textContent = on ? `顯示全部 ${total} 種` : '收合，只看前 8 種';
+    };
+    foldBtn.hidden = false; setFold(true);
+    foldBtn.addEventListener('click', () => {
+      const folding = !foldList.classList.contains('is-folded');
+      setFold(folding);
+      if (folding) foldList.scrollIntoView({ block: 'start', behavior: 'auto' });
+      else { const next = $$('.gh-plaque', foldList)[8]; if (next) $('.gh-plaque__open', next).focus({ preventScroll: true }); }
+    });
+    mq.addEventListener('change', () => setFold(true));     // 轉成桌機寬度時 CSS 不會隱藏任何銘牌
   }
-  document.addEventListener('click', e => { if (e.target.closest('.fav-btn')) setTimeout(syncFav, 0); });
-  addEventListener('storage', syncFav);
 
   // ---------- 啟動 ----------
-  apply(); syncFav(); syncExpandAll();
+  apply(); syncExpandAll();
   if (location.hash) fromHash();
 }
 })();

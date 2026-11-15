@@ -138,6 +138,9 @@
   };
 })();
 
+// 「我的行程」已移除：清掉舊版留在瀏覽器裡的收藏資料
+try { localStorage.removeItem('jp-handbook-favs-v1'); } catch (_) { /* 儲存空間被封鎖時略過 */ }
+
 // ===== PWA：註冊 Service Worker、離線提示、安裝按鈕 =====
 (() => {
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {

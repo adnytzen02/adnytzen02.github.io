@@ -241,7 +241,7 @@
 .ak-copy { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--ak-line-2); background: #fff; color: var(--ak-ink); font: 700 12.5px/1 var(--font); cursor: pointer; }
 .ak-copy:hover { border-color: var(--ak-crimson); color: var(--ak-crimson); }
 .ak-copy.is-done { background: var(--ak-navy); border-color: var(--ak-navy); color: #fff; }
-.ak-shop__head .fav-btn, .ak-shop__head .map-link { min-height: 40px; }
+.ak-shop__head .map-link { min-height: 40px; }
 .ak-badge { display: inline-block; margin: 0 6px 4px 0; padding: 3px 8px; border-radius: 6px; background: var(--ak-paper-2); font-size: 11.5px; font-weight: 800; letter-spacing: .04em; }
 .ak-badge--flag { background: var(--ak-navy); color: #ecd06a; }
 .ak-badge--new { background: var(--green-soft, #e7f4ee); color: #22603f; }
