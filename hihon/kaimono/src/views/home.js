@@ -6,9 +6,11 @@
 //   約 6.1～6.8 秒：浮出標題，導覽列從下方滑出
 // 播完後畫面持續流動；點水面會泛起漣漪、點天空會灑出金粉
 // 每次打開網站都會播；同一次瀏覽中回到首頁直接顯示最後畫面（可按「重播片頭」）；減少動態時只畫一張靜態畫面
-import { icon, yen } from '../ui.js';
+import { icon, yen, toast } from '../ui.js';
 import { groupModel } from './store-groups.js';
 import { sceneGL } from './home-gl.js';
+import { cloudAvailable, cloudInfo, onCloudStatus, preloadCloud, connectGoogle } from '../cloud.js';
+import { runSync } from './settings.js';
 
 // 完整的片頭只在這台裝置第一次打開時播；之後直接顯示最後畫面（短暫淡入），想再看可以按「重播片頭」
 const SEEN_KEY = 'shopping-relics:intro-played';
@@ -24,6 +26,22 @@ const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matche
 const seen = () => { try { return localStorage.getItem(SEEN_KEY) === '1'; } catch { return false; } };
 const markSeen = () => { try { localStorage.setItem(SEEN_KEY, '1'); } catch { /* 無法記錄：每次都播 */ } };
 const addLabel = (state) => (state.items.length ? '再加一件商品' : '新增第一件商品');
+
+// 「登入後再開始」的按鈕文字與小字說明，依 Google 連結狀態而變
+function loginCopy() {
+  const avail = cloudAvailable();
+  const c = cloudInfo();
+  if (!avail.ok) return { label: '登入後再開始', note: 'Google 登入尚未啟用，目前請先選「直接開始」。', off: true };
+  if (c.state === 'syncing') return { label: '連線中…', note: '正在和 Google Drive 同步。', busy: true };
+  if (c.linked) return { label: '同步後再開始', note: `已連結 Google 帳號（識別碼末 4 碼 ${c.idTail}），先取得其他裝置的最新清單。` };
+  return { label: '登入後再開始', note: '用 Google 帳號登入，清單會存到你自己的 Google Drive，換手機或電腦也能接著用。' };
+}
+function loginHTML() {
+  const c = loginCopy();
+  // 尚未啟用時用 aria-disabled（仍可聚焦，讀得到下方說明），不用 disabled
+  return `<button type="button" class="btn btn-ghost-light" data-login aria-describedby="aw-note-login"${c.off ? ' aria-disabled="true"' : ''}${c.busy ? ' disabled aria-busy="true"' : ''}>${icon('sync')}${c.label}</button>
+          <p class="aw-note" id="aw-note-login">${c.note}</p>`;
+}
 
 // 標題下方的清單概況
 function statsLine({ state, sum }) {
@@ -598,10 +616,16 @@ export function mount(root, ctx) {
       <p class="aw-alt" lang="ja"><span class="nw">旅立ちの前に、光は満ちる。</span><span class="nw">ほしいものは、ここに記して。</span><span class="nw">時間はすべて、旅のために。</span></p>
       <ul class="aw-stats" aria-label="清單概況" data-stats>${statsLine(ctx).join('')}</ul>
       <div class="aw-cta" data-cta>
-        <a class="btn btn-gold" href="#/list">${icon('auto_awesome')}開啟清單</a>
-        <button type="button" class="btn btn-ghost-light" data-add>${icon('add_circle')}<span data-add-label>${addLabel(ctx.state)}</span></button>
+        <div class="aw-opt">
+          <a class="btn btn-gold" href="#/list" aria-describedby="aw-note-start">${icon('auto_awesome')}直接開始</a>
+          <p class="aw-note" id="aw-note-start">不用登入，清單只存在這台裝置的瀏覽器裡。</p>
+        </div>
+        <div class="aw-opt" data-login-opt>${loginHTML()}</div>
       </div>
-      <button type="button" class="aw-replay" data-replay>${icon('movie', 'sm')}重播片頭</button>
+      <div class="aw-minor" data-minor>
+        <button type="button" class="aw-replay" data-add>${icon('add_circle', 'sm')}<span data-add-label>${addLabel(ctx.state)}</span></button>
+        <button type="button" class="aw-replay" data-replay>${icon('movie', 'sm')}重播片頭</button>
+      </div>
     </div>
     <button type="button" class="aw-skip" data-skipintro hidden>跳過片頭${icon('fast_forward', 'sm')}</button>
   </section>`;
@@ -618,7 +642,7 @@ export function mount(root, ctx) {
     if (Math.abs(c - lastC) > 0.004 || (c === 1 && lastC !== 1)) {
       lastC = c;
       sec.style.setProperty('--c', c.toFixed(3));
-      cap.querySelectorAll('[data-cta], [data-replay]').forEach((el) => { el.inert = c < 0.6; }); // 標題還沒浮出時按鈕不能被 Tab 到
+      cap.querySelectorAll('[data-cta], [data-minor]').forEach((el) => { el.inert = c < 0.6; }); // 標題還沒浮出時按鈕不能被 Tab 到
     }
     const nowDone = p >= DONE_AT;
     if (nowDone !== done) {
@@ -657,8 +681,32 @@ export function mount(root, ctx) {
   };
   mq.addEventListener?.('change', onMotion);
 
-  root.addEventListener('click', (e) => {
+  // Google 連結狀態改變時（連線中、已連結…）更新登入按鈕與說明，並把焦點留在按鈕上
+  const loginOpt = root.querySelector('[data-login-opt]');
+  const offCloud = onCloudStatus(() => {
+    const had = loginOpt.contains(document.activeElement);
+    loginOpt.innerHTML = loginHTML();
+    if (had) loginOpt.querySelector('[data-login]:not(:disabled)')?.focus();
+  });
+  preloadCloud(); // 先載入登入元件，按下按鈕時登入視窗才不會被瀏覽器擋住
+
+  root.addEventListener('click', async (e) => {
     if (e.target.closest('[data-add]')) document.dispatchEvent(new CustomEvent('app:add'));
+    const loginBtn = e.target.closest('[data-login]');
+    if (loginBtn) {
+      if (loginBtn.getAttribute('aria-disabled') === 'true') {
+        toast({ title: 'Google 登入尚未啟用', message: '可以先選「直接開始」，清單會存在這台裝置。', tone: 'muted', duration: 5000 });
+        return;
+      }
+      await runSync(connectGoogle);
+      // 登入並同步成功才進清單；取消登入或失敗就留在首頁
+      const c = cloudInfo();
+      if (c.linked && c.hasToken && c.state !== 'conflict') {
+        try { sessionStorage.setItem('shopping-relics:cloud-nudged', '1'); } catch { /* 沒記住只是多一次提示 */ } // 剛同步過，進清單不必再提示一次
+        location.hash = '#/list';
+      }
+      return;
+    }
     if (e.target.closest('[data-skipintro]')) {
       field.finish();
       // 用鍵盤按的（e.detail 為 0）才把焦點移到第一顆按鈕
@@ -686,6 +734,7 @@ export function mount(root, ctx) {
     },
     destroy() {
       mq.removeEventListener?.('change', onMotion);
+      offCloud();
       field.destroy();
       document.body.classList.remove('home-intro');
     },

@@ -1426,7 +1426,7 @@ body[data-route="home"] { --dock-h: calc(56px + 68px + env(safe-area-inset-botto
 }
 .aw-replay:hover { color: #fff8e6; background: rgba(255, 214, 140, .16); }
 .aw-replay:focus-visible, .aw-skip:focus-visible { outline: 2px solid #ffd36b; outline-offset: 2px; }
-.aw:not(.is-live) .aw-replay { display: none; } /* 減少動態時沒有片頭可重播 */
+.aw:not(.is-live) [data-replay] { display: none; } /* 減少動態時沒有片頭可重播 */
 
 /* 播放中：標題依進度浮出（--c 由程式設定） */
 .aw.is-live .aw-cap > * { opacity: var(--c, 0); transform: translateY(calc((1 - var(--c, 0)) * 22px)); }
@@ -1979,3 +1979,25 @@ a.chip-total:hover { border-color: var(--gold); }
 .aw.is-gl .aw-title, .aw.is-gl .aw-sub, .aw.is-gl .aw-alt, .aw.is-gl .aw-stats { text-shadow: 0 1px 12px rgba(4, 4, 22, .85), 0 0 2px rgba(4, 4, 22, .6); }
 .aw.is-gl .btn-ghost-light { background: rgba(8, 8, 26, .6); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .aw.is-gl .aw-replay { background: rgba(8, 8, 26, .6); }
+
+/* ---------- 首頁：兩種開始方式（直接開始／登入後再開始），各附一行小字說明 ---------- */
+.aw-cta { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; width: min(100%, 340px); margin-top: 16px; }
+.aw-opt {
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 12px 9px; border-radius: 16px;
+  background: rgba(8, 8, 26, .62); border: 1px solid rgba(255, 214, 140, .22);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); /* 後面是發亮的海面，加暗色底，小字才讀得清楚 */
+}
+.aw-opt .btn { width: 100%; }
+.aw-note { margin: 0; font-size: 12.5px; line-height: 1.6; letter-spacing: .02em; color: #eadfc8; text-wrap: pretty; }
+.aw-opt .btn[aria-disabled="true"] { opacity: .62; cursor: not-allowed; }
+.aw-minor { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 10px; }
+.aw-minor .aw-replay { margin-top: 0; }
+@media (min-width: 640px) {
+  .aw-cta { grid-template-columns: repeat(2, minmax(0, 1fr)); width: min(100%, 620px); gap: 14px; margin-top: 20px; }
+  .aw-opt { padding: 14px 16px 12px; gap: 8px; }
+  .aw-note { font-size: 13px; }
+}
+@media (max-height: 700px) and (max-width: 959.98px) {
+  .aw-opt { padding: 8px 10px 7px; gap: 4px; }
+  .aw-note { font-size: 12px; line-height: 1.5; }
+}
