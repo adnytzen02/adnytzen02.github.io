@@ -136,3 +136,82 @@
   }, { rootMargin: '400px 0px' });
   io.observe(host);
 })();
+
+// ===== 大阪轉乘站：車站分頁＋轉乘路線切換 =====
+(() => {
+  const root = document.querySelector('[data-osk]');
+  if (!root) return;
+  // 車站分頁（方向鍵可切換，跳過尚未開放的分頁）
+  const tabs = [...root.querySelectorAll('[role="tab"]')];
+  const select = (t, focus) => {
+    tabs.forEach(x => {
+      const on = x === t;
+      x.setAttribute('aria-selected', String(on)); x.tabIndex = on ? 0 : -1;
+      const p = document.getElementById(x.getAttribute('aria-controls'));
+      if (p) p.hidden = !on;
+    });
+    if (focus) t.focus();
+  };
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => !t.disabled && select(t));
+    t.addEventListener('keydown', e => {
+      const dir = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+      if (!dir) return;
+      e.preventDefault();
+      for (let k = 1; k <= tabs.length; k++) {
+        const n = tabs[(i + dir * k + tabs.length * k) % tabs.length];
+        if (!n.disabled) { select(n, true); break; }
+      }
+    });
+  });
+  // 立體示意圖：支援 WebGL、未開省流量時載入（減少動態時只畫靜態畫面）；不支援就維持平面 SVG
+  const can3d = (() => {
+    if (navigator.connection && navigator.connection.saveData) return false;
+    try { const c = document.createElement('canvas'), g = c.getContext('webgl2') || c.getContext('webgl'); g?.getExtension('WEBGL_lose_context')?.loseContext(); return !!g; } catch (_) { return false; }
+  })() && 'IntersectionObserver' in window && 'ResizeObserver' in window;
+  const loadScript = src => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('無法載入 ' + src)); document.head.appendChild(s); });
+  // 每個車站：點轉乘按鈕 → 圖上只亮那條路線、下方只顯示那張說明；再點一次恢復全部
+  root.querySelectorAll('[data-osk-station]').forEach(panel => {
+    const map = panel.querySelector('.osk-map');
+    const list = panel.querySelector('.osk-routes-list');
+    const btns = [...panel.querySelectorAll('[data-route-btn]')];
+    let api3d = null, current = null;
+    const host = panel.querySelector('[data-osk3d-host]');
+    const toggle = panel.querySelector('[data-osk-toggle]');
+    if (host && can3d) {
+      const flat = panel.querySelector('.osk-map__flat');
+      host.hidden = false; host.classList.add('is-loading'); flat.hidden = true;
+      const fail = err => { host.hidden = true; flat.hidden = false; console.warn('轉乘立體圖未載入：', err); };
+      const io = new IntersectionObserver(es => {
+        if (!es.some(e => e.isIntersecting)) return;
+        io.disconnect();
+        (window.THREE ? Promise.resolve() : loadScript(host.dataset.three))
+          .then(() => window.OskMap3D ? null : loadScript(host.dataset.src))
+          .then(() => {
+            try {
+              api3d = window.OskMap3D.mount(host, JSON.parse(host.querySelector('[data-osk3d]').textContent));
+              if (current) api3d.show(current);
+              toggle.hidden = false;
+            } catch (err) { fail(err); }
+          }).catch(fail);
+      }, { rootMargin: '300px 0px' });
+      io.observe(host);
+      // 立體／平面切換
+      toggle.addEventListener('click', () => {
+        const toFlat = toggle.getAttribute('aria-pressed') !== 'true';
+        toggle.setAttribute('aria-pressed', String(toFlat));
+        toggle.textContent = toFlat ? '看立體圖' : '看平面圖';
+        host.hidden = toFlat; flat.hidden = !toFlat;
+      });
+    }
+    const show = id => {
+      current = id; if (api3d) api3d.show(id);
+      btns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.routeBtn === id)));
+      panel.querySelectorAll('.osk-route').forEach(p => p.classList.toggle('is-on', p.dataset.route === id));
+      panel.querySelectorAll('[data-route-card]').forEach(c => c.classList.toggle('is-on', c.dataset.routeCard === id));
+      if (id) { map.dataset.active = id; list.dataset.filtered = ''; }
+      else { delete map.dataset.active; delete list.dataset.filtered; }
+    };
+    btns.forEach(b => b.addEventListener('click', () => show(b.getAttribute('aria-pressed') === 'true' ? null : b.dataset.routeBtn)));
+  });
+})();

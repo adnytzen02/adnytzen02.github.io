@@ -567,6 +567,28 @@ button.btn.btn--ghost { border: 1px solid var(--navy); }
 .nav-toggle[aria-expanded="true"] .nav-toggle__bars::before { transform: translateY(6px) rotate(45deg); }
 .nav-toggle[aria-expanded="true"] .nav-toggle__bars::after { transform: translateY(-6px) rotate(-45deg); }
 
+/* ===== 導覽列的群組（交通指南、購物指南） =====
+   沒有 JavaScript 時：群組攤平，子頁面和其他項目排在同一列 */
+.nav-group, .site-header .nav-sub { display: contents; }
+.nav-group__btn { display: none; }
+/* 桌機：按鈕點開下拉選單 */
+@media (min-width: 1200px) {
+  .js .site-header nav { overflow: visible; }
+  .js .nav-group { display: block; position: relative; }
+  .js .nav-group__btn { display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 14px 8px; border: 0; border-bottom: 3px solid transparent; background: none; color: rgba(255,255,255,.85); font: inherit; font-size: 15px; white-space: nowrap; cursor: pointer; }
+  .js .nav-group__btn::after { content: ""; width: 7px; height: 7px; margin-top: -4px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); }
+  .js .nav-group__btn[aria-expanded="true"]::after { margin-top: 4px; transform: rotate(225deg); }
+  .js .nav-group__btn:hover, .js .nav-group__btn[aria-expanded="true"] { color: #fff; }
+  .js .nav-group.is-current > .nav-group__btn { color: #fff; font-weight: 700; border-bottom-color: var(--gold); }
+  .js .site-header .nav-sub { display: none; position: absolute; left: 0; top: 100%; z-index: 5; min-width: 168px; flex-direction: column; gap: 2px; padding: 8px; background: var(--navy-deep); border: 1px solid rgba(255,255,255,.2); border-top: 0; border-radius: 0 0 14px 14px; box-shadow: 0 18px 30px -12px rgba(0,0,0,.55); }
+  .js .nav-group__btn[aria-expanded="true"] + .nav-sub { display: flex; }
+  .js .site-header .nav-sub a { display: flex; align-items: center; min-height: 44px; padding: 8px 14px; border-bottom: 0; border-left: 3px solid transparent; border-radius: 8px; }
+  .js .site-header .nav-sub a:hover { background: rgba(255,255,255,.1); }
+  .js .site-header .nav-sub a[aria-current="page"] { border-left-color: var(--gold); background: rgba(255,255,255,.08); }
+}
+@media (min-width: 1200px) and (prefers-reduced-motion: no-preference) {
+  .js .nav-group__btn::after { transition: transform .2s, margin .2s; }
+}
 /* 導覽列 10 項：桌機縮小左右留白，避免溢出 */
 @media (min-width: 1200px) { .site-header nav a { padding-left: 8px; padding-right: 8px; } }
 /* 導覽列 10 項，1200px 以下改用漢堡選單 */
@@ -580,6 +602,11 @@ button.btn.btn--ghost { border: 1px solid var(--navy); }
   .js .site-header nav a { padding: 14px 24px; font-size: 17px; min-height: 52px; display: flex; align-items: center; gap: 6px; border-bottom: 0; border-left: 4px solid transparent; }
   .js .site-header nav a[aria-current="page"] { border-left-color: var(--gold); background: rgba(255,255,255,.08); }
   .js .site-header nav a:hover { background: rgba(255,255,255,.06); }
+  /* 漢堡選單裡，群組直接展開：上面一行小標，子頁面往內縮 */
+  .js .nav-group { display: block; }
+  .js .site-header .nav-sub { display: block; padding: 0; }
+  .js .site-header .nav-sub::before { content: attr(aria-label); display: block; padding: 14px 24px 4px 28px; font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--gold); }
+  .js .site-header .nav-sub a { padding-left: 44px; }
 }
 @media print { .nav-toggle { display: none !important; } }
 
@@ -1933,3 +1960,184 @@ html.lenis, html.lenis body { height: auto; }
 .hero--sakura .scene-cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .hero--sakura.has-scene::before { display: none; }
 .hero--sakura h1 { text-shadow: 0 2px 16px rgba(0,0,0,.45); }
+
+/* ---- 機場流程頁：座位分區圖（v7.3.2）。電腦看橫式、手機看直式 ---- */
+.ap .ap-seatmap { margin: 12px 0 20px; padding: 16px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); }
+.ap .ap-seatmap svg { display: block; width: 100%; height: auto; }
+.ap .ap-seatmap .ap-seatmap__svg--v { display: none; max-width: 400px; margin: 0 auto; }
+.ap .ap-seatmap--row svg { max-width: 560px; margin: 0 auto; }
+.ap .ap-seatmap figcaption { margin-top: 10px; font-size: 14.5px; color: var(--muted); line-height: 1.7; }
+@media (max-width: 699px) {
+  .ap .ap-seatmap { padding: 12px 8px; }
+  .ap .ap-seatmap .ap-seatmap__svg--h { display: none; }
+  .ap .ap-seatmap .ap-seatmap__svg--v { display: block; }
+}
+@media print { .ap .ap-seatmap { break-inside: avoid; } }
+
+/* ---- 鐵道頁：大阪轉乘站（v7.4.0） ---- */
+.osk { margin-top: 18px; }
+.osk-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.osk-tab { appearance: none; border: 2px solid var(--navy); background: #fff; color: var(--navy); font: inherit; font-weight: 800; font-size: 16px; padding: 8px 18px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
+.osk-tab[aria-selected="true"] { background: var(--navy); color: #fff; }
+.osk-tab:disabled { opacity: .5; cursor: not-allowed; border-style: dashed; }
+.osk-tab small { font-size: 12px; font-weight: 700; }
+.osk-tab:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.osk-panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.osk-head { display: grid; gap: 6px; padding-bottom: 14px; border-bottom: 2px solid var(--line); }
+.osk-head__name { margin: 0; font-family: var(--font-serif); font-size: 28px; font-weight: 700; color: var(--navy-deep); display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.osk-head__name small { font-family: var(--font); font-size: 14px; color: var(--muted); font-weight: 500; letter-spacing: .04em; }
+.osk-head__lead { margin: 0; }
+.osk-panel .osk-h { margin: 22px 0 10px; font-size: 18px; color: var(--navy); }
+.osk-hint { font-size: 15px; color: var(--muted); margin: 0 0 10px; }
+.osk-picker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.osk-picker__btn { appearance: none; border: 1px solid var(--line); background: var(--paper); color: var(--ink); font: inherit; font-size: 14.5px; font-weight: 700; text-align: left; padding: 8px 12px; border-radius: 10px; cursor: pointer; min-height: 44px; }
+.osk-picker__btn[aria-pressed="true"] { background: var(--crimson); border-color: var(--crimson); color: #fff; }
+.osk-picker__btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.osk-map { margin: 0 0 16px; }
+.osk-map__svg { display: block; width: 100%; height: auto; }
+.osk-map__swipe { display: none; margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--muted); text-align: center; }
+.osk-map__scroll:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+@media (max-width: 700px) {
+  .osk-map__swipe { display: block; }
+  .osk-map__scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 16px; }
+  .osk-map__svg { width: 720px; max-width: none; }
+}
+.osk-map figcaption { font-size: 13.5px; color: var(--muted); margin-top: 6px; }
+.osk-route { stroke: var(--crimson); stroke-width: 5; stroke-dasharray: 10 7; stroke-linecap: round; stroke-linejoin: round; opacity: .28; transition: opacity .25s; }
+.osk-map[data-active] .osk-route { opacity: 0; }
+.osk-map[data-active] .osk-route.is-on { opacity: 1; animation: oskDash 1.2s linear infinite; }
+@keyframes oskDash { to { stroke-dashoffset: -34; } }
+@media (prefers-reduced-motion: reduce) { .osk-map[data-active] .osk-route.is-on { animation: none; } }
+.osk-routes-list { display: grid; gap: 12px; }
+.osk-route-card { border: 1px solid var(--line); border-left: 5px solid var(--crimson); border-radius: 12px; padding: 14px 16px; background: #fff; scroll-margin-top: 90px; }
+.osk-route-card h4 { margin: 0; font-size: 17px; color: var(--ink); }
+.osk-route-card__meta { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 6px 0 8px; font-size: 14px; color: var(--muted); }
+.osk-route-card__note { margin: 8px 0 0; font-size: 14.5px; background: var(--gold-soft); border-radius: 8px; padding: 8px 12px; }
+.js .osk-routes-list[data-filtered] .osk-route-card:not(.is-on) { display: none; }
+.osk-links { columns: 2 260px; font-size: 14.5px; }
+.osk-links li { break-inside: avoid; }
+@media (max-width: 640px) {
+  .osk-panel { padding: 14px 12px; }
+  .osk-head__name { font-size: 24px; }
+  .osk-picker { display: grid; grid-template-columns: 1fr; }
+  .osk-table { overflow: visible; border: 0; }
+  .osk-table table, .osk-table tbody, .osk-table tr, .osk-table th, .osk-table td { display: block; min-width: 0; }
+  .osk-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+  .osk-table tbody tr { margin: 0 0 10px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; }
+  .osk-table tbody th[scope="row"] { background: #f4f1ea; color: var(--navy); }
+  .osk-table td { display: grid; grid-template-columns: 4em 1fr; gap: 10px; padding: 8px 14px; }
+  .osk-table td::before { content: attr(data-label); color: var(--muted); font-size: 13px; font-weight: 700; }
+}
+@media print { .osk-picker { display: none; } .js .osk-routes-list[data-filtered] .osk-route-card { display: block !important; } }
+
+/* 轉乘站立體示意圖（three.js） */
+.osk3d { margin-bottom: 8px; }
+.osk3d__bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.osk3d__hint { font-size: 13.5px; font-weight: 700; color: var(--muted); }
+.osk3d__views, .osk3d__levels { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.osk3d__levels { margin-left: auto; padding-right: 10px; border-right: 1px solid var(--line); }
+.osk3d__views button, .osk3d__levels button, .osk-map__toggle { appearance: none; border: 1px solid var(--line); background: #fff; color: var(--navy); font: inherit; font-size: 13.5px; font-weight: 700; padding: 6px 12px; border-radius: 999px; cursor: pointer; min-height: 40px; }
+.osk3d__levels button[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }
+.osk3d__views button:hover, .osk3d__levels button:hover { border-color: var(--navy); }
+.osk3d__views button:focus-visible, .osk3d__levels button:focus-visible, .osk-map__toggle:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.osk-map__toggle { margin: 4px 0 6px; }
+.osk3d__stage { position: relative; aspect-ratio: 16 / 10; border-radius: 16px; overflow: hidden; background: radial-gradient(120% 100% at 50% 0%, #fdfbf7, #ece6db); touch-action: pan-y; cursor: grab; }
+.osk3d__stage.is-drag { cursor: grabbing; }
+.osk3d__stage[data-levels="3"] { aspect-ratio: 5 / 4; }
+.osk3d__stage canvas { display: block; width: 100%; height: 100%; }
+.osk3d.is-loading .osk3d__stage::after { content: "立體圖載入中…"; position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-weight: 700; }
+.osk3d__labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.osk3d__label { position: absolute; left: 0; top: 0; white-space: nowrap; text-align: center; line-height: 1.25; transition: opacity .2s; }
+.osk3d__label b { display: block; }
+.osk3d__label small { display: block; font-size: 11.5px; font-weight: 500; }
+.osk3d__label.is-station b { font-size: 14.5px; font-weight: 800; color: var(--navy-deep); background: rgba(255,255,255,.92); border-radius: 6px; padding: 1px 7px; box-shadow: 0 2px 8px rgba(15,31,56,.15); }
+.osk3d__label.is-station small { color: var(--muted); font-weight: 600; }
+.osk3d__label.is-land b { font-size: 12px; font-weight: 600; color: #4a453c; text-shadow: 0 0 3px #fff, 0 0 3px #fff; }
+.osk3d__label.is-land small { color: #6b6558; }
+.osk3d__label.is-gate b { font-size: 12px; font-weight: 800; color: #fff; background: #23262d; border-radius: 4px; padding: 0 5px; }
+/* 樓層牌：貼在每片樓板的左前角 */
+.osk3d__label.is-level b { display: flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: 999px; background: #fff; border: 2px solid var(--lv, var(--muted)); color: var(--navy-deep); font-size: 13.5px; font-weight: 800; box-shadow: 0 2px 8px rgba(15,31,56,.16); }
+.osk3d__label.is-level i { display: grid; place-items: center; min-width: 34px; height: 24px; padding: 0 6px; border-radius: 999px; background: var(--lv, var(--muted)); color: #fff; font-style: normal; font-size: 12.5px; font-weight: 800; }
+.osk3d__label.is-level small { display: inline; font-size: 12px; font-weight: 600; color: var(--muted); }
+.osk3d__label.is-upper { --lv: #8a5a0f; }
+.osk3d__label.is-ground { --lv: #5c574e; }
+.osk3d__label.is-under { --lv: #2a5ea8; }
+/* 車站名稱前的樓層小標 */
+.osk3d__lv { display: inline-block; margin-right: 5px; padding: 0 5px; border-radius: 4px; font-style: normal; font-size: 11px; font-weight: 800; line-height: 1.5; vertical-align: 1px; color: #fff; }
+.osk3d__lv.is-under { background: #2a5ea8; }
+.osk3d__lv.is-upper { background: #8a5a0f; }
+/* 路線上的標記：出發、抵達、上下樓 */
+.osk3d__label.is-mark b { padding: 2px 9px; border-radius: 999px; font-size: 13px; font-weight: 800; box-shadow: 0 2px 8px rgba(15,31,56,.2); }
+.osk3d__label.is-start b { background: #fff; color: #9c1f25; border: 2px solid #c8102e; }
+.osk3d__label.is-end b { background: #c8102e; color: #fff; border: 2px solid #c8102e; }
+.osk3d__label.is-change b { background: #23262d; color: #fff; border: 2px solid #23262d; }
+/* 圖例 */
+.osk3d__key { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 8px 0 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+.osk3d__key span { display: inline-flex; align-items: center; gap: 6px; }
+.osk3d__key i { display: inline-block; width: 26px; height: 6px; }
+.osk3d__key .k-line { border-radius: 3px; background: #c8102e; }
+.osk3d__key .k-dots { background: radial-gradient(circle, #c8102e 2.6px, transparent 3px) 0 50% / 9px 6px repeat-x; }
+.osk3d__key .k-gate { width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 3px solid #23262d; }
+@media (max-width: 700px) {
+  .osk3d__stage { aspect-ratio: 6 / 5; }
+  .osk3d__stage[data-levels="3"] { aspect-ratio: 1 / 1; }
+  .osk3d__label.is-station b { font-size: 12.5px; }
+  .osk3d__label small, .osk3d__label.is-level small { display: none; }
+  .osk3d__label.is-level b { font-size: 12.5px; padding-right: 8px; }
+  .osk3d__label.is-mark b { font-size: 12px; padding: 1px 7px; }
+  .osk3d__levels { margin-left: 0; padding-right: 0; border-right: 0; }
+  .osk3d__views button, .osk3d__levels button { min-height: 44px; }
+  .osk3d__label.is-land { display: none; }
+  .osk3d__label.is-gate { display: none; }
+}
+@media print { .osk3d { display: none !important; } .osk-map__flat { display: block !important; } }
+
+/* ---- 購物・百貨頁（v7.5.0） ---- */
+.sp-types { list-style: none; margin: 16px 0 24px; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.sp-type { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 6px; align-content: start; }
+.sp-type__ico { font-size: 28px; line-height: 1; }
+.sp-type h3 { margin: 0; font-size: 18px; color: var(--navy-deep); display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.sp-type h3 small { font-size: 13px; font-weight: 500; color: var(--muted); }
+.sp-type p { margin: 0; font-size: 15px; }
+.sp-type__ex { font-size: 14px !important; color: var(--muted); }
+.sp-type__ex b { display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 4px; background: var(--gold-soft); color: #6b5410; font-size: 12.5px; }
+
+.sp-floors { margin: 12px 0 20px; }
+.sp-floors__list { list-style: none; margin: 0 auto; padding: 0; max-width: 640px; display: grid; gap: 0; border: 2px solid var(--navy); border-radius: 14px 14px 6px 6px; overflow: hidden; background: #fff; }
+.sp-floor { display: grid; grid-template-columns: 7.5em 1fr; gap: 4px 14px; padding: 12px 16px; border-top: 1px solid var(--line); align-items: start; }
+.sp-floor:first-child { border-top: 0; background: #fbf4df; }
+.sp-floor:last-child { background: #eef3f9; border-top: 2px dashed #9fb3cc; }
+.sp-floor__lv { grid-row: span 2; font-weight: 800; color: var(--navy); font-size: 14.5px; }
+.sp-floor__what b { display: block; font-size: 16px; }
+.sp-floor__what small { font-size: 13px; color: var(--muted); }
+.sp-floor__note { font-size: 14px; color: var(--muted); }
+.sp-floors figcaption { max-width: 640px; margin: 8px auto 0; font-size: 13.5px; color: var(--muted); }
+
+.sp-fit { margin: 4px 0 0; font-size: 14px; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+
+/* 方位圖：電腦 3×3 格，中間是車站；手機改成清單 */
+.sp-compass { margin: 0 0 8px; }
+.sp-compass__grid { list-style: none; margin: 0; padding: 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; border-radius: 16px; background:
+  linear-gradient(var(--line), var(--line)) center / 2px 100% no-repeat,
+  linear-gradient(var(--line), var(--line)) center / 100% 2px no-repeat, #f6f2ea; }
+.sp-compass__cell { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.sp-compass__cell--c { align-self: center; }
+.sp-compass__dir { font-size: 12.5px; font-weight: 800; color: var(--muted); letter-spacing: .04em; }
+.sp-compass__cell--c .sp-compass__dir { display: none; }
+.sp-compass__st { margin: 0; padding: 12px; border-radius: 12px; background: var(--navy); color: #fff; text-align: center; display: grid; gap: 4px; }
+.sp-compass__st b { font-size: 16px; }
+.sp-compass__st small { font-size: 12.5px; opacity: .9; }
+.sp-shop { background: #fff; border: 1px solid var(--line); border-left: 4px solid #5d6f9a; border-radius: 10px; padding: 8px 10px; display: grid; gap: 2px; font-size: 14px; }
+.sp-shop--dept { border-left-color: var(--crimson); }
+.sp-shop b { font-size: 15px; color: var(--ink); overflow-wrap: anywhere; }
+.sp-shop__type { font-size: 12px; font-weight: 700; color: var(--muted); }
+.sp-shop__note { font-size: 13.5px; line-height: 1.6; }
+.sp-compass figcaption { font-size: 13.5px; color: var(--muted); margin-top: 6px; }
+@media (max-width: 760px) {
+  .sp-compass__grid { display: flex; flex-direction: column; gap: 14px; background: #f6f2ea; padding: 10px; }
+  .sp-compass__cell { grid-row: auto !important; grid-column: auto !important; }
+  .sp-compass__cell--c { order: -1; }
+  .sp-compass__dir { font-size: 14px; color: var(--navy); }
+}
+.sp-panel .check { margin-top: 0; }
+@media print { .sp-tabs .osk-tabs { display: none; } .sp-tabs .osk-panel[hidden] { display: block !important; margin-top: 16px; } }

@@ -182,6 +182,23 @@ try { localStorage.removeItem('jp-handbook-favs-v1'); } catch (_) { /* 儲存空
   window.addEventListener('appinstalled', () => { box.hidden = true; });
 })();
 
+// ===== 桌機導覽列的下拉選單（交通指南、購物指南）：點按開合、Esc 關閉並還焦點、點外面或焦點離開時關閉 =====
+(() => {
+  const btns = [...document.querySelectorAll('.nav-group__btn')];
+  if (!btns.length) return;
+  const close = except => btns.forEach(b => { if (b !== except) b.setAttribute('aria-expanded', 'false'); });
+  btns.forEach(b => {
+    const group = b.closest('.nav-group');
+    b.addEventListener('click', () => { const open = b.getAttribute('aria-expanded') !== 'true'; close(b); b.setAttribute('aria-expanded', String(open)); });
+    group.addEventListener('keydown', e => {
+      if (e.key !== 'Escape' || b.getAttribute('aria-expanded') !== 'true') return;
+      e.stopPropagation(); b.setAttribute('aria-expanded', 'false'); b.focus();
+    });
+    group.addEventListener('focusout', e => { if (!group.contains(e.relatedTarget)) b.setAttribute('aria-expanded', 'false'); });
+  });
+  document.addEventListener('click', e => { if (!e.target.closest('.nav-group')) close(); });
+})();
+
 // ===== 手機版漢堡選單：開關、Esc 關閉並還焦點、點選單外或連結後關閉 =====
 (() => {
   const btn = document.querySelector('.nav-toggle');
