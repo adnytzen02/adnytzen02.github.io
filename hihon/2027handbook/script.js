@@ -182,7 +182,7 @@ try { localStorage.removeItem('jp-handbook-favs-v1'); } catch (_) { /* 儲存空
   window.addEventListener('appinstalled', () => { box.hidden = true; });
 })();
 
-// ===== 桌機導覽列的下拉選單（交通指南、購物指南）：點按開合、Esc 關閉並還焦點、點外面或焦點離開時關閉 =====
+// ===== 桌機導覽列的下拉選單（交通指南、景點指南、購物指南、實用工具）：點按開合、Esc 關閉並還焦點、點外面或焦點離開時關閉 =====
 (() => {
   const btns = [...document.querySelectorAll('.nav-group__btn')];
   if (!btns.length) return;

@@ -567,12 +567,12 @@ button.btn.btn--ghost { border: 1px solid var(--navy); }
 .nav-toggle[aria-expanded="true"] .nav-toggle__bars::before { transform: translateY(6px) rotate(45deg); }
 .nav-toggle[aria-expanded="true"] .nav-toggle__bars::after { transform: translateY(-6px) rotate(-45deg); }
 
-/* ===== 導覽列的群組（交通指南、購物指南） =====
+/* ===== 導覽列的群組（交通指南、景點指南、購物指南、實用工具） =====
    沒有 JavaScript 時：群組攤平，子頁面和其他項目排在同一列 */
 .nav-group, .site-header .nav-sub { display: contents; }
 .nav-group__btn { display: none; }
 /* 桌機：按鈕點開下拉選單 */
-@media (min-width: 1200px) {
+@media (min-width: 880px) {
   .js .site-header nav { overflow: visible; }
   .js .nav-group { display: block; position: relative; }
   .js .nav-group__btn { display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 14px 8px; border: 0; border-bottom: 3px solid transparent; background: none; color: rgba(255,255,255,.85); font: inherit; font-size: 15px; white-space: nowrap; cursor: pointer; }
@@ -586,13 +586,13 @@ button.btn.btn--ghost { border: 1px solid var(--navy); }
   .js .site-header .nav-sub a:hover { background: rgba(255,255,255,.1); }
   .js .site-header .nav-sub a[aria-current="page"] { border-left-color: var(--gold); background: rgba(255,255,255,.08); }
 }
-@media (min-width: 1200px) and (prefers-reduced-motion: no-preference) {
+@media (min-width: 880px) and (prefers-reduced-motion: no-preference) {
   .js .nav-group__btn::after { transition: transform .2s, margin .2s; }
 }
-/* 導覽列 10 項：桌機縮小左右留白，避免溢出 */
-@media (min-width: 1200px) { .site-header nav a { padding-left: 8px; padding-right: 8px; } }
-/* 導覽列 10 項，1200px 以下改用漢堡選單 */
-@media (max-width: 1199px) {
+/* 桌機縮小導覽列左右留白，避免溢出 */
+@media (min-width: 880px) { .site-header nav a { padding-left: 8px; padding-right: 8px; } }
+/* 寬度不夠時改用漢堡選單 */
+@media (max-width: 879px) {
   .js .nav-toggle { display: grid; }
   .js .site-header__inner { gap: 8px; }
   .js .site-header .search-btn { margin-left: auto; }
