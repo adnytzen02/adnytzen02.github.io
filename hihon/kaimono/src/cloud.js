@@ -1,6 +1,7 @@
 // Google Drive 雲端同步
-// - 只要求兩個權限：openid（只拿到 Google 帳號識別碼 sub，沒有姓名、Email）
+// - 同步只要求兩個權限：openid（只拿到 Google 帳號識別碼 sub，沒有姓名、Email）
 //   與 drive.appdata（只能讀寫本網站在你 Drive 裡的「應用程式專用隱藏資料夾」，看不到你其他檔案）
+// - 匯出 PDF 到雲端時才另外要求 drive.file（只能存取本網站自己建立的檔案，例如匯出的 PDF）
 // - 沒有後端：瀏覽器直接呼叫 Google API；存取權杖只放在記憶體，關掉分頁就消失
 import { GOOGLE_CLIENT_ID } from './config.js';
 import { store } from './store.js';
@@ -9,12 +10,14 @@ const META_KEY = 'shopping-relics:cloud';
 const FILE_NAME = 'shopping-relics.json';
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 const SCOPES = `openid ${DRIVE_SCOPE}`;
+const FILE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+const PDF_FOLDER = 'Shopping Relics';
 const DRIVE = 'https://www.googleapis.com/drive/v3';
 const UPLOAD = 'https://www.googleapis.com/upload/drive/v3';
 const FILE_FIELDS = 'id,version,modifiedTime';
 const AUTO_DELAY = 4000;
 
-let token = null;          // { value, exp }
+let token = null;          // { value, exp, scope }
 let tokenClient = null;
 let gisPromise = null;
 let running = null;        // 同步進行中的 Promise（避免同時跑兩次）
@@ -41,8 +44,9 @@ function hashStr(s) {
 }
 const localHash = () => hashStr(store.dataJSON());
 
-function setStatus(state, message = '') {
-  status = { state, message };
+// phase：同步中再細分 'auth'（等 Google 登入）與 'transfer'（已登入、正在傳資料），首頁用來決定何時顯示「正在同步」
+function setStatus(state, message = '', phase = '') {
+  status = { state, message, phase };
   listeners.forEach((fn) => fn(cloudInfo()));
 }
 
@@ -88,22 +92,27 @@ function loadGis() {
   return gisPromise;
 }
 
-const tokenValid = () => Boolean(token && token.exp - Date.now() > 60_000);
+// 權杖還有效，而且包含需要的權限（同步用 drive.appdata；匯出 PDF 用 drive.file）
+const tokenValid = (need = DRIVE_SCOPE) => Boolean(token && token.exp - Date.now() > 60_000
+  && need.split(' ').every((sc) => sc === 'openid' || token.scope.split(' ').includes(sc)));
 
-async function requestToken() {
+// scopes：這次要求的權限；need：一定要拿到的那一項（使用者可能在同意畫面取消勾選）
+async function requestToken(scopes = SCOPES, need = DRIVE_SCOPE) {
   await loadGis();
   return new Promise((resolve, reject) => {
     tokenClient = window.google.accounts.oauth2.initTokenClient({
       client_id: GOOGLE_CLIENT_ID,
-      scope: SCOPES,
+      scope: scopes,
+      include_granted_scopes: true, // 新權杖也帶著先前同意過的權限（同步與匯出 PDF 共用一個權杖）
       callback: (resp) => {
         if (resp.error) { reject(new CloudError('denied', '已取消授權')); return; }
-        // 使用者可能在同意畫面取消勾選 Drive 權限
-        if (!window.google.accounts.oauth2.hasGrantedAllScopes(resp, DRIVE_SCOPE)) {
-          reject(new CloudError('scope', '沒有勾選 Google Drive 權限，無法同步'));
+        if (!window.google.accounts.oauth2.hasGrantedAllScopes(resp, need)) {
+          reject(new CloudError('scope', need === FILE_SCOPE
+            ? '沒有勾選「建立 Google Drive 檔案」的權限，無法存到雲端'
+            : '沒有勾選 Google Drive 權限，無法同步'));
           return;
         }
-        token = { value: resp.access_token, exp: Date.now() + Number(resp.expires_in || 3600) * 1000 };
+        token = { value: resp.access_token, exp: Date.now() + Number(resp.expires_in || 3600) * 1000, scope: String(resp.scope || '') };
         checkWho = true;
         resolve();
       },
@@ -115,7 +124,7 @@ async function requestToken() {
 }
 
 async function ensureToken(interactive) {
-  if (tokenValid()) return;
+  if (tokenValid(SCOPES)) return;
   if (!interactive) throw new CloudError('auth', '需要重新連線 Google');
   await requestToken();
 }
@@ -128,6 +137,7 @@ async function api(url, opts = {}) {
     throw new CloudError('network', '網路連線失敗');
   }
   if (res.status === 401) { token = null; throw new CloudError('auth', '連線已逾時，請重新連線'); }
+  if (res.status === 403) throw new CloudError('http', 'Google 拒絕了這個操作，請確認已同意權限（403）');
   if (res.status === 404) return null;
   if (!res.ok) throw new CloudError('http', `Google 回應錯誤（${res.status}）`);
   return res.status === 204 ? true : res.json();
@@ -178,6 +188,7 @@ function applyRemote(file, data) {
 // 回傳 { action: 'uploaded' | 'downloaded' | 'none' | 'conflict', ... }
 async function doSync(interactive) {
   await ensureToken(interactive);
+  setStatus('syncing', '同步中…', 'transfer'); // 登入完成，開始和雲端比對、傳資料
 
   // 每次登入後確認帳號：只向 Google 取帳號識別碼 sub（openid 權限只會回傳這一項）
   if (checkWho || !meta.sub) {
@@ -224,7 +235,7 @@ function conflict(remote, data) {
 
 export async function syncNow({ interactive = true } = {}) {
   if (running) { again = true; return running; }
-  setStatus('syncing', '同步中…');
+  setStatus('syncing', '同步中…', 'auth');
   running = (async () => {
     try {
       const r = await doSync(interactive);
@@ -292,3 +303,52 @@ store.subscribe(() => {
   scheduleAuto();
   if (meta.sub) listeners.forEach((fn) => fn(cloudInfo())); // 更新「有未同步的修改」提示
 });
+
+/* ---------- 匯出 PDF 到 Google Drive（存在「我的雲端硬碟 › Shopping Relics」資料夾，看得到、可分享） ---------- */
+// 第一步：取得 drive.file 權限。要在使用者按下按鈕後「馬上」呼叫，登入視窗才不會被瀏覽器擋住；
+// 產生 PDF 比較花時間，所以先拿權限、再產生檔案、最後上傳
+export async function prepareDriveFile() {
+  if (!cloudAvailable().ok) throw new CloudError('config', '雲端功能需要從網址（https）開啟網站');
+  if (tokenValid(FILE_SCOPE)) return;
+  await requestToken(meta.sub ? `${SCOPES} ${FILE_SCOPE}` : FILE_SCOPE, FILE_SCOPE);
+}
+
+// 找本網站建立的資料夾（drive.file 只看得到自己建立的檔案），沒有就建立
+async function pdfFolder() {
+  if (meta.pdfFolder) {
+    const f = await api(`${DRIVE}/files/${meta.pdfFolder}?fields=id,trashed`);
+    if (f && !f.trashed) return f.id;
+  }
+  const q = encodeURIComponent(`name='${PDF_FOLDER}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const found = await api(`${DRIVE}/files?q=${q}&fields=files(id)&pageSize=1`);
+  let id = found?.files?.[0]?.id;
+  if (!id) {
+    const made = await api(`${DRIVE}/files?fields=id`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: PDF_FOLDER, mimeType: 'application/vnd.google-apps.folder' }),
+    });
+    id = made?.id;
+  }
+  if (!id) throw new CloudError('http', '無法在 Google Drive 建立資料夾');
+  saveMeta({ pdfFolder: id });
+  return id;
+}
+
+// 上傳 PDF；回傳 { id, link }（link 可以在新分頁打開這份檔案）
+export async function uploadPdf(blob, name) {
+  if (!tokenValid(FILE_SCOPE)) throw new CloudError('auth', '連線已逾時，請再按一次');
+  const folder = await pdfFolder();
+  const boundary = `srpdf${Date.now().toString(36)}`;
+  const body = new Blob([
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n`,
+    JSON.stringify({ name, parents: [folder], mimeType: 'application/pdf' }),
+    `\r\n--${boundary}\r\nContent-Type: application/pdf\r\n\r\n`,
+    blob,
+    `\r\n--${boundary}--`,
+  ]);
+  const file = await api(`${UPLOAD}/files?uploadType=multipart&fields=id,webViewLink`, {
+    method: 'POST', headers: { 'Content-Type': `multipart/related; boundary=${boundary}` }, body,
+  });
+  if (!file?.id) throw new CloudError('http', '上傳失敗');
+  return { id: file.id, link: file.webViewLink || `https://drive.google.com/file/d/${file.id}/view` };
+}

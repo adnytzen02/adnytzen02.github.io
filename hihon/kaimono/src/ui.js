@@ -144,7 +144,7 @@ export function choiceDialog({ title, body, choices }) {
         <h2 id="choice-title" class="confirm-title">${esc(title)}</h2>
         <div class="confirm-text">${body}</div>
         <div class="confirm-actions confirm-actions-stack">
-          ${choices.map((c) => `<button type="button" class="btn ${c.tone === 'danger' ? 'btn-danger' : c.tone === 'gold' ? 'btn-gold' : 'btn-ghost'}" data-choice="${esc(c.value)}">${esc(c.text)}</button>`).join('')}
+          ${choices.map((c) => `<button type="button" class="btn ${c.tone === 'danger' ? 'btn-danger' : c.tone === 'gold' ? 'btn-gold' : 'btn-ghost'}" data-choice="${esc(c.value)}">${c.icon ? icon(c.icon) : ''}${esc(c.text)}</button>`).join('')}
           <button type="button" class="btn btn-ghost" data-choice="" autofocus>取消</button>
         </div>
       </form>`, 'choice-title');
@@ -255,6 +255,88 @@ export function download(filename, text, type = 'text/plain') {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// 「正在同步」浮層：不是對話框（不搶焦點、不用按），同步完顯示結果後自動消失
+// show() 顯示；done({ title, sub }) 切成完成狀態、停留一下再淡出（回傳 Promise）；
+// fail({ title, sub }) 切成失敗狀態、停留較久（點一下可提早關閉）；close() 直接淡出
+// 用 popover 放進瀏覽器的最上層，設定視窗（<dialog>）開著時也蓋得過去
+export function syncOverlay() {
+  let el = null;
+  let shownAt = 0;
+  let closing = null;
+  const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const close = () => {
+    if (!el) return Promise.resolve();
+    if (closing) return closing;
+    const node = el;
+    node.classList.remove('is-in');
+    closing = wait(reduce() ? 0 : 320).then(() => {
+      try { node.hidePopover?.(); } catch { /* 已經關閉 */ }
+      node.remove(); el = null; closing = null;
+    });
+    return closing;
+  };
+  return {
+    show() {
+      if (el) return;
+      el = document.createElement('div');
+      el.className = 'sync-ov';
+      el.innerHTML = `<div class="sync-ov-card" role="status" aria-live="polite">
+        <div class="sync-ov-anim" aria-hidden="true">
+          <svg viewBox="0 0 100 100"><defs><linearGradient id="sync-ov-g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3c4"/><stop offset=".5" stop-color="#e8c25a"/><stop offset="1" stop-color="#b8892a"/></linearGradient></defs>
+            <circle class="sync-ov-track" cx="50" cy="50" r="42"/><circle class="sync-ov-arc" cx="50" cy="50" r="42" pathLength="100"/></svg>
+          <span class="sync-ov-dot"></span><span class="sync-ov-dot"></span><span class="sync-ov-dot"></span>
+          <span class="ms sync-ov-icon">sync</span>
+        </div>
+        <p class="sync-ov-title">正在同步 Google Drive…</p>
+        <p class="sync-ov-sub">比對這台和雲端的清單，請稍候</p>
+      </div>`;
+      // 支援 popover 的瀏覽器放進最上層；不支援的話放進目前開著的對話框裡，才不會被擋住
+      const host = el.showPopover ? document.body : ([...document.querySelectorAll('dialog[open]')].at(-1) ?? document.body);
+      if (el.showPopover) el.setAttribute('popover', 'manual');
+      host.append(el);
+      try { el.showPopover?.(); } catch { /* 不支援時照一般元素顯示 */ }
+      el.addEventListener('click', () => { if (el?.classList.contains('is-fail')) close(); });
+      shownAt = performance.now();
+      requestAnimationFrame(() => requestAnimationFrame(() => el?.classList.add('is-in')));
+    },
+    async done({ title, sub = '' }) {
+      if (!el) return;
+      // 同步太快時至少讓「同步中」停留一下，畫面才不會一閃而過
+      await wait(Math.max(0, 900 - (performance.now() - shownAt)));
+      if (!el) return;
+      el.classList.add('is-done');
+      el.querySelector('.sync-ov-icon').textContent = 'check';
+      el.querySelector('.sync-ov-title').textContent = title;
+      el.querySelector('.sync-ov-sub').textContent = sub;
+      await wait(1500);
+      await close();
+    },
+    async fail({ title, sub = '' }) {
+      this.show();
+      await wait(Math.max(0, 500 - (performance.now() - shownAt)));
+      if (!el) return;
+      el.classList.add('is-fail');
+      el.querySelector('.sync-ov-icon').textContent = 'error';
+      el.querySelector('.sync-ov-title').textContent = title;
+      el.querySelector('.sync-ov-sub').textContent = sub;
+      await wait(4000); // 錯誤訊息要讀，停久一點
+      await close();
+    },
+    close,
+  };
+}
+
+// 下載 Blob（例如 PDF）
+export function downloadBlob(filename, blob) {
+  const url = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement('a'), { href: url, download: filename });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000); // 手機開啟較慢，多留一點時間
 }
 
 // 進度條（role=progressbar）

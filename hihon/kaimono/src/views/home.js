@@ -698,10 +698,11 @@ export function mount(root, ctx) {
         toast({ title: 'Google 登入尚未啟用', message: '可以先選「直接開始」，清單會存在這台裝置。', tone: 'muted', duration: 5000 });
         return;
       }
+      // 同步的進度與結果由 runSync 的動畫視窗顯示，視窗消失後才回到這裡
       await runSync(connectGoogle);
-      // 登入並同步成功才進清單；取消登入或失敗就留在首頁
+      // 登入並同步成功才進清單；取消登入、失敗或衝突時選了「取消」就留在首頁
       const c = cloudInfo();
-      if (c.linked && c.hasToken && c.state !== 'conflict') {
+      if (c.linked && c.hasToken && c.state === 'ok') {
         try { sessionStorage.setItem('shopping-relics:cloud-nudged', '1'); } catch { /* 沒記住只是多一次提示 */ } // 剛同步過，進清單不必再提示一次
         location.hash = '#/list';
       }

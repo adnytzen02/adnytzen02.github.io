@@ -109,9 +109,10 @@
 ## Google Drive 雲端同步（設定步驟）
 程式已經寫好，只差你的 **OAuth 用戶端 ID**。沒填之前，設定裡會顯示「雲端同步尚未啟用」，其他功能照常使用。
 
-**權限只有兩個**（都屬於 Google 分類的「非敏感」範圍，不需要送審）：
+**權限共三個**（都屬於 Google 分類的「非敏感」範圍，不需要送審）：
 - `openid`：只取得 Google 帳號識別碼（sub），不取得姓名、Email
 - `https://www.googleapis.com/auth/drive.appdata`：只能讀寫本網站在使用者 Drive 裡的應用程式專用隱藏資料夾，看不到其他檔案
+- `https://www.googleapis.com/auth/drive.file`：只在「匯出清單 PDF → 存到 Google Drive」時才詢問；只能存取本網站自己建立的檔案
 
 **步驟**
 1. 到 [Google Cloud Console](https://console.cloud.google.com/) 建立新專案（例如 `shopping-relics`）。
@@ -120,7 +121,7 @@
    - 使用者類型選「外部」，填應用程式名稱、支援 Email。
    - 應用程式首頁：`https://adnytzen02.github.io/hihon/kaimono/`
    - 隱私權政策：`https://adnytzen02.github.io/hihon/kaimono/privacy.html`
-   - 「資料存取／範圍」加入 `openid` 與 `.../auth/drive.appdata`。
+   - 「資料存取／範圍」加入 `openid`、`.../auth/drive.appdata` 與 `.../auth/drive.file`。
    - 只有自己和家人用的話，維持「測試」狀態，在「目標對象 → 測試使用者」加入要用的 Google 帳號（最多 100 個）。要開放給所有人，再按「發布應用程式」。
 4. 「用戶端 → 建立用戶端」：類型選 **網頁應用程式**
    - 已授權的 JavaScript 來源：`https://adnytzen02.github.io`（只填網域，不含 `/hihon/kaimono/`）
@@ -135,7 +136,15 @@
 - 存取權杖只放在記憶體，關閉分頁就消失；重新開網站後，進到清單等頁面會提示「同步」，按一下即可（不會再出現同意畫面）。
 - 連線期間，修改後 4 秒自動上傳。
 - 雲端和這台都改過時不會自動覆蓋，會讓使用者選「用雲端取代這台」或「用這台覆蓋雲端」。
-- 設定裡可以「中斷連結」（兩邊資料都保留）或「刪除雲端資料」。
+- 手動同步（首頁登入、設定「立即同步」、開站提醒）的進度與結果都用「正在同步」動畫視窗顯示，完成後自動消失；自動上傳則在背景進行、不跳視窗。
+- 設定裡可以「登出 Google」（兩邊資料都保留）或「刪除雲端資料」。
+- 同步檔在隱藏資料夾，Drive 檔案清單裡看不到；可在 drive.google.com →「設定 › 管理應用程式」看到本網站的隱藏資料大小。
+
+## 匯出清單 PDF
+設定 →「匯出 PDF」：依店鋪排好的 A4 清單（含總覽、勾選框、照片縮圖、代購對象與備註），可選「全部商品／只列待買」。
+- **下載到這台裝置**：不需要登入。
+- **存到 Google Drive**：存到使用者「我的雲端硬碟 › Shopping Relics」資料夾（看得到、可分享）。
+- 做法：用 canvas 畫出每頁，轉成 JPEG 後組成 PDF（`src/pdf.js`，沒有用套件）。好處是不必嵌入中日文字型、檔案小；代價是 PDF 裡的文字無法選取或搜尋。
 - 本機只記住帳號識別碼、同步檔 ID、版本與時間（localStorage `shopping-relics:cloud`）。
 
 ## 部署到 GitHub Pages
@@ -155,13 +164,13 @@
 - 圖示：自架 Material Symbols 子集（`assets/fonts/`，Apache 2.0）
 
 ## 新增圖示時
-圖示字型只包含目前用到的 90 個圖示，並以 base64 內嵌在 `css/style.css` 的 `@font-face`（雙擊開啟時瀏覽器不允許另外載入字型檔）。若程式中新增其他圖示名稱，需重新產生子集，再把新檔案轉成 base64 替換 CSS 裡的 data URI：
+圖示字型只包含目前用到的 95 個圖示，並以 base64 內嵌在 `css/style.css` 的 `@font-face`（雙擊開啟時瀏覽器不允許另外載入字型檔）。若程式中新增其他圖示名稱，需重新產生子集，再把新檔案轉成 base64 替換 CSS 裡的 data URI：
 
 ```bash
 npm pack material-symbols && tar xzf material-symbols-*.tgz
 pip install fonttools brotli
 python3 -m fontTools.varLib.instancer package/material-symbols-outlined.woff2 GRAD=0 opsz=24 wght=400:700 -o inst.ttf
-# glyphs.txt：要保留的圖示 ligature glyph 名稱（逗號分隔）
+# glyphs.txt：要保留的圖示 ligature glyph 名稱（逗號分隔；注意 local_offer 在新版字型的 glyph 名稱是 sell）
 python3 -m fontTools.subset inst.ttf --glyphs="$(cat glyphs.txt)" \
   --unicodes="U+0030-0039,U+0041-005A,U+005F,U+0061-007A" \
   --no-layout-closure --layout-features='rlig' --flavor=woff2 \

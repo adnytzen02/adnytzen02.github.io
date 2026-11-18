@@ -1,7 +1,7 @@
 // 離線快取（Service Worker）
 // 只在 https（GitHub Pages）或 localhost 生效；雙擊開啟 index.html 時不會啟用。
 // 新增或改名「網站本體檔案」時，請同時更新 SHELL_FILES 並把 VERSION 改成新的值。
-const VERSION = '2026-11-17b';
+const VERSION = '2026-11-17f';
 const SHELL = `relics-shell-${VERSION}`;
 const RUNTIME = 'relics-runtime-v1';
 
